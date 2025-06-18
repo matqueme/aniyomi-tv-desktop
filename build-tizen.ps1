@@ -19,6 +19,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Copying Tizen configuration files..." -ForegroundColor Yellow
 Copy-Item "config.xml" "dist/"
 Copy-Item "icon.svg" "dist/"
+Copy-Item "icon.png" "dist/"
 
 # Create .tizen-package directory
 New-Item -ItemType Directory -Force -Path ".tizen-package"
@@ -27,54 +28,10 @@ New-Item -ItemType Directory -Force -Path ".tizen-package"
 Write-Host "Preparing Tizen package..." -ForegroundColor Yellow
 Copy-Item "dist\*" ".tizen-package\" -Recurse
 
-# Create Tizen Studio project files
-Write-Host "Creating Tizen Studio project files..." -ForegroundColor Yellow
-New-Item -ItemType Directory -Force -Path ".tizen-package\.settings"
-
-# Create .project file
-@"
-<?xml version="1.0" encoding="UTF-8"?>
-<projectDescription>
-	<name>aniyomi-tizen</name>
-	<comment></comment>
-	<projects>
-	</projects>
-	<buildSpec>
-		<buildCommand>
-			<name>json.validation.builder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
-			<name>org.tizen.web.project.builder.WebBuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-	</buildSpec>
-	<natures>
-		<nature>json.validation.nature</nature>
-		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
-		<nature>org.tizen.web.project.builder.WebNature</nature>
-	</natures>
-</projectDescription>
-"@ | Out-File -FilePath ".tizen-package\.project" -Encoding UTF8
-
-
-# Create Tizen project configuration
-@"
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<tproject xmlns="http://www.tizen.org/tproject">
-    <platforms>
-        <platform>
-            <name>tv-samsung-9.0</name>
-        </platform>
-    </platforms>
-    <package>
-        <blacklist/>
-        <resFallback autoGen="true"/>
-    </package>
-</tproject>
-"@ | Out-File -FilePath ".tizen-package\.tproject" -Encoding UTF8
+# Copy Tizen Studio project files
+Write-Host "Copying Tizen Studio project files..." -ForegroundColor Yellow
+Copy-Item ".project" ".tizen-package\"
+Copy-Item ".tproject" ".tizen-package\"
 
 Write-Host "Build completed!" -ForegroundColor Green
 Write-Host "Your Tizen app is ready in the '.tizen-package' directory" -ForegroundColor Cyan

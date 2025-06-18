@@ -7,7 +7,7 @@
     <tizen:metadata key="http://samsung.com/tv/metadata/prelaunch.support" value="true" />
     <tizen:metadata key="http://tizen.org/metadata/app_ui_type/base_screen_resolution"
         value="extensive" />
-    <name>Anyomi</name>
+    <name>Aniyomi</name>
     <tizen:privilege name="http://tizen.org/privilege/application.launch" />
     <tizen:profile name="tv-samsung" />
     <tizen:setting screen-orientation="landscape" context-menu="enable" background-support="disable"
