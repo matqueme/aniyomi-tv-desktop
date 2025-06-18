@@ -1,0 +1,6 @@
+<!-- Icône SVG simple pour l'application -->
+<svg width="117" height="117" viewBox="0 0 117 117" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="117" height="117" rx="20" fill="#646cff"/>
+  <path d="M58.5 20L95.3 97.5H21.7L58.5 20Z" fill="white"/>
+  <circle cx="58.5" cy="75" r="8" fill="#646cff"/>
+</svg>
