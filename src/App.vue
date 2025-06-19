@@ -1,11 +1,3 @@
-<script setup>
-import TvNavigation from "./components/TvNavigation.vue";
-</script>
+<template></template>
 
-<template>
-  <TvNavigation />
-</template>
-
-<style scoped>
-/* App-specific styles can go here */
-</style>
+<script setup></script>
