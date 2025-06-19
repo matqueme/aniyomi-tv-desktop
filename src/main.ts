@@ -3,7 +3,7 @@ import { createPinia } from 'pinia';
 import { createI18n } from 'vue-i18n';
 import { createRouter, createWebHistory } from 'vue-router';
 
-import './assets/style.css';
+import './style.css';
 import App from './App.vue';
 import { tizenTV } from './utils/tizen';
 
@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', (): void => {
   tizenTV.init();
 });
 
-// Create and mount Vue app
-const pinia = createPinia();
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -22,6 +20,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [],
 });
+
+const pinia = createPinia();
 const app = createApp(App);
 
 // Make Tizen utilities available globally
