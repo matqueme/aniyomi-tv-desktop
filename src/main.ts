@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import { createI18n } from 'vue-i18n';
-import { createRouter, createWebHistory } from 'vue-router';
+import router from './router';
 
 import './style.css';
 import App from './App.vue';
@@ -14,11 +14,7 @@ document.addEventListener('DOMContentLoaded', (): void => {
 
 const i18n = createI18n({
   legacy: false,
-  locale: 'en',
-});
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [],
+  locale: 'fr', // Changé en français
 });
 
 const pinia = createPinia();
