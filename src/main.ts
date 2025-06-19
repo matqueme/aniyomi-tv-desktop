@@ -2,10 +2,10 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import "./style.css";
 import App from "./App.vue";
-import { tizenTV } from "./utils/tizen.js";
+import { tizenTV } from "./utils/tizen";
 
 // Initialize Tizen TV features
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", (): void => {
   tizenTV.init();
 });
 
