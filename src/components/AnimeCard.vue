@@ -15,9 +15,7 @@
         :src="anime.posterUrl"
         :alt="anime.title"
         :class="[
-          'h-full w-full object-cover transition-transform duration-300',
-          'group-hover:scale-110',
-          isFocused ? 'scale-110' : '',
+          'h-full w-full object-cover transition-transform duration-300 ease-out',
         ]"
         loading="lazy"
       />
@@ -32,7 +30,13 @@
       ></div>
       <!-- Badge épisodes -->
       <div
-        class="absolute top-3 right-3 rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white"
+        :class="[
+          'absolute top-3 right-3 rounded-lg border backdrop-blur-sm',
+          'px-2.5 py-1 text-xs font-semibold transition-all duration-300',
+          'border-slate-600/50 bg-black/40 text-slate-200',
+          'group-hover:border-indigo-400/70 group-hover:bg-indigo-500/80 group-hover:text-white',
+          isFocused ? 'border-indigo-400/70 bg-indigo-500/80 text-white' : '',
+        ]"
       >
         <span>{{ anime.episodeCount }} EP</span>
       </div>
@@ -111,16 +115,26 @@ defineEmits<Emits>();
 .anime-card {
   transform: translateZ(0);
   will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 /* Animation de l'image au hover */
 .anime-card img {
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.3s ease;
   filter: brightness(0.9);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
-.anime-card:hover img {
+.anime-card:hover img,
+.anime-card.focused img {
   filter: brightness(1);
+  transform: scale(1.1) translateZ(0);
 }
 
 /* Responsive pour éviter le scroll vertical - hauteurs fixes */

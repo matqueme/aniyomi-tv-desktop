@@ -1,10 +1,10 @@
 <template>
   <div class="anime-list">
     <div class="mb-6">
-      <h2 class="mr-4 mb-4 text-2xl font-bold text-white">{{ title }}</h2>
+      <h2 class="mb-4 ml-4 text-2xl font-bold text-white">{{ title }}</h2>
       <div
         ref="listContainer"
-        class="flex gap-4 overflow-x-hidden scroll-smooth p-4"
+        class="flex gap-6 overflow-x-hidden scroll-smooth p-4"
         :style="{ transform: `translateX(${scrollOffset}px)` }"
       >
         <AnimeCard
