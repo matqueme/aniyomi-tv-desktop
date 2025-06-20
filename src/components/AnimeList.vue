@@ -11,7 +11,7 @@
         :key="anime.id"
         :anime="anime"
         :is-focused="index === focusedIndex && isActive"
-        @select="handleAnimeSelect"
+        @select="(anime) => emit('select', anime)"
       />
     </div>
   </div>
@@ -21,25 +21,28 @@
 import { ref, onMounted, onUnmounted, computed, nextTick, readonly } from 'vue';
 import type { Anime } from '../types/anime';
 import AnimeCard from './AnimeCard.vue';
+import { useNavigationStore, type NavigableList } from '../stores/navigation';
 
 interface Props {
   animes: Anime[];
   title: string;
   itemsPerRow?: number;
+  listId?: string; // Identifiant unique pour la liste
 }
 
 interface Emits {
   (e: 'select', anime: Anime): void;
-  (e: 'focus-change', index: number): void;
-  (e: 'navigate-up'): void;
-  (e: 'navigate-down'): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   itemsPerRow: 6,
+  listId: () => `list-${Math.random().toString(36).substr(2, 9)}`, // ID auto-généré
 });
 
 const emit = defineEmits<Emits>();
+
+// Store de navigation
+const navigationStore = useNavigationStore();
 
 // État de navigation
 const focusedIndex = ref(0);
@@ -47,11 +50,8 @@ const scrollOffset = ref(0);
 const listContainer = ref<HTMLElement>();
 const isActive = ref(false);
 
-// Calculs réactifs
+// Calculs réactifs (uniquement ceux utilisés)
 const currentCol = computed(() => focusedIndex.value % props.itemsPerRow);
-const currentRow = computed(() =>
-  Math.floor(focusedIndex.value / props.itemsPerRow)
-);
 const totalRows = computed(() =>
   Math.ceil(props.animes.length / props.itemsPerRow)
 );
@@ -64,110 +64,14 @@ const visibleItemsCount = computed(() => {
   const cardWidth = getCardWidth();
   const visibleCount = Math.floor(containerWidth / cardWidth);
 
-  // Assurer qu'on a au moins 1 élément visible et pas plus que le maximum défini
   return Math.max(1, Math.min(visibleCount, props.itemsPerRow));
 });
-
-// Gestion de la navigation
-const handleLeft = () => {
-  if (!isActive.value) return;
-
-  if (focusedIndex.value > 0) {
-    focusedIndex.value--;
-  } else {
-    // Revenir à la fin de la liste (effet carrousel)
-    focusedIndex.value = props.animes.length - 1;
-  }
-  emit('focus-change', focusedIndex.value);
-  scrollToFocused();
-};
-
-const handleRight = () => {
-  if (!isActive.value) return;
-
-  if (focusedIndex.value < props.animes.length - 1) {
-    focusedIndex.value++;
-  } else {
-    // Revenir au début de la liste (effet carrousel)
-    focusedIndex.value = 0;
-  }
-  emit('focus-change', focusedIndex.value);
-  scrollToFocused();
-};
-
-const handleUp = () => {
-  if (!isActive.value) return;
-
-  console.log(
-    `handleUp - currentRow: ${currentRow.value}, focusedIndex: ${focusedIndex.value}`
-  );
-
-  // Si on est sur la première ligne, naviguer vers la liste précédente
-  if (currentRow.value === 0) {
-    console.log('Navigation vers la liste précédente');
-    emit('navigate-up');
-    return;
-  }
-
-  const newIndex = focusedIndex.value - props.itemsPerRow;
-  if (newIndex >= 0) {
-    focusedIndex.value = newIndex;
-  } else {
-    // Effet carrousel vertical - aller à la dernière ligne
-    const lastRowStart = (totalRows.value - 1) * props.itemsPerRow;
-    focusedIndex.value = Math.min(
-      lastRowStart + currentCol.value,
-      props.animes.length - 1
-    );
-  }
-  emit('focus-change', focusedIndex.value);
-  scrollToFocused();
-};
-
-const handleDown = () => {
-  if (!isActive.value) return;
-
-  const newIndex = focusedIndex.value + props.itemsPerRow;
-
-  console.log(
-    `handleDown - newIndex: ${newIndex}, animes.length: ${props.animes.length}`
-  );
-
-  // Si on dépasse la fin de la liste
-  if (newIndex >= props.animes.length) {
-    // Si on est sur la dernière ligne, naviguer vers la liste suivante
-    if (currentRow.value === totalRows.value - 1) {
-      console.log('Navigation vers la liste suivante');
-      emit('navigate-down');
-      return;
-    }
-    // Sinon, effet carrousel vertical - aller à la première ligne
-    focusedIndex.value = Math.min(currentCol.value, props.animes.length - 1);
-  } else {
-    focusedIndex.value = newIndex;
-  }
-
-  emit('focus-change', focusedIndex.value);
-  scrollToFocused();
-};
-
-const handleEnter = () => {
-  if (!isActive.value || !props.animes[focusedIndex.value]) return;
-
-  handleAnimeSelect(props.animes[focusedIndex.value]);
-};
-
-const handleBack = () => {
-  // Logique de retour - peut être gérée par le composant parent
-  console.log('Back pressed');
-};
 
 // Fonction pour calculer la largeur réelle d'une carte selon la taille d'écran
 const getCardWidth = () => {
   const screenHeight = window.innerHeight;
   const gap = 24; // gap entre les cartes
 
-  // Largeurs correspondant aux media queries de AnimeCard
   if (screenHeight <= 400) {
     return 200 + gap;
   } else if (screenHeight <= 500) {
@@ -179,7 +83,11 @@ const getCardWidth = () => {
   }
 };
 
-// Gestion du défilement horizontal - Effet carrousel centré
+// Navigation simplifiée - La navigation est maintenant gérée par le store
+// Les méthodes navigateLeft, navigateRight, navigateUp, navigateDown et handleSelect
+// sont maintenant dans l'interface NavigableList ci-dessous
+
+// Gestion du défilement horizontal
 const scrollToFocused = async () => {
   await nextTick();
 
@@ -199,12 +107,10 @@ const scrollToFocused = async () => {
   const containerCenter = containerWidth / 2;
   const cardCenter = cardWidth / 2;
   const focusedCardPosition = focusedIndex.value * cardWidth + cardCenter;
-  // Calculer le décalage pour centrer l'élément focalisé
   const targetOffset = containerCenter - focusedCardPosition;
 
-  // Limiter le défilement pour éviter les espaces vides au début et à la fin
+  // Limiter le défilement
   const maxOffset = 0;
-  // Ajouter une marge à droite équivalente à la largeur d'une carte pour laisser de l'espace
   const rightMargin = cardWidth;
   const minOffset = -(
     props.animes.length * cardWidth -
@@ -215,98 +121,143 @@ const scrollToFocused = async () => {
   scrollOffset.value = Math.max(minOffset, Math.min(maxOffset, targetOffset));
 };
 
-// Gestion de la sélection d'anime
-const handleAnimeSelect = (anime: Anime) => {
-  emit('select', anime);
-};
-
-// Gestion des événements clavier
-const handleKeyDown = (event: KeyboardEvent) => {
-  switch (event.keyCode) {
-    case 37: // Left arrow
-      event.preventDefault();
-      handleLeft();
-      break;
-    case 38: // Up arrow
-      event.preventDefault();
-      handleUp();
-      break;
-    case 39: // Right arrow
-      event.preventDefault();
-      handleRight();
-      break;
-    case 40: // Down arrow
-      event.preventDefault();
-      handleDown();
-      break;
-    case 13: // Enter/OK
-      event.preventDefault();
-      handleEnter();
-      break;
-    case 10009: // Return/Back
-      event.preventDefault();
-      handleBack();
-      break;
-    case 427: // Red button
-      event.preventDefault();
-      break;
-    case 428: // Green button
-      event.preventDefault();
-      break;
-    case 429: // Yellow button
-      event.preventDefault();
-      break;
-    case 430: // Blue button
-      event.preventDefault();
-      break;
-  }
-};
-
-// Gestion du redimensionnement de la fenêtre
+// Gestion du redimensionnement
 const handleResize = () => {
   if (isActive.value) {
-    console.log(isActive.value, 'handleResize called', focusedIndex.value);
     scrollToFocused();
   }
 };
 
-// Activation/désactivation du composant
+// Implémentation de l'interface NavigableList pour le store
+const createNavigableListInterface = (): NavigableList => ({
+  id: props.listId,
+  title: props.title,
+  itemCount: props.animes.length,
+  itemsPerRow: props.itemsPerRow,
+  activate: (startIndex = 0) => {
+    console.log(
+      `Activation de la liste "${props.title}" avec startIndex: ${startIndex}`
+    );
+    isActive.value = true;
+    focusedIndex.value = startIndex;
+    scrollToFocused();
+
+    // Pas d'écouteurs d'événements ici - le store s'en charge
+    window.addEventListener('resize', handleResize);
+  },
+  deactivate: () => {
+    console.log(`Désactivation de la liste "${props.title}"`);
+    isActive.value = false;
+
+    // Arrêter d'écouter les événements
+    window.removeEventListener('resize', handleResize);
+  },
+  focusOnFirstRow: () => {
+    focusedIndex.value = Math.min(currentCol.value, props.animes.length - 1);
+    scrollToFocused();
+  },
+  focusOnLastRow: () => {
+    const lastRowStart = (totalRows.value - 1) * props.itemsPerRow;
+    const targetIndex = Math.min(
+      lastRowStart + currentCol.value,
+      props.animes.length - 1
+    );
+    focusedIndex.value = targetIndex;
+    scrollToFocused();
+  },
+  getFocusedIndex: () => focusedIndex.value,
+  navigateLeft: () => {
+    if (!isActive.value) return;
+
+    if (focusedIndex.value > 0) {
+      focusedIndex.value--;
+    } else {
+      // Effet carrousel - aller à la fin
+      focusedIndex.value = props.animes.length - 1;
+    }
+    scrollToFocused();
+  },
+  navigateRight: () => {
+    if (!isActive.value) return;
+
+    if (focusedIndex.value < props.animes.length - 1) {
+      focusedIndex.value++;
+    } else {
+      // Effet carrousel - revenir au début
+      focusedIndex.value = 0;
+    }
+    scrollToFocused();
+  },
+  navigateUp: () => {
+    if (!isActive.value) return;
+
+    // Calculer la ligne actuelle
+    const currentRow = Math.floor(focusedIndex.value / props.itemsPerRow);
+
+    // Si on est sur la première ligne, laisser le store gérer la navigation verticale
+    if (currentRow === 0) {
+      navigationStore.navigateUp();
+      return;
+    }
+
+    // Sinon, naviguer dans la liste actuelle
+    const newIndex = focusedIndex.value - props.itemsPerRow;
+    if (newIndex >= 0) {
+      focusedIndex.value = newIndex;
+    } else {
+      // Aller à la dernière ligne, même colonne
+      const lastRowStart = (totalRows.value - 1) * props.itemsPerRow;
+      focusedIndex.value = Math.min(
+        lastRowStart + currentCol.value,
+        props.animes.length - 1
+      );
+    }
+    scrollToFocused();
+  },
+  navigateDown: () => {
+    if (!isActive.value) return;
+
+    // Calculer la ligne actuelle
+    const currentRow = Math.floor(focusedIndex.value / props.itemsPerRow);
+    const newIndex = focusedIndex.value + props.itemsPerRow;
+
+    // Si on dépasse la fin ou qu'on est sur la dernière ligne
+    if (newIndex >= props.animes.length || currentRow === totalRows.value - 1) {
+      navigationStore.navigateDown();
+      return;
+    }
+
+    focusedIndex.value = newIndex;
+    scrollToFocused();
+  },
+  handleSelect: () => {
+    if (!isActive.value || !props.animes[focusedIndex.value]) return;
+    emit('select', props.animes[focusedIndex.value]);
+  },
+  scrollToSection: () => {
+    // Cette fonction sera définie par le composant parent si nécessaire
+  },
+});
+
+// Méthodes publiques (pour compatibilité avec l'ancienne API)
 const activate = (startIndex: number = 0) => {
-  console.log(
-    `Activation de la liste "${props.title}" avec startIndex: ${startIndex}`
-  );
-  isActive.value = true;
-  focusedIndex.value = startIndex;
-  scrollToFocused();
-  // Ajouter l'écouteur d'événements uniquement quand actif
-  document.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', handleResize);
+  const navInterface = createNavigableListInterface();
+  navInterface.activate(startIndex);
 };
 
 const deactivate = () => {
-  console.log(`Désactivation de la liste "${props.title}"`);
-  isActive.value = false;
-  // Retirer l'écouteur d'événements quand inactif
-  document.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('resize', handleResize);
+  const navInterface = createNavigableListInterface();
+  navInterface.deactivate();
 };
 
-// Méthodes pour positionner le focus
 const focusOnLastRow = () => {
-  // Se positionner sur la dernière ligne, même colonne si possible
-  const lastRowStart = (totalRows.value - 1) * props.itemsPerRow;
-  const targetIndex = Math.min(
-    lastRowStart + currentCol.value,
-    props.animes.length - 1
-  );
-  focusedIndex.value = targetIndex;
-  scrollToFocused();
+  const navInterface = createNavigableListInterface();
+  navInterface.focusOnLastRow();
 };
 
 const focusOnFirstRow = () => {
-  // Se positionner sur la première ligne, même colonne si possible
-  focusedIndex.value = Math.min(currentCol.value, props.animes.length - 1);
-  scrollToFocused();
+  const navInterface = createNavigableListInterface();
+  navInterface.focusOnFirstRow();
 };
 
 // Méthodes exposées
@@ -321,12 +272,15 @@ defineExpose({
 
 // Lifecycle
 onMounted(() => {
-  // Ne pas écouter les événements par défaut - sera activé par le parent
+  // Enregistrer cette liste dans le store de navigation
+  const navInterface = createNavigableListInterface();
+  navigationStore.registerList(navInterface);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown);
+  // Nettoyer les événements et désenregistrer du store
   window.removeEventListener('resize', handleResize);
+  navigationStore.unregisterList(props.listId);
 });
 </script>
 
