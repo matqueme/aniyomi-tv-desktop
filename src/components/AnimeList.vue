@@ -1,20 +1,18 @@
 <template>
-  <div class="anime-list">
-    <div class="mb-6">
-      <h2 class="mb-4 ml-4 text-2xl font-bold text-white">{{ title }}</h2>
-      <div
-        ref="listContainer"
-        class="flex gap-6 overflow-x-visible scroll-smooth p-4 transition-transform duration-300 ease-out"
-        :style="{ transform: `translateX(${scrollOffset}px)` }"
-      >
-        <AnimeCard
-          v-for="(anime, index) in animes"
-          :key="anime.id"
-          :anime="anime"
-          :is-focused="index === focusedIndex && isActive"
-          @select="handleAnimeSelect"
-        />
-      </div>
+  <div class="mb-2 box-border max-w-screen">
+    <h2 class="mb-4 ml-4 text-2xl font-bold text-white">{{ title }}</h2>
+    <div
+      ref="listContainer"
+      class="flex gap-6 overflow-x-visible scroll-smooth p-4 transition-transform duration-300 ease-out"
+      :style="{ transform: `translateX(${scrollOffset}px)` }"
+    >
+      <AnimeCard
+        v-for="(anime, index) in animes"
+        :key="anime.id"
+        :anime="anime"
+        :is-focused="index === focusedIndex && isActive"
+        @select="handleAnimeSelect"
+      />
     </div>
   </div>
 </template>
@@ -57,6 +55,18 @@ const currentRow = computed(() =>
 const totalRows = computed(() =>
   Math.ceil(props.animes.length / props.itemsPerRow)
 );
+
+// Calculer le nombre d'éléments visibles selon la largeur de l'écran
+const visibleItemsCount = computed(() => {
+  if (!listContainer.value?.parentElement) return props.itemsPerRow;
+
+  const containerWidth = listContainer.value.parentElement.clientWidth;
+  const cardWidth = getCardWidth();
+  const visibleCount = Math.floor(containerWidth / cardWidth);
+
+  // Assurer qu'on a au moins 1 élément visible et pas plus que le maximum défini
+  return Math.max(1, Math.min(visibleCount, props.itemsPerRow));
+});
 
 // Gestion de la navigation
 const handleLeft = () => {
@@ -152,21 +162,21 @@ const handleBack = () => {
   console.log('Back pressed');
 };
 
-// Gestion des boutons colorés (optionnel)
-const handleRed = () => {
-  console.log('Red button pressed');
-};
+// Fonction pour calculer la largeur réelle d'une carte selon la taille d'écran
+const getCardWidth = () => {
+  const screenHeight = window.innerHeight;
+  const gap = 24; // gap entre les cartes
 
-const handleGreen = () => {
-  console.log('Green button pressed');
-};
-
-const handleYellow = () => {
-  console.log('Yellow button pressed');
-};
-
-const handleBlue = () => {
-  console.log('Blue button pressed');
+  // Largeurs correspondant aux media queries de AnimeCard
+  if (screenHeight <= 400) {
+    return 200 + gap;
+  } else if (screenHeight <= 500) {
+    return 240 + gap;
+  } else if (screenHeight <= 720) {
+    return 280 + gap;
+  } else {
+    return 320 + gap;
+  }
 };
 
 // Gestion du défilement horizontal - Effet carrousel centré
@@ -175,20 +185,32 @@ const scrollToFocused = async () => {
 
   if (!listContainer.value) return;
 
-  const cardWidth = 320 + 24; // largeur réelle de la carte + gap
+  const cardWidth = getCardWidth();
   const containerWidth = listContainer.value.parentElement?.clientWidth || 0;
+  const visibleCount = visibleItemsCount.value;
+
+  // Si tous les éléments sont visibles, pas besoin de défilement
+  if (props.animes.length <= visibleCount) {
+    scrollOffset.value = 0;
+    return;
+  }
 
   // Centrer l'élément focalisé dans le conteneur
   const containerCenter = containerWidth / 2;
   const cardCenter = cardWidth / 2;
   const focusedCardPosition = focusedIndex.value * cardWidth + cardCenter;
-
   // Calculer le décalage pour centrer l'élément focalisé
   const targetOffset = containerCenter - focusedCardPosition;
 
   // Limiter le défilement pour éviter les espaces vides au début et à la fin
   const maxOffset = 0;
-  const minOffset = -(props.animes.length * cardWidth - containerWidth);
+  // Ajouter une marge à droite équivalente à la largeur d'une carte pour laisser de l'espace
+  const rightMargin = cardWidth;
+  const minOffset = -(
+    props.animes.length * cardWidth -
+    containerWidth +
+    rightMargin
+  );
 
   scrollOffset.value = Math.max(minOffset, Math.min(maxOffset, targetOffset));
 };
@@ -227,20 +249,24 @@ const handleKeyDown = (event: KeyboardEvent) => {
       break;
     case 427: // Red button
       event.preventDefault();
-      handleRed();
       break;
     case 428: // Green button
       event.preventDefault();
-      handleGreen();
       break;
     case 429: // Yellow button
       event.preventDefault();
-      handleYellow();
       break;
     case 430: // Blue button
       event.preventDefault();
-      handleBlue();
       break;
+  }
+};
+
+// Gestion du redimensionnement de la fenêtre
+const handleResize = () => {
+  if (isActive.value) {
+    console.log(isActive.value, 'handleResize called', focusedIndex.value);
+    scrollToFocused();
   }
 };
 
@@ -254,6 +280,7 @@ const activate = (startIndex: number = 0) => {
   scrollToFocused();
   // Ajouter l'écouteur d'événements uniquement quand actif
   document.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('resize', handleResize);
 };
 
 const deactivate = () => {
@@ -261,6 +288,7 @@ const deactivate = () => {
   isActive.value = false;
   // Retirer l'écouteur d'événements quand inactif
   document.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('resize', handleResize);
 };
 
 // Méthodes pour positionner le focus
@@ -298,31 +326,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
 <style scoped>
-.anime-list {
-  overflow: hidden;
-}
-
 .grid {
   transition: transform 0.3s ease-in-out;
-}
-
-/* Masquer la barre de scroll horizontale par défaut */
-.flex.gap-4.overflow-x-auto {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer et Edge */
-}
-
-.flex.gap-4.overflow-x-auto::-webkit-scrollbar {
-  display: none; /* Chrome, Safari et Opera */
-}
-
-/* Assurer que le conteneur ne dépasse pas */
-.anime-list {
-  max-width: 100vw;
-  box-sizing: border-box;
 }
 </style>
