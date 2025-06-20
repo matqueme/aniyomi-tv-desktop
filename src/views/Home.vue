@@ -1,20 +1,8 @@
 <template>
   <div class="min-h-screen w-full bg-black">
-    <!-- Loading State -->
-    <div
-      v-if="animeStore.loading"
-      class="flex h-64 items-center justify-center"
-    >
-      <div class="text-xl text-white">Chargement des animes...</div>
-    </div>
+    <!-- Simple Loading State - Overlay sur tout -->
+    <LoadingSpinner v-if="animeStore.loading" title="Chargement des anime..." />
 
-    <!-- Error State -->
-    <div
-      v-else-if="animeStore.error"
-      class="flex h-64 items-center justify-center"
-    >
-      <div class="text-xl text-red-500">{{ animeStore.error }}</div>
-    </div>
     <!-- Anime Lists -->
     <div v-else class="space-y-12 px-6 pt-12 pb-12">
       <!-- Trending Animes -->
@@ -76,6 +64,7 @@ import { useTVNavigation } from '../composables/useTVNavigation';
 import type { Anime } from '../types/anime';
 import AnimeList from '../components/AnimeList.vue';
 import NavigationDebug from '../components/NavigationDebug.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
 
 // Mode développement
 const isDev = import.meta.env.DEV;
