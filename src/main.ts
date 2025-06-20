@@ -6,12 +6,9 @@ import router from '@/router';
 import './style.css';
 import App from '@/App.vue';
 
-// Initialize Tizen TV features
-document.addEventListener('DOMContentLoaded', (): void => {});
-
 const i18n = createI18n({
   legacy: false,
-  locale: 'fr', // Changé en français
+  locale: 'fr',
 });
 
 const pinia = createPinia();
