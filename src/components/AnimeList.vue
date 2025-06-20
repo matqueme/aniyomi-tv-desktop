@@ -27,7 +27,7 @@ interface Props {
   animes: Anime[];
   title: string;
   itemsPerRow?: number;
-  listId?: string; // Identifiant unique pour la liste
+  listId?: string;
 }
 
 interface Emits {
@@ -82,10 +82,6 @@ const getCardWidth = () => {
     return 320 + gap;
   }
 };
-
-// Navigation simplifiée - La navigation est maintenant gérée par le store
-// Les méthodes navigateLeft, navigateRight, navigateUp, navigateDown et handleSelect
-// sont maintenant dans l'interface NavigableList ci-dessous
 
 // Gestion du défilement horizontal
 const scrollToFocused = async () => {
