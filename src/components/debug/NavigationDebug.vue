@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useNavigationStore } from '../../stores/navigation';
+import { useNavigationStore } from '@/stores/navigation';
 
 const navigationStore = useNavigationStore();
 

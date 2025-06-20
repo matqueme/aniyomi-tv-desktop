@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Anime } from '../../types/anime';
+import type { Anime } from '@/types/anime';
 
 interface Props {
   anime: Anime;

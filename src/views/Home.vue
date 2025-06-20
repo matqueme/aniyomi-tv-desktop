@@ -58,13 +58,13 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue';
-import { useAnimeStore } from '../stores/anime';
-import { useNavigationStore } from '../stores/navigation';
-import { useTVNavigation } from '../composables/useTVNavigation';
-import type { Anime } from '../types/anime';
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue';
-import AnimeList from '../components/anime/AnimeList.vue';
-import NavigationDebug from '../components/debug/NavigationDebug.vue';
+import { useAnimeStore } from '@/stores/anime';
+import { useNavigationStore } from '@/stores/navigation';
+import { useTVNavigation } from '@/composables/useTVNavigation';
+import type { Anime } from '@/types/anime';
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
+import AnimeList from '@/components/anime/AnimeList.vue';
+import NavigationDebug from '@/components/debug/NavigationDebug.vue';
 
 // Mode développement
 const isDev = import.meta.env.DEV;

@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted } from 'vue';
-import { useNavigationStore } from '../stores/navigation';
+import { useNavigationStore } from '@/stores/navigation';
 
 /**
  * Codes de touches pour les télécommandes TV et applications Tizen
