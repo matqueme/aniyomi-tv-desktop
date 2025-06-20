@@ -19,9 +19,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick, readonly } from 'vue';
-import type { Anime } from '../types/anime';
+import type { Anime } from '../../types/anime';
 import AnimeCard from './AnimeCard.vue';
-import { useNavigationStore, type NavigableList } from '../stores/navigation';
+import {
+  useNavigationStore,
+  type NavigableList,
+} from '../../stores/navigation';
 
 interface Props {
   animes: Anime[];
