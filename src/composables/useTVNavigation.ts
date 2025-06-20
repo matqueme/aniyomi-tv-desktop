@@ -77,8 +77,6 @@ export function useTVNavigation(customHandlers: TVEventHandlers = {}) {
   const handleKeyDown = (event: KeyboardEvent) => {
     const keyCode = event.keyCode;
 
-    // Log pour le débogage
-    console.log(`Touche pressée: ${keyCode}`);
     // Empêcher le comportement par défaut pour toutes les touches de navigation
     const tvKeyValues = Object.values(TV_KEYS) as number[];
     if (tvKeyValues.includes(keyCode)) {
@@ -194,12 +192,10 @@ export function useTVNavigation(customHandlers: TVEventHandlers = {}) {
   // Méthodes utilitaires
   const startListening = () => {
     document.addEventListener('keydown', handleKeyDown, true);
-    console.log('Écoute des événements TV activée');
   };
 
   const stopListening = () => {
     document.removeEventListener('keydown', handleKeyDown, true);
-    console.log('Écoute des événements TV désactivée');
   };
 
   // Auto-gestion du cycle de vie

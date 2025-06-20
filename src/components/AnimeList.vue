@@ -131,9 +131,6 @@ const createNavigableListInterface = (): NavigableList => ({
   itemCount: props.animes.length,
   itemsPerRow: props.itemsPerRow,
   activate: (startIndex = 0) => {
-    console.log(
-      `Activation de la liste "${props.title}" avec startIndex: ${startIndex}`
-    );
     isActive.value = true;
     focusedIndex.value = startIndex;
     scrollToFocused();
@@ -142,7 +139,6 @@ const createNavigableListInterface = (): NavigableList => ({
     window.addEventListener('resize', handleResize);
   },
   deactivate: () => {
-    console.log(`Désactivation de la liste "${props.title}"`);
     isActive.value = false;
 
     // Arrêter d'écouter les événements

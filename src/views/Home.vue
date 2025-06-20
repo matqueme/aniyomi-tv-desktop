@@ -151,9 +151,6 @@ onMounted(async () => {
 
   // Attendre que les composants soient montés et les listes enregistrées
   setTimeout(() => {
-    console.log(
-      `Navigation initialisée avec ${navigationStore.totalLists} listes`
-    );
     setupSectionScrolling();
     navigationStore.initializeNavigation();
   }, 500);

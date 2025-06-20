@@ -38,14 +38,12 @@ export const useNavigationStore = defineStore('navigation', () => {
     } else {
       lists.value.push(list);
     }
-    console.log(`Liste "${list.title}" enregistrée (ID: ${list.id})`);
   };
 
   const unregisterList = (listId: string) => {
     const index = lists.value.findIndex((l) => l.id === listId);
     if (index >= 0) {
       lists.value.splice(index, 1);
-      console.log(`Liste supprimée (ID: ${listId})`);
 
       // Ajuster l'index actif si nécessaire
       if (activeListIndex.value >= lists.value.length) {
@@ -69,10 +67,6 @@ export const useNavigationStore = defineStore('navigation', () => {
       return;
     }
 
-    console.log(
-      `Initialisation navigation: ${lists.value.length} listes disponibles`
-    );
-
     // Désactiver toutes les listes
     lists.value.forEach((list) => list.deactivate());
 
@@ -82,7 +76,6 @@ export const useNavigationStore = defineStore('navigation', () => {
       activeList.value.activate();
       activeList.value.scrollToSection?.();
       isNavigationActive.value = true;
-      console.log(`Liste "${activeList.value.title}" activée`);
     }
   };
 
@@ -100,8 +93,6 @@ export const useNavigationStore = defineStore('navigation', () => {
 
     const newList = lists.value[newIndex];
     if (!newList) return;
-
-    console.log(`Navigation UP: "${currentList.title}" → "${newList.title}"`);
 
     // Désactiver la liste actuelle
     currentList.deactivate();
@@ -129,8 +120,6 @@ export const useNavigationStore = defineStore('navigation', () => {
 
     const newList = lists.value[newIndex];
     if (!newList) return;
-
-    console.log(`Navigation DOWN: "${currentList.title}" → "${newList.title}"`);
 
     // Désactiver la liste actuelle
     currentList.deactivate();
@@ -175,13 +164,11 @@ export const useNavigationStore = defineStore('navigation', () => {
   // Actions - État
   const activateNavigation = () => {
     isNavigationActive.value = true;
-    console.log('Navigation activée');
   };
 
   const deactivateNavigation = () => {
     isNavigationActive.value = false;
     lists.value.forEach((list) => list.deactivate());
-    console.log('Navigation désactivée');
   };
 
   // Actions - Débogage et diagnostics
@@ -198,10 +185,6 @@ export const useNavigationStore = defineStore('navigation', () => {
         focusedIndex: list.getFocusedIndex(),
       })),
     };
-  };
-
-  const logNavigationState = () => {
-    console.log('État de la navigation:', getNavigationState());
   };
 
   return {
@@ -232,6 +215,5 @@ export const useNavigationStore = defineStore('navigation', () => {
 
     // Actions - Diagnostics
     getNavigationState,
-    logNavigationState,
   };
 });
