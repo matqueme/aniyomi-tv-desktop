@@ -5,12 +5,9 @@ import router from './router';
 
 import './style.css';
 import App from './App.vue';
-import { tizenTV } from './utils/tizen';
 
 // Initialize Tizen TV features
-document.addEventListener('DOMContentLoaded', (): void => {
-  tizenTV.init();
-});
+document.addEventListener('DOMContentLoaded', (): void => {});
 
 const i18n = createI18n({
   legacy: false,
@@ -19,9 +16,6 @@ const i18n = createI18n({
 
 const pinia = createPinia();
 const app = createApp(App);
-
-// Make Tizen utilities available globally
-app.config.globalProperties.$tizen = tizenTV;
 
 app.use(pinia);
 app.use(i18n);

@@ -14,9 +14,17 @@ export default defineConfig([
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,vue}'],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
+    rules: {
+      'vue/multi-word-component-names': [
+        'error',
+        {
+          ignores: ['Home'],
+        },
+      ],
+    },
   },
   tseslint.configs.recommended,
-  pluginVue.configs['flat/essential'],
+  pluginVue.configs['flat/recommended'],
   prettier,
   {
     files: ['**/*.vue'],

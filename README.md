@@ -174,3 +174,41 @@ Pour les questions spécifiques à Tizen, consultez :
 
 - [Documentation Tizen](https://developer.tizen.org/development/web-application)
 - [Samsung Smart TV Developer](https://developer.samsung.com/smarttv)
+
+## APIs à Utilisées
+
+### 🎬 Services de Streaming et Données
+
+#### 1. AniSkip API
+
+- **URL** : https://api.aniskip.com
+- **Fonction** : Saut automatique des génériques et récaps
+- **Utilisation** :
+  - Skip automatique des openings (OP)
+  - Skip automatique des endings (ED)
+  - Skip des récaps
+  - Skip des mixed-op
+- **Fonctionnement** : Récupère les timestamps de début/fin des segments à ignorer pour chaque épisode
+
+### 📊 Services de Tracking et Synchronisation
+
+#### 2. AniList GraphQL API
+
+- **URL** : https://graphql.anilist.co
+- **Fonction** : Service de tracking/suivi d'animes principal
+- **Utilisation** :
+  - Recherche d'animes dans la base de données AniList
+  - Synchronisation du statut de visionnage (en cours, terminé, prévu, etc.)
+  - Score/notation des animes
+  - Conversion d'IDs (AniList ↔ MyAnimeList)
+  - Informations de diffusion (prochain épisode, dates)
+
+### 🔄 APIs Utilitaires
+
+#### 3. AniChart API
+
+- **Fonction** : Récupération des informations de diffusion
+- **Utilisation** :
+  - Calendrier de diffusion des épisodes
+  - Conversion d'IDs entre services
+  - Données de programmation
