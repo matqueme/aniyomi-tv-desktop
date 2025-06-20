@@ -106,7 +106,6 @@ defineEmits<Emits>();
   -webkit-line-clamp: 1;
   line-clamp: 1;
   -webkit-box-orient: vertical;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -179,6 +178,5 @@ defineEmits<Emits>();
 .anime-card * {
   box-sizing: border-box;
   max-width: 100%;
-  overflow: hidden;
 }
 </style>

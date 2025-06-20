@@ -4,7 +4,7 @@
       <h2 class="mb-4 ml-4 text-2xl font-bold text-white">{{ title }}</h2>
       <div
         ref="listContainer"
-        class="flex gap-6 overflow-x-hidden scroll-smooth p-4"
+        class="flex gap-6 overflow-x-visible scroll-smooth p-4 transition-transform duration-300 ease-out"
         :style="{ transform: `translateX(${scrollOffset}px)` }"
       >
         <AnimeCard
@@ -64,9 +64,12 @@ const handleLeft = () => {
 
   if (focusedIndex.value > 0) {
     focusedIndex.value--;
-    emit('focus-change', focusedIndex.value);
-    scrollToFocused();
+  } else {
+    // Revenir à la fin de la liste (effet carrousel)
+    focusedIndex.value = props.animes.length - 1;
   }
+  emit('focus-change', focusedIndex.value);
+  scrollToFocused();
 };
 
 const handleRight = () => {
@@ -74,9 +77,12 @@ const handleRight = () => {
 
   if (focusedIndex.value < props.animes.length - 1) {
     focusedIndex.value++;
-    emit('focus-change', focusedIndex.value);
-    scrollToFocused();
+  } else {
+    // Revenir au début de la liste (effet carrousel)
+    focusedIndex.value = 0;
   }
+  emit('focus-change', focusedIndex.value);
+  scrollToFocused();
 };
 
 const handleUp = () => {
@@ -96,9 +102,16 @@ const handleUp = () => {
   const newIndex = focusedIndex.value - props.itemsPerRow;
   if (newIndex >= 0) {
     focusedIndex.value = newIndex;
-    emit('focus-change', focusedIndex.value);
-    scrollToFocused();
+  } else {
+    // Effet carrousel vertical - aller à la dernière ligne
+    const lastRowStart = (totalRows.value - 1) * props.itemsPerRow;
+    focusedIndex.value = Math.min(
+      lastRowStart + currentCol.value,
+      props.animes.length - 1
+    );
   }
+  emit('focus-change', focusedIndex.value);
+  scrollToFocused();
 };
 
 const handleDown = () => {
@@ -110,14 +123,20 @@ const handleDown = () => {
     `handleDown - newIndex: ${newIndex}, animes.length: ${props.animes.length}`
   );
 
-  // Si on dépasse la fin de la liste, naviguer vers la liste suivante
+  // Si on dépasse la fin de la liste
   if (newIndex >= props.animes.length) {
-    console.log('Navigation vers la liste suivante');
-    emit('navigate-down');
-    return;
+    // Si on est sur la dernière ligne, naviguer vers la liste suivante
+    if (currentRow.value === totalRows.value - 1) {
+      console.log('Navigation vers la liste suivante');
+      emit('navigate-down');
+      return;
+    }
+    // Sinon, effet carrousel vertical - aller à la première ligne
+    focusedIndex.value = Math.min(currentCol.value, props.animes.length - 1);
+  } else {
+    focusedIndex.value = newIndex;
   }
 
-  focusedIndex.value = newIndex;
   emit('focus-change', focusedIndex.value);
   scrollToFocused();
 };
@@ -150,25 +169,28 @@ const handleBlue = () => {
   console.log('Blue button pressed');
 };
 
-// Gestion du défilement horizontal
+// Gestion du défilement horizontal - Effet carrousel centré
 const scrollToFocused = async () => {
   await nextTick();
 
   if (!listContainer.value) return;
 
-  const cardWidth = 320 + 16; // largeur réelle de la carte + gap
+  const cardWidth = 320 + 24; // largeur réelle de la carte + gap
   const containerWidth = listContainer.value.parentElement?.clientWidth || 0;
-  const focusedX = currentCol.value * cardWidth;
 
-  // Calcul du défilement nécessaire
-  const maxVisibleCards = Math.floor(containerWidth / cardWidth);
-  const scrollThreshold = maxVisibleCards - 1;
+  // Centrer l'élément focalisé dans le conteneur
+  const containerCenter = containerWidth / 2;
+  const cardCenter = cardWidth / 2;
+  const focusedCardPosition = focusedIndex.value * cardWidth + cardCenter;
 
-  if (currentCol.value >= scrollThreshold) {
-    scrollOffset.value = -(focusedX - (scrollThreshold - 1) * cardWidth);
-  } else if (currentCol.value === 0) {
-    scrollOffset.value = 0;
-  }
+  // Calculer le décalage pour centrer l'élément focalisé
+  const targetOffset = containerCenter - focusedCardPosition;
+
+  // Limiter le défilement pour éviter les espaces vides au début et à la fin
+  const maxOffset = 0;
+  const minOffset = -(props.animes.length * cardWidth - containerWidth);
+
+  scrollOffset.value = Math.max(minOffset, Math.min(maxOffset, targetOffset));
 };
 
 // Gestion de la sélection d'anime
