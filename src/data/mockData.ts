@@ -26,9 +26,9 @@ export const mockAnimes: Anime[] = [
     description:
       'Tanjiro devient un pourfendeur de démons pour sauver sa sœur transformée en démon et venger sa famille massacrée.',
     posterUrl:
-      'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400&h=600&fit=crop',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1IOvRfuM-mALNOC_dD0_6yQ7IXqHXiKxBCA&s',
     bannerUrl:
-      'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=1920&h=1080&fit=crop',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1IOvRfuM-mALNOC_dD0_6yQ7IXqHXiKxBCA&s',
     year: 2023,
     status: 'ongoing',
     genres: ['Action', 'Surnaturel', 'Historique'],

@@ -1,34 +1,71 @@
 <template>
   <div
     :class="[
-      'anime-card cursor-pointer transition-all duration-300',
-      'overflow-hidden rounded-lg bg-gray-800 shadow-lg',
-      'hover:scale-105 hover:shadow-xl',
-      isFocused ? 'scale-105 ring-4 ring-blue-500' : '',
+      'anime-card group cursor-pointer transition-all duration-300',
+      'relative overflow-hidden rounded-lg bg-slate-800',
+      'border-2 transition-all duration-300',
+      isFocused ? 'scale-105 border-indigo-400' : 'border-slate-700/50',
+      'hover:scale-105 hover:border-indigo-400/70',
     ]"
     @click="$emit('select', anime)"
   >
-    <div class="relative aspect-[2/3]">
+    <!-- Image principale -->
+    <div class="relative h-full w-full">
       <img
         :src="anime.posterUrl"
         :alt="anime.title"
-        class="h-full w-full object-cover"
+        :class="[
+          'h-full w-full object-cover transition-transform duration-300',
+          'group-hover:scale-110',
+          isFocused ? 'scale-110' : '',
+        ]"
         loading="lazy"
       />
+      <!-- Overlay simplifié -->
       <div
-        class="bg-opacity-75 absolute top-2 right-2 rounded bg-black px-2 py-1 text-sm text-white"
+        :class="[
+          'absolute inset-0 bg-gradient-to-t from-black/80 to-transparent',
+          'transition-opacity duration-300',
+          'group-hover:from-black/70',
+          isFocused ? 'from-black/70' : '',
+        ]"
+      ></div>
+      <!-- Badge épisodes -->
+      <div
+        class="absolute top-3 right-3 rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white"
       >
-        ⭐ {{ anime.rating }}
+        <span>{{ anime.episodeCount }} EP</span>
       </div>
-      <div
-        class="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black to-transparent p-4"
+    </div>
+    <!-- Contenu textuel -->
+    <div
+      :class="[
+        'absolute right-0 bottom-0 left-0 p-4 transition-all duration-300',
+        'bg-gradient-to-t from-black/90 to-transparent',
+        'translate-y-2 transform group-hover:translate-y-0',
+        isFocused ? 'translate-y-0' : '',
+      ]"
+    >
+      <h3
+        :class="[
+          'mb-2 line-clamp-1 text-base leading-tight font-bold text-white',
+          'transition-colors duration-300',
+          'group-hover:text-indigo-200',
+          isFocused ? 'text-indigo-200' : '',
+        ]"
       >
-        <h3 class="mb-1 truncate text-lg font-bold text-white">
-          {{ anime.title }}
-        </h3>
-        <p class="mb-2 text-sm text-gray-300">
-          {{ anime.year }} • {{ anime.episodeCount }} épisodes
-        </p>
+        {{ anime.title }}
+      </h3>
+      <div class="flex items-center justify-between">
+        <span
+          :class="[
+            'text-sm font-medium transition-colors duration-300',
+            'text-slate-300 group-hover:text-indigo-300',
+            isFocused ? 'text-indigo-300' : '',
+          ]"
+        >
+          {{ anime.year }}
+        </span>
       </div>
     </div>
   </div>
@@ -52,7 +89,82 @@ defineEmits<Emits>();
 
 <style scoped>
 .anime-card {
-  width: 200px;
-  min-width: 200px;
+  width: 320px;
+  min-width: 320px;
+  height: 180px;
+  max-height: 180px;
+  flex-shrink: 0;
+}
+
+/* Utilitaire pour limiter le texte à 1 ligne */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Optimisation des performances */
+.anime-card {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Animation de l'image au hover */
+.anime-card img {
+  transition: transform 0.3s ease;
+  filter: brightness(0.9);
+}
+
+.anime-card:hover img {
+  filter: brightness(1);
+}
+
+/* Responsive pour éviter le scroll vertical - hauteurs fixes */
+@media (max-height: 800px) {
+  .anime-card {
+    width: 300px;
+    min-width: 300px;
+    height: 169px;
+    max-height: 169px;
+  }
+}
+
+@media (max-height: 600px) {
+  .anime-card {
+    width: 280px;
+    min-width: 280px;
+    height: 157px;
+    max-height: 157px;
+  }
+}
+
+@media (max-height: 500px) {
+  .anime-card {
+    width: 240px;
+    min-width: 240px;
+    height: 135px;
+    max-height: 135px;
+  }
+}
+
+@media (max-height: 400px) {
+  .anime-card {
+    width: 200px;
+    min-width: 200px;
+    height: 112px;
+    max-height: 112px;
+  }
+}
+
+/* Assurer qu'il n'y a pas de débordement */
+.anime-card,
+.anime-card * {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
 }
 </style>

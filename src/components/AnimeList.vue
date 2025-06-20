@@ -1,10 +1,10 @@
 <template>
   <div class="anime-list">
     <div class="mb-6">
-      <h2 class="mb-4 text-2xl font-bold text-white">{{ title }}</h2>
+      <h2 class="mr-4 mb-4 text-2xl font-bold text-white">{{ title }}</h2>
       <div
         ref="listContainer"
-        class="flex gap-30 overflow-x-auto scroll-smooth p-4"
+        class="flex gap-4 overflow-x-hidden scroll-smooth p-4"
         :style="{ transform: `translateX(${scrollOffset}px)` }"
       >
         <AnimeCard
@@ -156,7 +156,7 @@ const scrollToFocused = async () => {
 
   if (!listContainer.value) return;
 
-  const cardWidth = 200 + 16; // largeur de la carte + gap
+  const cardWidth = 320 + 16; // largeur réelle de la carte + gap
   const containerWidth = listContainer.value.parentElement?.clientWidth || 0;
   const focusedX = currentCol.value * cardWidth;
 
@@ -286,5 +286,21 @@ onUnmounted(() => {
 
 .grid {
   transition: transform 0.3s ease-in-out;
+}
+
+/* Masquer la barre de scroll horizontale par défaut */
+.flex.gap-4.overflow-x-auto {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer et Edge */
+}
+
+.flex.gap-4.overflow-x-auto::-webkit-scrollbar {
+  display: none; /* Chrome, Safari et Opera */
+}
+
+/* Assurer que le conteneur ne dépasse pas */
+.anime-list {
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 </style>
