@@ -7,7 +7,12 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: HomePage, // Utilisons la version simple temporairement
+      component: HomePage,
+    },
+    {
+      path: '/search',
+      name: 'Search',
+      component: () => import('@/views/Search.vue'),
     },
     // À ajouter plus tard :
     // {

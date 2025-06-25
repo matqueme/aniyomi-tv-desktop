@@ -25,14 +25,16 @@
       </div>
 
       <!-- Barre de recherche au centre -->
-      <div class="mx-8 max-w-md flex-1">
+      <div v-if="$route.name !== 'Search'" class="mx-8 max-w-md flex-1">
         <div
-          class="relative flex items-center rounded-xl border px-4 transition-all duration-300 ease-in-out"
+          ref="searchWrapperRef"
+          class="relative flex cursor-pointer items-center rounded-xl border px-4 transition-all duration-300 ease-in-out"
           :class="[
             isSearchFocused
               ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
               : 'border-slate-600/40 bg-slate-800/60',
           ]"
+          @click="onSearchClick"
         >
           <ph-magnifying-glass
             class="mr-3 flex-shrink-0 text-slate-400"
@@ -43,7 +45,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Rechercher des animes..."
-            class="flex-1 border-none bg-transparent py-3 text-sm text-slate-200 placeholder-slate-500 outline-none"
+            class="pointer-events-none flex-1 border-none bg-transparent py-3 text-sm text-slate-200 placeholder-slate-500 outline-none"
             @input="onSearchInput"
           />
           <button
@@ -55,7 +57,7 @@
                 ? 'scale-[1.05] bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
                 : '',
             ]"
-            @click="clearSearch"
+            @click.stop="clearSearch"
           >
             <ph-x :size="16" />
           </button>
@@ -84,6 +86,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick, computed } from 'vue';
 import { PhMagnifyingGlass, PhX, PhGear } from '@phosphor-icons/vue';
+import { useRouter } from 'vue-router';
 import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
 
 interface Props {
@@ -100,12 +103,14 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
 });
 
+const router = useRouter();
 const emit = defineEmits<Emits>();
 
 const navbarId = 'main-navbar';
 const searchQuery = ref(props.modelValue);
 
 // Références pour les éléments focusables
+const searchWrapperRef = ref<HTMLDivElement>();
 const searchInputRef = ref<HTMLInputElement>();
 const clearSearchButtonRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
@@ -149,9 +154,10 @@ const isSettingsFocused = computed(
 
 // Configuration des éléments navigables
 onMounted(() => {
-  // Ajouter la barre de recherche
-  addElement('search', searchInputRef.value || null, () => {
-    searchInputRef.value?.focus();
+  // Ajouter le wrapper de recherche comme élément navigable
+  addElement('search', searchWrapperRef.value || null, () => {
+    // Juste donner le focus visuel, pas naviguer
+    // Le clic ou Enter navigueront
   });
 
   // Ajouter le bouton paramètres
@@ -188,6 +194,15 @@ watch(
 const onSearchInput = () => {
   emit('update:modelValue', searchQuery.value);
   emit('search', searchQuery.value);
+};
+
+const onSearchClick = () => {
+  // Naviguer vers la page de recherche avec le terme de recherche s'il y en a un
+  if (searchQuery.value.trim()) {
+    router.push(`/search?q=${encodeURIComponent(searchQuery.value)}`);
+  } else {
+    router.push('/search');
+  }
 };
 
 const clearSearch = async () => {
