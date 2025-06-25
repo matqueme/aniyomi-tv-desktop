@@ -165,15 +165,16 @@ const onSettingsClick = () => {
   height: 64px;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
   z-index: 100;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
 }
 
 .navbar-active {
   background: rgba(15, 23, 42, 0.98);
-  border-bottom-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+  border-bottom-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 25px rgba(0, 0, 0, 0.25);
 }
 
 .navbar-content {
@@ -220,7 +221,7 @@ const onSettingsClick = () => {
   display: flex;
   align-items: center;
   background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(71, 85, 105, 0.4);
   border-radius: 0.75rem;
   padding: 0 1rem;
   transition: all 0.3s ease;
@@ -228,15 +229,15 @@ const onSettingsClick = () => {
 
 .search-wrapper:focus-within {
   border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
   background: rgba(30, 41, 59, 0.8);
 }
 
 .search-wrapper.tv-focused {
   border-color: #6366f1;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
   background: rgba(30, 41, 59, 0.9);
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
 .search-icon {
@@ -309,10 +310,10 @@ const onSettingsClick = () => {
 }
 
 .settings-button.tv-focused {
-  background: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-  transform: scale(1.05);
-  border: 2px solid #6366f1;
+  background: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  transform: scale(1.02);
+  border: 1px solid #6366f1;
 }
 
 /* Navigation TV et Focus */
@@ -332,10 +333,10 @@ const onSettingsClick = () => {
 @keyframes focusPulse {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
   }
 }
 

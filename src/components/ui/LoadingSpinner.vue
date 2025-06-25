@@ -30,8 +30,8 @@ withDefaults(defineProps<Props>(), {
   position: fixed;
   top: 0;
   left: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
   z-index: 1000;
 }
 
@@ -39,9 +39,10 @@ withDefaults(defineProps<Props>(), {
   text-align: center;
   padding: 2rem;
   border-radius: 1rem;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  backdrop-filter: blur(12px);
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .spinner {
@@ -52,7 +53,7 @@ withDefaults(defineProps<Props>(), {
   border-radius: 50%;
   margin: 0 auto 1rem;
   animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
 }
 
 .loading-text {

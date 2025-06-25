@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full bg-black">
+  <div class="min-h-screen w-full bg-transparent">
     <!-- Simple Loading State - Overlay sur tout -->
     <LoadingSpinner v-if="animeStore.loading" title="Chargement des anime..." />
 

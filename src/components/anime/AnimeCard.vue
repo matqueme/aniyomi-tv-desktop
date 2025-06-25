@@ -2,10 +2,13 @@
   <div
     :class="[
       'anime-card group cursor-pointer transition-all duration-300',
-      'relative overflow-hidden rounded-lg bg-slate-800',
+      'relative overflow-hidden rounded-lg bg-slate-800/30',
       'border-2 transition-all duration-300',
-      isFocused ? 'scale-105 border-indigo-400' : 'border-slate-700/50',
-      'hover:scale-105 hover:border-indigo-400/70',
+      isFocused
+        ? 'scale-105 border-indigo-400 shadow-lg shadow-indigo-500/20'
+        : 'border-slate-600/40',
+      'hover:scale-105 hover:border-indigo-400/70 hover:shadow-lg hover:shadow-indigo-500/15',
+      'backdrop-blur-sm',
     ]"
     @click="$emit('select', anime)"
   >
@@ -22,18 +25,18 @@
       <!-- Overlay simplifié -->
       <div
         :class="[
-          'absolute inset-0 bg-gradient-to-t from-black/80 to-transparent',
+          'absolute inset-0 bg-gradient-to-t from-black/85 to-transparent',
           'transition-opacity duration-300',
-          'group-hover:from-black/70',
-          isFocused ? 'from-black/70' : '',
+          'group-hover:from-black/75',
+          isFocused ? 'from-black/75' : '',
         ]"
       ></div>
       <!-- Badge épisodes -->
       <div
         :class="[
-          'absolute top-3 right-3 rounded-lg border backdrop-blur-sm',
+          'absolute top-3 right-3 rounded-lg border backdrop-blur-md',
           'px-2.5 py-1 text-xs font-semibold transition-all duration-300',
-          'border-slate-600/50 bg-black/40 text-slate-200',
+          'border-slate-600/50 bg-black/60 text-slate-200',
           'group-hover:border-indigo-400/70 group-hover:bg-indigo-500/80 group-hover:text-white',
           isFocused ? 'border-indigo-400/70 bg-indigo-500/80 text-white' : '',
         ]"

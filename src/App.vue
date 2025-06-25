@@ -1,5 +1,8 @@
 <template>
-  <div id="app" class="bg-black text-white">
+  <div
+    id="app"
+    class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white"
+  >
     <!-- Navigation Header -->
     <NavigationBar
       v-model="searchQuery"
@@ -52,7 +55,8 @@ body {
   padding: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #000;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background-attachment: fixed;
   color: #fff;
   overflow-x: hidden; /* Empêche le scroll horizontal */
   overflow-y: auto; /* Permet le scroll vertical */
@@ -60,6 +64,34 @@ body {
 
 #app {
   min-height: 100vh;
+  position: relative;
+}
+
+#app::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(99, 102, 241, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(59, 130, 246, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(147, 197, 253, 0.03) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+  z-index: -1;
 }
 
 .main-content {
@@ -72,15 +104,16 @@ body {
   bottom: 1rem;
   left: 1rem;
   background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 0.5rem;
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  border-radius: 0.75rem;
   padding: 1rem;
   max-width: 400px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .tv-test-text {
-  color: #22c55e;
+  color: #6366f1;
   font-size: 0.875rem;
   margin: 0 0 0.5rem 0;
   font-weight: 500;
