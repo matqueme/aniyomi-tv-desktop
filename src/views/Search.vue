@@ -121,6 +121,7 @@ import {
   PhFileX,
 } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
+import { useNavigationStore } from '@/stores/navigation';
 import { useTVNavigation } from '@/composables/useTVNavigation';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
@@ -133,6 +134,7 @@ defineOptions({
 
 const router = useRouter();
 const animeStore = useAnimeStore();
+const navigationStore = useNavigationStore();
 
 // Récupérer le terme de recherche depuis l'URL
 const route = router.currentRoute;
@@ -152,25 +154,73 @@ const hasSearched = ref(false);
 
 // État du focus pour chaque élément (navigation TV simple)
 const currentFocusIndex = ref(1); // Commencer sur la barre de recherche
+const isInSearchResults = ref(false); // Flag pour savoir si on navigue dans les résultats
 const maxFocusIndex = computed(() => {
   let max = 1; // back button (0) + search input (1)
   if (searchQuery.value) max++; // clear button
   return max;
 });
 
+// Fonctions de navigation
+const navigateToNavbar = () => {
+  // Utiliser la navigation globale du store
+  navigationStore.navigateUp();
+};
+
+const navigateToSearchResults = () => {
+  if (searchResults.value.length > 0) {
+    // Marquer qu'on passe à la navigation globale
+    isInSearchResults.value = true;
+    // Utiliser la navigation globale du store
+    navigationStore.navigateDown();
+  }
+};
+
 // Navigation TV avec handlers personnalisés
 useTVNavigation({
-  onLeft: () => {
-    if (currentFocusIndex.value > 0) {
+  onUp: () => {
+    if (isInSearchResults.value) {
+      // Si on est dans les résultats, on peut soit rester dans les résultats soit revenir à la navigation locale
+      const canNavigateUp =
+        navigationStore.activeElement?.navigateUp !== undefined;
+      if (!canNavigateUp) {
+        // Sortir des résultats et revenir à la navigation locale
+        isInSearchResults.value = false;
+        currentFocusIndex.value = maxFocusIndex.value;
+        updateFocus();
+      } else {
+        navigationStore.navigateUp();
+      }
+    } else if (currentFocusIndex.value > 0) {
       currentFocusIndex.value--;
       updateFocus();
+    } else {
+      // Si on est sur le premier élément (bouton retour), aller vers la navbar
+      navigateToNavbar();
     }
   },
-  onRight: () => {
+  onDown: () => {
     if (currentFocusIndex.value < maxFocusIndex.value) {
       currentFocusIndex.value++;
       updateFocus();
+    } else if (searchResults.value.length > 0) {
+      // Si on est sur le dernier élément et qu'il y a des résultats, aller vers la liste
+      navigateToSearchResults();
     }
+  },
+  onLeft: () => {
+    // Si on est dans la navigation globale (liste de résultats active)
+    if (isInSearchResults.value) {
+      navigationStore.navigateLeft();
+    }
+    // Sinon, pas de navigation horizontale locale
+  },
+  onRight: () => {
+    // Si on est dans la navigation globale (liste de résultats active)
+    if (isInSearchResults.value) {
+      navigationStore.navigateRight();
+    }
+    // Sinon, pas de navigation horizontale locale
   },
   onSelect: () => {
     handleSelect();
@@ -190,6 +240,12 @@ const isClearButtonFocused = computed(
 // Configuration de la navigation
 onMounted(async () => {
   await nextTick();
+
+  // Désactiver la navigation globale au début (on commence en navigation locale)
+  if (navigationStore.isNavigationActive) {
+    navigationStore.deactivateNavigation();
+  }
+
   updateFocus();
 
   // Si il y a un terme de recherche initial, déclencher la recherche
@@ -245,6 +301,19 @@ watch(searchQuery, (newValue, oldValue) => {
     }
   }
 });
+
+// Surveiller l'état de navigation global pour synchroniser notre état local
+watch(
+  () => navigationStore.activeElement,
+  (newElement) => {
+    if (newElement?.id === 'search-results') {
+      isInSearchResults.value = true;
+    } else if (isInSearchResults.value) {
+      // On a quitté les résultats de recherche
+      isInSearchResults.value = false;
+    }
+  }
+);
 
 // Fonction de recherche avec debounce
 let searchTimeout: number;
