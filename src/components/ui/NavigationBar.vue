@@ -1,45 +1,73 @@
 <template>
   <nav
-    class="navbar"
-    :class="{ 'navbar-active': isNavbarActive }"
+    class="fixed top-0 right-0 left-0 z-50 h-16 border-b shadow-sm backdrop-blur-md transition-all duration-300 ease-in-out"
+    :class="[
+      isNavbarActive
+        ? 'border-indigo-400/40 bg-slate-900/98 shadow-lg'
+        : 'border-slate-600/30 bg-slate-900/95 shadow-md',
+    ]"
     :data-navbar-id="navbarId"
   >
-    <div class="navbar-content">
+    <div
+      class="mx-auto flex h-full max-w-7xl items-center justify-between px-8"
+    >
       <!-- Logo à gauche -->
-      <div class="navbar-logo">
-        <img src="/icon.png" alt="Aniyomi" class="logo-image" />
-        <span class="logo-text">Aniyomi</span>
+      <div class="flex flex-shrink-0 items-center gap-3">
+        <img
+          src="/icon.png"
+          alt="Aniyomi"
+          class="h-8 w-8 rounded-md object-cover"
+        />
+        <span
+          class="hidden text-xl font-bold tracking-tight text-slate-200 sm:block"
+          >Aniyomi</span
+        >
       </div>
 
       <!-- Barre de recherche au centre -->
-      <div class="search-container">
-        <div class="search-wrapper" :class="{ 'tv-focused': isSearchFocused }">
-          <ph-magnifying-glass class="search-icon" :size="20" />
+      <div class="mx-8 max-w-md flex-1">
+        <div
+          class="relative flex items-center rounded-xl border px-4 transition-all duration-300 ease-in-out"
+          :class="[
+            isSearchFocused
+              ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
+              : 'border-slate-600/40 bg-slate-800/60',
+          ]"
+        >
+          <ph-magnifying-glass
+            class="mr-3 flex-shrink-0 text-slate-400"
+            :size="20"
+          />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
             placeholder="Rechercher des animes..."
-            class="search-input"
+            class="flex-1 border-none bg-transparent py-3 text-sm text-slate-200 placeholder-slate-500 outline-none"
             @input="onSearchInput"
             @focus="onSearchFocus"
             @blur="onSearchBlur"
           />
-          <button v-if="searchQuery" class="clear-button" @click="clearSearch">
+          <button
+            v-if="searchQuery"
+            class="ml-2 rounded p-1 text-slate-400 transition-all duration-200 hover:bg-indigo-500/10 hover:text-slate-200"
+            @click="clearSearch"
+          >
             <ph-x :size="16" />
           </button>
         </div>
       </div>
 
       <!-- Icône paramètres à droite -->
-      <div class="navbar-actions">
+      <div class="flex flex-shrink-0 items-center">
         <button
           ref="settingsButtonRef"
-          class="settings-button"
-          :class="{
-            focused: isSettingsFocused,
-            'tv-focused': isSettingsFocused,
-          }"
+          class="flex items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
+          :class="[
+            isSettingsFocused
+              ? 'scale-[1.01] border-indigo-500 bg-indigo-500/20 text-indigo-200'
+              : 'border-transparent hover:border-indigo-500/40 hover:bg-indigo-500/10',
+          ]"
           @click="onSettingsClick"
         >
           <ph-gear :size="24" />
@@ -155,218 +183,3 @@ const onSettingsClick = () => {
   emit('settings');
 };
 </script>
-
-<style scoped>
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
-  z-index: 100;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
-}
-
-.navbar-active {
-  background: rgba(15, 23, 42, 0.98);
-  border-bottom-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 2px 25px rgba(0, 0, 0, 0.25);
-}
-
-.navbar-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 0 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Logo */
-.navbar-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.logo-image {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  object-fit: cover;
-}
-
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  letter-spacing: -0.025em;
-}
-
-/* Search */
-.search-container {
-  flex: 1;
-  max-width: 500px;
-  margin: 0 2rem;
-}
-
-.search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(71, 85, 105, 0.4);
-  border-radius: 0.75rem;
-  padding: 0 1rem;
-  transition: all 0.3s ease;
-}
-
-.search-wrapper:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
-  background: rgba(30, 41, 59, 0.8);
-}
-
-.search-wrapper.tv-focused {
-  border-color: #6366f1;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-  background: rgba(30, 41, 59, 0.9);
-  transform: scale(1.01);
-}
-
-.search-icon {
-  color: #94a3b8;
-  margin-right: 0.75rem;
-  flex-shrink: 0;
-}
-
-.search-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #e2e8f0;
-  font-size: 0.875rem;
-  padding: 0.75rem 0;
-}
-
-.search-input::placeholder {
-  color: #64748b;
-}
-
-.clear-button {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.5rem;
-}
-
-.clear-button:hover {
-  color: #e2e8f0;
-  background: rgba(99, 102, 241, 0.1);
-}
-
-/* Settings */
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.settings-button {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-button:hover {
-  color: #e2e8f0;
-  background: rgba(99, 102, 241, 0.1);
-}
-
-.settings-button.focused {
-  background: rgba(99, 102, 241, 0.2);
-  transform: scale(0.95);
-}
-
-.settings-button.tv-focused {
-  background: rgba(99, 102, 241, 0.25);
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-  transform: scale(1.02);
-  border: 1px solid #6366f1;
-}
-
-/* Navigation TV et Focus */
-.search-input:focus {
-  outline: none;
-}
-
-.settings-button:focus {
-  outline: none;
-}
-
-/* Indicateurs visuels pour la navigation TV */
-.tv-focused {
-  animation: focusPulse 2s infinite;
-}
-
-@keyframes focusPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .navbar-content {
-    padding: 0 1rem;
-  }
-
-  .search-container {
-    margin: 0 1rem;
-    max-width: none;
-  }
-
-  .logo-text {
-    display: none;
-  }
-
-  .search-input {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .search-container {
-    margin: 0 0.5rem;
-  }
-
-  .navbar-content {
-    padding: 0 0.75rem;
-  }
-}
-</style>
