@@ -38,7 +38,7 @@ export function useNavbarNavigation(navbarId: string = 'main-navbar') {
 
     // Trier les éléments pour maintenir un ordre cohérent
     elements.value.sort((a, b) => {
-      const order = ['search', 'settings'];
+      const order = ['search', 'clear-search', 'settings'];
       return order.indexOf(a.id) - order.indexOf(b.id);
     });
   };

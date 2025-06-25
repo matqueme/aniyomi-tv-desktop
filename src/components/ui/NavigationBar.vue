@@ -45,12 +45,16 @@
             placeholder="Rechercher des animes..."
             class="flex-1 border-none bg-transparent py-3 text-sm text-slate-200 placeholder-slate-500 outline-none"
             @input="onSearchInput"
-            @focus="onSearchFocus"
-            @blur="onSearchBlur"
           />
           <button
             v-if="searchQuery"
-            class="ml-2 rounded p-1 text-slate-400 transition-all duration-200 hover:bg-indigo-500/10 hover:text-slate-200"
+            ref="clearSearchButtonRef"
+            class="ml-2 cursor-pointer rounded p-1 text-slate-400 transition-all duration-200 hover:bg-indigo-500/10 hover:text-slate-200 focus:outline-none"
+            :class="[
+              isClearSearchFocused
+                ? 'scale-[1.05] bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
+                : '',
+            ]"
             @click="clearSearch"
           >
             <ph-x :size="16" />
@@ -62,10 +66,10 @@
       <div class="flex flex-shrink-0 items-center">
         <button
           ref="settingsButtonRef"
-          class="flex items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
+          class="flex cursor-pointer items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
           :class="[
             isSettingsFocused
-              ? 'scale-[1.01] border-indigo-500 bg-indigo-500/20 text-indigo-200'
+              ? 'scale-[1.01] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
               : 'border-transparent hover:border-indigo-500/40 hover:bg-indigo-500/10',
           ]"
           @click="onSettingsClick"
@@ -78,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, nextTick } from 'vue';
 import { PhMagnifyingGlass, PhX, PhGear } from '@phosphor-icons/vue';
 import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
 
@@ -103,6 +107,7 @@ const searchQuery = ref(props.modelValue);
 
 // Références pour les éléments focusables
 const searchInputRef = ref<HTMLInputElement>();
+const clearSearchButtonRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
 
 // Navigation navbar
@@ -110,20 +115,31 @@ const {
   isActive: isNavbarActive,
   currentFocusIndex,
   addElement,
+  removeElement,
   isElementFocused,
+  updateFocus,
 } = useNavbarNavigation(navbarId);
 
 // États des éléments
 const isSearchFocused = ref(false);
+const isClearSearchFocused = ref(false);
 const isSettingsFocused = ref(false);
 
 // Mettre à jour les états en fonction du focus
-watch([currentFocusIndex, isNavbarActive], () => {
+watch([currentFocusIndex, isNavbarActive, searchQuery], () => {
   if (isNavbarActive.value) {
-    isSearchFocused.value = isElementFocused(0);
-    isSettingsFocused.value = isElementFocused(1);
+    // Calculer dynamiquement les indices selon les éléments présents
+    const searchIndex = 0;
+    const clearSearchIndex = searchQuery.value ? 1 : -1;
+    const settingsIndex = searchQuery.value ? 2 : 1;
+
+    isSearchFocused.value = isElementFocused(searchIndex);
+    isClearSearchFocused.value =
+      clearSearchIndex >= 0 && isElementFocused(clearSearchIndex);
+    isSettingsFocused.value = isElementFocused(settingsIndex);
   } else {
     isSearchFocused.value = false;
+    isClearSearchFocused.value = false;
     isSettingsFocused.value = false;
   }
 });
@@ -132,6 +148,7 @@ watch([currentFocusIndex, isNavbarActive], () => {
 watch(isNavbarActive, (active) => {
   if (!active) {
     isSearchFocused.value = false;
+    isClearSearchFocused.value = false;
     isSettingsFocused.value = false;
   }
 });
@@ -149,6 +166,28 @@ onMounted(() => {
   });
 });
 
+// Gérer l'ajout/suppression dynamique du bouton de croix
+watch(searchQuery, (newQuery) => {
+  if (newQuery && clearSearchButtonRef.value) {
+    // Ajouter le bouton de croix s'il y a du texte
+    addElement('clear-search', clearSearchButtonRef.value, () => {
+      clearSearchButtonRef.value?.focus();
+    });
+  } else {
+    // Supprimer le bouton de croix s'il n'y a pas de texte
+    removeElement('clear-search');
+  }
+});
+
+// S'assurer que le bouton de croix est ajouté quand la référence est disponible
+watch(clearSearchButtonRef, (newRef) => {
+  if (newRef && searchQuery.value) {
+    addElement('clear-search', newRef, () => {
+      clearSearchButtonRef.value?.focus();
+    });
+  }
+});
+
 // Surveiller les changements de props
 watch(
   () => props.modelValue,
@@ -162,24 +201,19 @@ const onSearchInput = () => {
   emit('search', searchQuery.value);
 };
 
-const onSearchFocus = () => {
-  // Le focus sera géré par le système de navigation
-};
-
-const onSearchBlur = () => {
-  // Le blur sera géré par le système de navigation
-};
-
-const clearSearch = () => {
+const clearSearch = async () => {
   searchQuery.value = '';
   onSearchInput();
+
+  // Attendre que Vue mette à jour le DOM et les watchers
+  if (isNavbarActive.value) {
+    await nextTick();
+    currentFocusIndex.value = 0;
+    updateFocus();
+  }
 };
 
 const onSettingsClick = () => {
-  isSettingsFocused.value = true;
-  setTimeout(() => {
-    isSettingsFocused.value = false;
-  }, 200);
   emit('settings');
 };
 </script>
