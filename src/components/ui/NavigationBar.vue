@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue';
+import { ref, watch, onMounted, nextTick, computed } from 'vue';
 import { PhMagnifyingGlass, PhX, PhGear } from '@phosphor-icons/vue';
 import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
 
@@ -120,38 +120,32 @@ const {
   updateFocus,
 } = useNavbarNavigation(navbarId);
 
-// États des éléments
-const isSearchFocused = ref(false);
-const isClearSearchFocused = ref(false);
-const isSettingsFocused = ref(false);
+// Computed properties pour les indices des éléments
+const elementIndices = computed(() => {
+  const searchIndex = 0;
+  const clearSearchIndex = searchQuery.value ? 1 : -1;
+  const settingsIndex = searchQuery.value ? 2 : 1;
 
-// Mettre à jour les états en fonction du focus
-watch([currentFocusIndex, isNavbarActive, searchQuery], () => {
-  if (isNavbarActive.value) {
-    // Calculer dynamiquement les indices selon les éléments présents
-    const searchIndex = 0;
-    const clearSearchIndex = searchQuery.value ? 1 : -1;
-    const settingsIndex = searchQuery.value ? 2 : 1;
-
-    isSearchFocused.value = isElementFocused(searchIndex);
-    isClearSearchFocused.value =
-      clearSearchIndex >= 0 && isElementFocused(clearSearchIndex);
-    isSettingsFocused.value = isElementFocused(settingsIndex);
-  } else {
-    isSearchFocused.value = false;
-    isClearSearchFocused.value = false;
-    isSettingsFocused.value = false;
-  }
+  return { searchIndex, clearSearchIndex, settingsIndex };
 });
 
-// Réagir aux changements d'état de la navbar
-watch(isNavbarActive, (active) => {
-  if (!active) {
-    isSearchFocused.value = false;
-    isClearSearchFocused.value = false;
-    isSettingsFocused.value = false;
-  }
-});
+// États des éléments focusés (computed properties)
+const isSearchFocused = computed(
+  () =>
+    isNavbarActive.value && isElementFocused(elementIndices.value.searchIndex)
+);
+
+const isClearSearchFocused = computed(
+  () =>
+    isNavbarActive.value &&
+    elementIndices.value.clearSearchIndex >= 0 &&
+    isElementFocused(elementIndices.value.clearSearchIndex)
+);
+
+const isSettingsFocused = computed(
+  () =>
+    isNavbarActive.value && isElementFocused(elementIndices.value.settingsIndex)
+);
 
 // Configuration des éléments navigables
 onMounted(() => {
@@ -167,26 +161,21 @@ onMounted(() => {
 });
 
 // Gérer l'ajout/suppression dynamique du bouton de croix
-watch(searchQuery, (newQuery) => {
-  if (newQuery && clearSearchButtonRef.value) {
-    // Ajouter le bouton de croix s'il y a du texte
-    addElement('clear-search', clearSearchButtonRef.value, () => {
-      clearSearchButtonRef.value?.focus();
-    });
-  } else {
-    // Supprimer le bouton de croix s'il n'y a pas de texte
-    removeElement('clear-search');
-  }
-});
-
-// S'assurer que le bouton de croix est ajouté quand la référence est disponible
-watch(clearSearchButtonRef, (newRef) => {
-  if (newRef && searchQuery.value) {
-    addElement('clear-search', newRef, () => {
-      clearSearchButtonRef.value?.focus();
-    });
-  }
-});
+watch(
+  [searchQuery, clearSearchButtonRef],
+  ([newQuery, newRef]) => {
+    if (newQuery && newRef) {
+      // Ajouter le bouton de croix s'il y a du texte et une référence
+      addElement('clear-search', newRef, () => {
+        clearSearchButtonRef.value?.focus();
+      });
+    } else {
+      // Supprimer le bouton de croix s'il n'y a pas de texte
+      removeElement('clear-search');
+    }
+  },
+  { immediate: true }
+);
 
 // Surveiller les changements de props
 watch(
