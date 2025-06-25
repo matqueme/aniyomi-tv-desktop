@@ -1,15 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, computed, nextTick } from 'vue';
 
-export interface NavigableList {
+export interface NavigableElement {
   id: string;
   title: string;
-  itemCount: number;
-  itemsPerRow: number;
+  type: 'navbar' | 'list';
   activate: (startIndex?: number) => void;
   deactivate: () => void;
-  focusOnFirstRow: () => void;
-  focusOnLastRow: () => void;
   getFocusedIndex: () => number;
   navigateLeft: () => void;
   navigateRight: () => void;
@@ -19,146 +16,190 @@ export interface NavigableList {
   scrollToSection?: () => void;
 }
 
+export interface NavigableList extends NavigableElement {
+  type: 'list';
+  itemCount: number;
+  itemsPerRow: number;
+  focusOnFirstRow: () => void;
+  focusOnLastRow: () => void;
+}
+
+export interface NavigableNavbar extends NavigableElement {
+  type: 'navbar';
+  focusOnFirstElement: () => void;
+  focusOnLastElement: () => void;
+}
+
 export const useNavigationStore = defineStore('navigation', () => {
   // État
-  const lists = ref<NavigableList[]>([]);
-  const activeListIndex = ref(0);
+  const elements = ref<NavigableElement[]>([]);
+  const activeElementIndex = ref(0);
   const isNavigationActive = ref(false);
 
   // Getters
-  const activeList = computed(() => lists.value[activeListIndex.value]);
-  const hasMultipleLists = computed(() => lists.value.length > 1);
-  const totalLists = computed(() => lists.value.length);
+  const activeElement = computed(
+    () => elements.value[activeElementIndex.value]
+  );
+  const hasMultipleElements = computed(() => elements.value.length > 1);
+  const totalElements = computed(() => elements.value.length);
+  const navbar = computed(() =>
+    elements.value.find((el) => el.type === 'navbar')
+  );
+  const lists = computed(
+    () => elements.value.filter((el) => el.type === 'list') as NavigableList[]
+  );
 
-  // Actions - Gestion des listes
-  const registerList = (list: NavigableList) => {
-    const existingIndex = lists.value.findIndex((l) => l.id === list.id);
+  // Actions - Gestion des éléments
+  const registerElement = (element: NavigableElement) => {
+    const existingIndex = elements.value.findIndex(
+      (el) => el.id === element.id
+    );
     if (existingIndex >= 0) {
-      lists.value[existingIndex] = list;
+      elements.value[existingIndex] = element;
     } else {
-      lists.value.push(list);
-    }
-  };
-
-  const unregisterList = (listId: string) => {
-    const index = lists.value.findIndex((l) => l.id === listId);
-    if (index >= 0) {
-      lists.value.splice(index, 1);
-
-      // Ajuster l'index actif si nécessaire
-      if (activeListIndex.value >= lists.value.length) {
-        activeListIndex.value = Math.max(0, lists.value.length - 1);
+      // Navbar toujours en premier, puis les listes
+      if (element.type === 'navbar') {
+        elements.value.unshift(element);
+      } else {
+        elements.value.push(element);
       }
     }
   };
 
-  const clearLists = () => {
-    lists.value = [];
-    activeListIndex.value = 0;
+  const unregisterElement = (elementId: string) => {
+    const index = elements.value.findIndex((el) => el.id === elementId);
+    if (index >= 0) {
+      elements.value.splice(index, 1);
+
+      // Ajuster l'index actif si nécessaire
+      if (activeElementIndex.value >= elements.value.length) {
+        activeElementIndex.value = Math.max(0, elements.value.length - 1);
+      }
+    }
+  };
+
+  const clearElements = () => {
+    elements.value = [];
+    activeElementIndex.value = 0;
     isNavigationActive.value = false;
   };
+
+  // Méthodes de compatibilité pour les listes
+  const registerList = (list: NavigableList) => registerElement(list);
+  const unregisterList = (listId: string) => unregisterElement(listId);
+  const clearLists = () => clearElements();
 
   // Actions - Navigation principale
   const initializeNavigation = async () => {
     await nextTick();
 
-    if (lists.value.length === 0) {
-      console.warn('Aucune liste disponible pour la navigation');
+    if (elements.value.length === 0) {
+      console.warn('Aucun élément disponible pour la navigation');
       return;
     }
 
-    // Désactiver toutes les listes
-    lists.value.forEach((list) => list.deactivate());
+    // Désactiver tous les éléments
+    elements.value.forEach((element) => element.deactivate());
 
-    // Activer la première liste
-    activeListIndex.value = 0;
-    if (activeList.value) {
-      activeList.value.activate();
-      activeList.value.scrollToSection?.();
+    // Activer le deuxième élément s'il existe, sinon le premier
+    activeElementIndex.value = elements.value.length > 1 ? 1 : 0;
+    if (activeElement.value) {
+      activeElement.value.activate();
+      activeElement.value.scrollToSection?.();
       isNavigationActive.value = true;
     }
   };
 
   const navigateUp = () => {
-    if (!isNavigationActive.value || !hasMultipleLists.value) return;
+    if (!isNavigationActive.value || !hasMultipleElements.value) return;
 
-    const currentList = activeList.value;
-    if (!currentList) return;
+    const currentElement = activeElement.value;
+    if (!currentElement) return;
 
     // Calculer le nouvel index (avec effet carrousel)
     const newIndex =
-      activeListIndex.value > 0
-        ? activeListIndex.value - 1
-        : lists.value.length - 1;
+      activeElementIndex.value > 0
+        ? activeElementIndex.value - 1
+        : elements.value.length - 1;
 
-    const newList = lists.value[newIndex];
-    if (!newList) return;
+    const newElement = elements.value[newIndex];
+    if (!newElement) return;
 
-    // Désactiver la liste actuelle
-    currentList.deactivate();
+    // Désactiver l'élément actuel
+    currentElement.deactivate();
 
-    // Activer la nouvelle liste et se positionner sur la dernière ligne
-    activeListIndex.value = newIndex;
-    newList.activate();
+    // Activer le nouvel élément
+    activeElementIndex.value = newIndex;
+    newElement.activate();
     setTimeout(() => {
-      newList.focusOnLastRow();
-      newList.scrollToSection?.();
+      // Pour les listes, se positionner sur la dernière ligne
+      if (newElement.type === 'list') {
+        (newElement as NavigableList).focusOnLastRow();
+      } else if (newElement.type === 'navbar') {
+        (newElement as NavigableNavbar).focusOnFirstElement();
+      }
+      newElement.scrollToSection?.();
     }, 50);
   };
 
   const navigateDown = () => {
-    if (!isNavigationActive.value || !hasMultipleLists.value) return;
+    if (!isNavigationActive.value || !hasMultipleElements.value) return;
 
-    const currentList = activeList.value;
-    if (!currentList) return;
+    const currentElement = activeElement.value;
+    if (!currentElement) return;
 
     // Calculer le nouvel index (avec effet carrousel)
     const newIndex =
-      activeListIndex.value < lists.value.length - 1
-        ? activeListIndex.value + 1
+      activeElementIndex.value < elements.value.length - 1
+        ? activeElementIndex.value + 1
         : 0;
 
-    const newList = lists.value[newIndex];
-    if (!newList) return;
+    const newElement = elements.value[newIndex];
+    if (!newElement) return;
 
-    // Désactiver la liste actuelle
-    currentList.deactivate();
+    // Désactiver l'élément actuel
+    currentElement.deactivate();
 
-    // Activer la nouvelle liste et se positionner sur la première ligne
-    activeListIndex.value = newIndex;
-    newList.activate();
+    // Activer le nouvel élément
+    activeElementIndex.value = newIndex;
+    newElement.activate();
     setTimeout(() => {
-      newList.focusOnFirstRow();
-      newList.scrollToSection?.();
+      // Pour les listes, se positionner sur la première ligne
+      if (newElement.type === 'list') {
+        (newElement as NavigableList).focusOnFirstRow();
+      } else if (newElement.type === 'navbar') {
+        (newElement as NavigableNavbar).focusOnFirstElement();
+      }
+      newElement.scrollToSection?.();
     }, 50);
   };
-  // Actions - Navigation horizontale (délégation aux listes)
+  // Actions - Navigation horizontale (délégation aux éléments)
   const navigateLeft = () => {
-    if (!isNavigationActive.value || !activeList.value) return;
+    if (!isNavigationActive.value || !activeElement.value) return;
 
-    // Appeler directement la méthode de navigation de la liste active
-    const currentList = activeList.value;
-    if (currentList.navigateLeft) {
-      currentList.navigateLeft();
+    // Appeler directement la méthode de navigation de l'élément actif
+    const currentElement = activeElement.value;
+    if (currentElement.navigateLeft) {
+      currentElement.navigateLeft();
     }
   };
 
   const navigateRight = () => {
-    if (!isNavigationActive.value || !activeList.value) return;
+    if (!isNavigationActive.value || !activeElement.value) return;
 
-    // Appeler directement la méthode de navigation de la liste active
-    const currentList = activeList.value;
-    if (currentList.navigateRight) {
-      currentList.navigateRight();
+    // Appeler directement la méthode de navigation de l'élément actif
+    const currentElement = activeElement.value;
+    if (currentElement.navigateRight) {
+      currentElement.navigateRight();
     }
   };
   // Actions - Sélection
   const handleSelect = () => {
-    if (!isNavigationActive.value || !activeList.value) return;
+    if (!isNavigationActive.value || !activeElement.value) return;
 
-    // Appeler directement la méthode de sélection de la liste active
-    const currentList = activeList.value;
-    currentList.handleSelect();
+    // Appeler directement la méthode de sélection de l'élément actif
+    const currentElement = activeElement.value;
+    currentElement.handleSelect();
   };
 
   // Actions - État
@@ -168,35 +209,57 @@ export const useNavigationStore = defineStore('navigation', () => {
 
   const deactivateNavigation = () => {
     isNavigationActive.value = false;
-    lists.value.forEach((list) => list.deactivate());
+    elements.value.forEach((element) => element.deactivate());
   };
 
   // Actions - Débogage et diagnostics
   const getNavigationState = () => {
     return {
       isActive: isNavigationActive.value,
-      totalLists: lists.value.length,
-      activeListIndex: activeListIndex.value,
-      activeListTitle: activeList.value?.title || 'Aucune',
-      lists: lists.value.map((list) => ({
-        id: list.id,
-        title: list.title,
-        itemCount: list.itemCount,
-        focusedIndex: list.getFocusedIndex(),
+      totalElements: elements.value.length,
+      activeElementIndex: activeElementIndex.value,
+      activeElementTitle: activeElement.value?.title || 'Aucun',
+      elements: elements.value.map((element) => ({
+        id: element.id,
+        title: element.title,
+        type: element.type,
+        focusedIndex: element.getFocusedIndex(),
       })),
     };
   };
 
   return {
     // État (readonly pour l'extérieur)
-    lists: computed(() => lists.value),
-    activeListIndex: computed(() => activeListIndex.value),
-    activeList,
+    elements: computed(() => elements.value),
+    activeElementIndex: computed(() => activeElementIndex.value),
+    activeElement,
     isNavigationActive: computed(() => isNavigationActive.value),
-    hasMultipleLists,
-    totalLists,
+    hasMultipleElements,
+    totalElements,
+    navbar,
+    lists,
 
-    // Actions - Gestion des listes
+    // Compatibilité avec l'ancien API
+    activeList: computed(() => {
+      const element = activeElement.value;
+      return element?.type === 'list' ? (element as NavigableList) : undefined;
+    }),
+    hasMultipleLists: computed(() => lists.value.length > 1),
+    totalLists: computed(() => lists.value.length),
+    activeListIndex: computed(() => {
+      const element = activeElement.value;
+      if (element?.type === 'list') {
+        return lists.value.findIndex((list) => list.id === element.id);
+      }
+      return -1;
+    }),
+
+    // Actions - Gestion des éléments
+    registerElement,
+    unregisterElement,
+    clearElements,
+
+    // Actions - Gestion des listes (compatibilité)
     registerList,
     unregisterList,
     clearLists,
