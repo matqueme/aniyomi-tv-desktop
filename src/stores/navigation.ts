@@ -134,9 +134,15 @@ export const useNavigationStore = defineStore('navigation', () => {
     setTimeout(() => {
       // Pour les listes, se positionner sur la dernière ligne
       if (newElement.type === 'list') {
-        (newElement as NavigableList).focusOnLastRow();
+        const listElement = newElement as NavigableList;
+        if (listElement.focusOnLastRow) {
+          listElement.focusOnLastRow();
+        }
       } else if (newElement.type === 'navbar') {
-        (newElement as NavigableNavbar).focusOnFirstElement();
+        const navbarElement = newElement as NavigableNavbar;
+        if (navbarElement.focusOnFirstElement) {
+          navbarElement.focusOnFirstElement();
+        }
       }
       newElement.scrollToSection?.();
     }, 50);
@@ -166,9 +172,15 @@ export const useNavigationStore = defineStore('navigation', () => {
     setTimeout(() => {
       // Pour les listes, se positionner sur la première ligne
       if (newElement.type === 'list') {
-        (newElement as NavigableList).focusOnFirstRow();
+        const listElement = newElement as NavigableList;
+        if (listElement.focusOnFirstRow) {
+          listElement.focusOnFirstRow();
+        }
       } else if (newElement.type === 'navbar') {
-        (newElement as NavigableNavbar).focusOnFirstElement();
+        const navbarElement = newElement as NavigableNavbar;
+        if (navbarElement.focusOnFirstElement) {
+          navbarElement.focusOnFirstElement();
+        }
       }
       newElement.scrollToSection?.();
     }, 50);

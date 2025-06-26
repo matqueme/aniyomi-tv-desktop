@@ -24,11 +24,11 @@
         >
       </div>
 
-      <!-- Barre de recherche au centre -->
+      <!-- Bouton de recherche au centre -->
       <div v-if="$route.name !== 'Search'" class="mx-8 max-w-md flex-1">
-        <div
+        <button
           ref="searchWrapperRef"
-          class="relative flex cursor-pointer items-center rounded-xl border px-4 transition-all duration-300 ease-in-out"
+          class="relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out"
           :class="[
             isSearchFocused
               ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
@@ -40,28 +40,10 @@
             class="mr-3 flex-shrink-0 text-slate-400"
             :size="20"
           />
-          <input
-            ref="searchInputRef"
-            v-model="searchQuery"
-            type="text"
-            placeholder="Rechercher des animes..."
-            class="pointer-events-none flex-1 border-none bg-transparent py-3 text-sm text-slate-200 placeholder-slate-500 outline-none"
-            @input="onSearchInput"
-          />
-          <button
-            v-if="searchQuery"
-            ref="clearSearchButtonRef"
-            class="ml-2 cursor-pointer rounded p-1 text-slate-400 transition-all duration-200 hover:bg-indigo-500/10 hover:text-slate-200 focus:outline-none"
-            :class="[
-              isClearSearchFocused
-                ? 'scale-[1.05] bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
-                : '',
-            ]"
-            @click.stop="clearSearch"
-          >
-            <ph-x :size="16" />
-          </button>
-        </div>
+          <span class="flex-1 text-left text-sm text-slate-500">
+            Rechercher des animes...
+          </span>
+        </button>
       </div>
 
       <!-- Icône paramètres à droite -->
@@ -85,44 +67,29 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick, computed } from 'vue';
-import { PhMagnifyingGlass, PhX, PhGear } from '@phosphor-icons/vue';
+import { PhMagnifyingGlass, PhGear } from '@phosphor-icons/vue';
 import { useRouter } from 'vue-router';
 import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
 
-interface Props {
-  modelValue?: string;
-}
-
 interface Emits {
-  (e: 'update:modelValue', value: string): void;
-  (e: 'search', query: string): void;
   (e: 'settings'): void;
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
-});
 
 const router = useRouter();
 const emit = defineEmits<Emits>();
 
 const navbarId = 'main-navbar';
-const searchQuery = ref(props.modelValue);
 
 // Références pour les éléments focusables
-const searchWrapperRef = ref<HTMLDivElement>();
-const searchInputRef = ref<HTMLInputElement>();
-const clearSearchButtonRef = ref<HTMLButtonElement>();
+const searchWrapperRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
 
 // Navigation navbar
 const {
   isActive: isNavbarActive,
-  currentFocusIndex,
   addElement,
   removeElement,
   isElementFocused,
-  updateFocus,
 } = useNavbarNavigation(navbarId);
 
 // Computed properties pour les indices des éléments
@@ -133,16 +100,13 @@ const elementIndices = computed(() => {
     // Sur la page de recherche, seuls les paramètres sont disponibles
     return {
       searchIndex: -1,
-      clearSearchIndex: -1,
       settingsIndex: 0,
     };
   } else {
-    // Sur les autres pages, logique normale
-    const searchIndex = 0;
-    const clearSearchIndex = searchQuery.value ? 1 : -1;
-    const settingsIndex = searchQuery.value ? 2 : 1;
-
-    return { searchIndex, clearSearchIndex, settingsIndex };
+    return {
+      searchIndex: 0,
+      settingsIndex: 1,
+    };
   }
 });
 
@@ -152,13 +116,6 @@ const isSearchFocused = computed(
     isNavbarActive.value && isElementFocused(elementIndices.value.searchIndex)
 );
 
-const isClearSearchFocused = computed(
-  () =>
-    isNavbarActive.value &&
-    elementIndices.value.clearSearchIndex >= 0 &&
-    isElementFocused(elementIndices.value.clearSearchIndex)
-);
-
 const isSettingsFocused = computed(
   () =>
     isNavbarActive.value && isElementFocused(elementIndices.value.settingsIndex)
@@ -166,7 +123,7 @@ const isSettingsFocused = computed(
 
 // Configuration des éléments navigables
 onMounted(() => {
-  // Ajouter le wrapper de recherche comme élément navigable seulement si on n'est pas sur la page de recherche
+  // Ajouter le bouton de recherche comme élément navigable seulement si on n'est pas sur la page de recherche
   if (router.currentRoute.value.name !== 'Search') {
     addElement('search', searchWrapperRef.value || null, () => {
       // Juste donner le focus visuel, pas naviguer
@@ -180,34 +137,6 @@ onMounted(() => {
   });
 });
 
-// Gérer l'ajout/suppression dynamique du bouton de croix
-watch(
-  [searchQuery, clearSearchButtonRef],
-  ([newQuery, newRef]) => {
-    // Seulement si on n'est pas sur la page de recherche
-    if (router.currentRoute.value.name !== 'Search') {
-      if (newQuery && newRef) {
-        // Ajouter le bouton de croix s'il y a du texte et une référence
-        addElement('clear-search', newRef, () => {
-          clearSearchButtonRef.value?.focus();
-        });
-      } else {
-        // Supprimer le bouton de croix s'il n'y a pas de texte
-        removeElement('clear-search');
-      }
-    }
-  },
-  { immediate: true }
-);
-
-// Surveiller les changements de props
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    searchQuery.value = newValue;
-  }
-);
-
 // Surveiller les changements de route pour réajuster les éléments navigables
 watch(
   () => router.currentRoute.value.name,
@@ -218,7 +147,6 @@ watch(
     if (!wasOnSearch && isOnSearch) {
       // On arrive sur la page de recherche, supprimer les éléments de recherche
       removeElement('search');
-      removeElement('clear-search');
     } else if (wasOnSearch && !isOnSearch) {
       // On quitte la page de recherche, ajouter les éléments de recherche
       nextTick(() => {
@@ -227,44 +155,17 @@ watch(
             // Juste donner le focus visuel
           });
         }
-
-        // Réajouter le bouton clear si nécessaire
-        if (searchQuery.value && clearSearchButtonRef.value) {
-          addElement('clear-search', clearSearchButtonRef.value, () => {
-            clearSearchButtonRef.value?.focus();
-          });
-        }
       });
     }
   }
 );
 
-const onSearchInput = () => {
-  emit('update:modelValue', searchQuery.value);
-  emit('search', searchQuery.value);
-};
-
+// Fonction pour gérer le clic sur le bouton de recherche
 const onSearchClick = () => {
-  // Naviguer vers la page de recherche avec le terme de recherche s'il y en a un
-  if (searchQuery.value.trim()) {
-    router.push(`/search?q=${encodeURIComponent(searchQuery.value)}`);
-  } else {
-    router.push('/search');
-  }
+  router.push('/search');
 };
 
-const clearSearch = async () => {
-  searchQuery.value = '';
-  onSearchInput();
-
-  // Attendre que Vue mette à jour le DOM et les watchers
-  if (isNavbarActive.value) {
-    await nextTick();
-    currentFocusIndex.value = 0;
-    updateFocus();
-  }
-};
-
+// Fonction pour gérer le clic sur le bouton de paramètres
 const onSettingsClick = () => {
   emit('settings');
 };
