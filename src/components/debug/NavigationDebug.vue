@@ -6,10 +6,12 @@
     <div class="space-y-1">
       <div>Actif: {{ isActive ? '✅' : '❌' }}</div>
       <div>Éléments: {{ totalElements }}</div>
-      <div>Index: {{ activeElementIndex }}</div>
       <div>Élément: {{ activeElement?.title || 'Aucun' }}</div>
       <div>Type: {{ activeElement?.type || 'N/A' }}</div>
-      <div>Focus: {{ activeElement?.getFocusedIndex?.() || 0 }}</div>
+      <div class="flex gap-4">
+        <span>Zone: {{ activeElementIndex }}</span>
+        <span>Item: {{ activeElement?.getFocusedIndex?.() || 0 }}</span>
+      </div>
       <div class="mt-1 text-xs text-slate-400">
         Navbar: {{ navbar ? '✅' : '❌' }} | Listes: {{ totalLists }}
       </div>
