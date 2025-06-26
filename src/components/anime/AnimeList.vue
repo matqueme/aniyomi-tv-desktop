@@ -229,6 +229,7 @@ const createNavigableListInterface = (): NavigableList => ({
   scrollToSection: () => {
     // Cette fonction sera définie par le composant parent si nécessaire
   },
+  type: 'list',
 });
 
 // Méthodes publiques (pour compatibilité avec l'ancienne API)

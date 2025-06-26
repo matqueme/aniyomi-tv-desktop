@@ -301,6 +301,11 @@ onMounted(async () => {
     navigationStore.activateNavigation();
   }
 
+  // Forcer l'activation de la barre de recherche (premier élément, index 0)
+  await nextTick();
+  navigationStore.navigateUp(); // Cela va activer le premier élément (la barre de recherche)
+  currentFocusIndex.value = 1; // Focus sur la barre de recherche
+
   updateFocus();
 
   // Si il y a un terme de recherche initial, déclencher la recherche
