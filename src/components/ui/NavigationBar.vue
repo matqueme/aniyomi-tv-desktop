@@ -92,33 +92,20 @@ const {
   removeElement,
 } = useNavbarNavigation(navbarId);
 
-// Computed properties pour les indices des éléments
-const elementIndices = computed(() => {
-  const isOnSearchPage = router.currentRoute.value.name === 'Search';
+// Computed properties simplifiées
+const isOnSearchPage = computed(
+  () => router.currentRoute.value.name === 'Search'
+);
+const searchIndex = computed(() => (isOnSearchPage.value ? -1 : 0));
+const settingsIndex = computed(() => (isOnSearchPage.value ? 0 : 1));
 
-  if (isOnSearchPage) {
-    // Sur la page de recherche, seuls les paramètres sont disponibles
-    return {
-      searchIndex: -1,
-      settingsIndex: 0,
-    };
-  } else {
-    return {
-      searchIndex: 0,
-      settingsIndex: 1,
-    };
-  }
-});
-
-// États des éléments focusés (computed properties)
+// États des éléments focusés
 const isSearchFocused = computed(
-  () =>
-    isNavbarActive.value && isElementFocused(elementIndices.value.searchIndex)
+  () => isNavbarActive.value && isElementFocused(searchIndex.value)
 );
 
 const isSettingsFocused = computed(
-  () =>
-    isNavbarActive.value && isElementFocused(elementIndices.value.settingsIndex)
+  () => isNavbarActive.value && isElementFocused(settingsIndex.value)
 );
 
 // Fonction pour gérer le clic sur le bouton de recherche
@@ -131,43 +118,37 @@ const onSettingsClick = () => {
   emit('settings');
 };
 
-// Fonction pour enregistrer les éléments navigables
-const registerElements = async () => {
-  const isOnSearchPage = router.currentRoute.value.name === 'Search';
-
-  // Supprimer tous les éléments existants
+// Fonction simplifiée pour gérer les éléments navigables
+const updateNavigation = async () => {
+  // Nettoyer les éléments existants
   removeElement('search');
   removeElement('settings');
 
-  // Attendre que le DOM soit mis à jour
   await nextTick();
 
-  if (!isOnSearchPage && searchButtonRef.value) {
-    // Ajouter le bouton de recherche si on n'est pas sur la page de recherche
-    addElement('search', searchButtonRef.value, () => {
-      searchButtonRef.value?.focus();
-    });
+  // Ajouter les éléments selon la page
+  if (!isOnSearchPage.value && searchButtonRef.value) {
+    addElement('search', searchButtonRef.value, () =>
+      searchButtonRef.value?.focus()
+    );
   }
 
   if (settingsButtonRef.value) {
-    // Toujours ajouter le bouton de paramètres
-    addElement('settings', settingsButtonRef.value, () => {
-      settingsButtonRef.value?.focus();
-    });
+    addElement('settings', settingsButtonRef.value, () =>
+      settingsButtonRef.value?.focus()
+    );
   }
 };
 
-// Enregistrer les éléments au montage
+// Initialisation et gestion des changements de route
 onMounted(() => {
-  registerElements();
+  updateNavigation();
 });
 
-// Réenregistrer les éléments quand la route change
 watch(
   () => router.currentRoute.value.name,
   async () => {
-    console.log('object');
-    await registerElements();
+    await updateNavigation();
   }
 );
 </script>
