@@ -115,12 +115,13 @@ export const useNavigationStore = defineStore('navigation', () => {
     const currentElement = activeElement.value;
     if (!currentElement) return;
 
-    // Calculer le nouvel index (avec effet carrousel)
-    const newIndex =
-      activeElementIndex.value > 0
-        ? activeElementIndex.value - 1
-        : elements.value.length - 1;
+    // Calculer le nouvel index (sans effet carrousel)
+    if (activeElementIndex.value <= 0) {
+      // Si on est déjà au premier élément, ne rien faire
+      return;
+    }
 
+    const newIndex = activeElementIndex.value - 1;
     const newElement = elements.value[newIndex];
     if (!newElement) return;
 
@@ -153,12 +154,13 @@ export const useNavigationStore = defineStore('navigation', () => {
     const currentElement = activeElement.value;
     if (!currentElement) return;
 
-    // Calculer le nouvel index (avec effet carrousel)
-    const newIndex =
-      activeElementIndex.value < elements.value.length - 1
-        ? activeElementIndex.value + 1
-        : 0;
+    // Calculer le nouvel index (sans effet carrousel)
+    if (activeElementIndex.value >= elements.value.length - 1) {
+      // Si on est déjà au dernier élément, ne rien faire
+      return;
+    }
 
+    const newIndex = activeElementIndex.value + 1;
     const newElement = elements.value[newIndex];
     if (!newElement) return;
 
