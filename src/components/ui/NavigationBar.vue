@@ -92,7 +92,7 @@ const {
   removeElement,
 } = useNavbarNavigation(navbarId);
 
-// Computed properties simplifiées
+// Computed properties pour déterminer l'état de la page
 const isOnSearchPage = computed(
   () => router.currentRoute.value.name === 'Search'
 );
@@ -118,7 +118,7 @@ const onSettingsClick = () => {
   emit('settings');
 };
 
-// Fonction simplifiée pour gérer les éléments navigables
+// Fonction pour gérer les éléments navigables
 const updateNavigation = async () => {
   // Nettoyer les éléments existants
   removeElement('search');
