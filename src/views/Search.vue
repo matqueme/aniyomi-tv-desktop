@@ -118,6 +118,7 @@ import {
 import { useAnimeStore } from '@/stores/anime';
 import { useNavigationStore } from '@/stores/navigation';
 import { useTVNavigation } from '@/composables/useTVNavigation';
+import { useSearchNavigation } from '@/composables/useSearchNavigation';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import type { Anime } from '@/types/anime';
 
@@ -145,19 +146,16 @@ const searchQuery = ref(initialSearchQuery);
 const searchResults = ref<Anime[]>([]);
 const hasSearched = ref(false);
 
-// État du focus pour chaque élément (navigation TV simple)
-const currentFocusIndex = ref(1); // Commencer sur la barre de recherche
-const isInSearchResults = ref(false); // Flag pour savoir si on navigue dans les résultats
+// Navigation simplifiée avec le composable
+const searchNavigation = useSearchNavigation();
 
 // Navigation TV avec handlers pour la gestion des résultats de recherche
 useTVNavigation({
   onSelect: () => {
-    // Si on est dans les résultats, utiliser la navigation globale
-    if (isInSearchResults.value) {
+    if (searchNavigation.isInSearchResults.value) {
       navigationStore.handleSelect();
     } else {
-      // Sinon utiliser la logique locale (sera gérée par l'élément enregistré)
-      navigationStore.handleSelect();
+      searchNavigation.handleSelect();
     }
   },
   onBack: () => {
@@ -165,141 +163,37 @@ useTVNavigation({
   },
 });
 
-// États des éléments focusés - tenant compte de l'état de navigation global
-const isBackButtonFocused = computed(() => {
-  return (
-    navigationStore.activeElement?.id === 'search-navigation' &&
-    currentFocusIndex.value === 0
-  );
-});
-
-const isSearchFocused = computed(() => {
-  return (
-    navigationStore.activeElement?.id === 'search-input' &&
-    currentFocusIndex.value === 1
-  );
-});
-
-const isClearButtonFocused = computed(() => {
-  return (
-    navigationStore.activeElement?.id === 'search-input' &&
-    searchQuery.value &&
-    currentFocusIndex.value === 2
-  );
-});
+// États des éléments focusés
+const isBackButtonFocused = computed(() =>
+  searchNavigation.isBackButtonFocused()
+);
+const isSearchFocused = computed(() => searchNavigation.isSearchFocused());
+const isClearButtonFocused = computed(() =>
+  searchNavigation.isClearButtonFocused()
+);
 
 // Configuration de la navigation
 onMounted(async () => {
-  await nextTick();
+  // Initialiser la navigation avec le composable
+  await searchNavigation.initializeNavigation(() => {
+    if (searchResults.value.length > 0) {
+      navigationStore.navigateDown();
+    }
+  });
 
-  // Créer un élément navigable pour la navigation (bouton retour)
-  const navigationElement = {
-    id: 'search-navigation',
-    title: 'Navigation page',
-    type: 'list' as const,
-    activate: () => {
-      isInSearchResults.value = false;
-      currentFocusIndex.value = 0; // Focus sur le bouton retour
-      updateFocus();
-    },
-    deactivate: () => {
-      backButtonRef.value?.blur();
-    },
-    getFocusedIndex: () => 0,
-    navigateLeft: () => {
-      // Pas de navigation horizontale pour le bouton retour
-    },
-    navigateRight: () => {
-      // Pas de navigation horizontale pour le bouton retour
-    },
-    navigateUp: () => {
-      // Pas de navigation vers le haut depuis le bouton retour
-    },
-    navigateDown: () => {
-      // Pas de navigation vers le bas depuis le bouton retour
-    },
-    handleSelect: () => {
-      goBack();
-    },
-    scrollToSection: () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-  };
+  // Ajouter les éléments navigables
+  searchNavigation.addElement(
+    'back-button',
+    backButtonRef.value ?? null,
+    () => backButtonRef.value?.focus(),
+    () => goBack()
+  );
 
-  // Créer un élément navigable pour la recherche (barre + bouton clear)
-  const searchElement = {
-    id: 'search-input',
-    title: 'Barre de recherche',
-    type: 'list' as const,
-    activate: (startIndex = 0) => {
-      isInSearchResults.value = false;
-      // startIndex 0 = barre de recherche, 1 = bouton clear (si présent)
-      const searchFocusIndex = startIndex === 0 ? 1 : searchQuery.value ? 2 : 1;
-      currentFocusIndex.value = searchFocusIndex;
-      updateFocus();
-    },
-    deactivate: () => {
-      searchInputRef.value?.blur();
-      clearButtonRef.value?.blur();
-    },
-    getFocusedIndex: () => {
-      // Retourner l'index relatif à cette section (0 pour barre, 1 pour clear)
-      return currentFocusIndex.value === 1
-        ? 0
-        : currentFocusIndex.value === 2
-          ? 1
-          : 0;
-    },
-    navigateLeft: () => {
-      if (currentFocusIndex.value === 2 && searchQuery.value) {
-        // Du bouton clear vers la barre de recherche
-        currentFocusIndex.value = 1;
-        updateFocus();
-      }
-    },
-    navigateRight: () => {
-      if (currentFocusIndex.value === 1 && searchQuery.value) {
-        // De la barre vers le bouton clear
-        currentFocusIndex.value = 2;
-        updateFocus();
-      }
-    },
-    navigateUp: () => {
-      // Pas de navigation vers le haut dans cette section
-    },
-    navigateDown: () => {
-      // Naviguer vers les résultats si présents
-      if (searchResults.value.length > 0) {
-        isInSearchResults.value = true;
-        navigationStore.navigateDown();
-      }
-    },
-    handleSelect: () => {
-      handleSelect();
-    },
-    scrollToSection: () => {
-      const searchSection = document.querySelector('.max-w-2xl');
-      if (searchSection) {
-        searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    },
-  };
-
-  // Enregistrer les éléments dans le store
-  navigationStore.registerElement(navigationElement);
-  navigationStore.registerElement(searchElement);
-
-  // Activer la navigation globale
-  if (!navigationStore.isNavigationActive) {
-    navigationStore.activateNavigation();
-  }
-
-  // Forcer l'activation de la barre de recherche (premier élément, index 0)
-  await nextTick();
-  navigationStore.navigateUp(); // Cela va activer le premier élément (la barre de recherche)
-  currentFocusIndex.value = 1; // Focus sur la barre de recherche
-
-  updateFocus();
+  searchNavigation.addElement(
+    'search-input',
+    searchInputRef.value ?? null,
+    () => searchInputRef.value?.focus()
+  );
 
   // Si il y a un terme de recherche initial, déclencher la recherche
   if (initialSearchQuery) {
@@ -309,69 +203,39 @@ onMounted(async () => {
 
 // Nettoyage à la destruction du composant
 onUnmounted(() => {
-  navigationStore.unregisterElement('search-navigation');
-  navigationStore.unregisterElement('search-input');
+  searchNavigation.cleanup();
 });
 
-const updateFocus = () => {
-  switch (currentFocusIndex.value) {
-    case 0:
-      backButtonRef.value?.focus();
-      break;
-    case 1:
-      searchInputRef.value?.focus();
-      break;
-    case 2:
-      if (searchQuery.value) {
-        clearButtonRef.value?.focus();
-      }
-      break;
-  }
-};
-
-const handleSelect = () => {
-  switch (currentFocusIndex.value) {
-    case 0:
-      goBack();
-      break;
-    case 1:
-      // Input already focused
-      break;
-    case 2:
-      if (searchQuery.value) {
-        clearSearch();
-      }
-      break;
-  }
-};
-
-// Ajuster l'index de focus quand le bouton clear apparaît/disparaît
+// Gérer l'ajout/suppression du bouton clear
 watch(searchQuery, (newValue, oldValue) => {
   const hadClearButton = !!oldValue;
   const hasClearButton = !!newValue;
 
   if (!hadClearButton && hasClearButton) {
-    // Clear button vient d'apparaître
+    // Ajouter le bouton clear
+    searchNavigation.addElement(
+      'clear-button',
+      clearButtonRef.value || null,
+      () => clearButtonRef.value?.focus(),
+      () => clearSearch()
+    );
   } else if (hadClearButton && !hasClearButton) {
-    // Clear button vient de disparaître
-    if (currentFocusIndex.value > 1) {
-      currentFocusIndex.value = 1; // Retour à la recherche
-      updateFocus();
-    }
+    // Supprimer le bouton clear
+    searchNavigation.removeElement('clear-button');
   }
 });
 
-// Surveiller l'état de navigation global pour synchroniser notre état local
+// Surveiller l'état de navigation global
 watch(
   () => navigationStore.activeElement,
   (newElement) => {
     if (newElement?.id === 'search-results') {
-      isInSearchResults.value = true;
+      searchNavigation.isInSearchResults.value = true;
     } else if (
       newElement?.id === 'search-navigation' ||
       newElement?.id === 'search-input'
     ) {
-      isInSearchResults.value = false;
+      searchNavigation.isInSearchResults.value = false;
     }
   }
 );
@@ -415,7 +279,7 @@ const clearSearch = async () => {
   hasSearched.value = false;
 
   await nextTick();
-  updateFocus(); // Focus sur la barre de recherche
+  searchNavigation.updateFocus(); // Focus sur la barre de recherche
 };
 
 const goBack = () => {
