@@ -71,11 +71,6 @@
         </p>
       </div>
 
-      <!-- Indicateur de chargement -->
-      <div v-else-if="isSearching" class="py-16 text-center">
-        <LoadingSpinner title="Recherche en cours..." />
-      </div>
-
       <!-- Aucun résultat -->
       <div
         v-else-if="hasSearched && searchResults.length === 0"
@@ -124,7 +119,6 @@ import { useAnimeStore } from '@/stores/anime';
 import { useNavigationStore } from '@/stores/navigation';
 import { useTVNavigation } from '@/composables/useTVNavigation';
 import AnimeList from '@/components/anime/AnimeList.vue';
-import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import type { Anime } from '@/types/anime';
 
 // Options du composant pour éviter l'erreur ESLint
@@ -149,7 +143,6 @@ const searchResultsListRef = ref<InstanceType<typeof AnimeList>>();
 // État de la recherche
 const searchQuery = ref(initialSearchQuery);
 const searchResults = ref<Anime[]>([]);
-const isSearching = ref(false);
 const hasSearched = ref(false);
 
 // État du focus pour chaque élément (navigation TV simple)
@@ -392,11 +385,8 @@ const onSearchInput = () => {
   if (!searchQuery.value.trim()) {
     searchResults.value = [];
     hasSearched.value = false;
-    isSearching.value = false;
     return;
   }
-
-  isSearching.value = true;
 
   searchTimeout = setTimeout(async () => {
     try {
@@ -415,17 +405,14 @@ const onSearchInput = () => {
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
       searchResults.value = [];
-    } finally {
-      isSearching.value = false;
     }
-  }, 300);
+  }, 150);
 };
 
 const clearSearch = async () => {
   searchQuery.value = '';
   searchResults.value = [];
   hasSearched.value = false;
-  isSearching.value = false;
 
   await nextTick();
   updateFocus(); // Focus sur la barre de recherche
