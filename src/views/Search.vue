@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   PhArrowLeft,
@@ -155,95 +155,150 @@ const hasSearched = ref(false);
 // État du focus pour chaque élément (navigation TV simple)
 const currentFocusIndex = ref(1); // Commencer sur la barre de recherche
 const isInSearchResults = ref(false); // Flag pour savoir si on navigue dans les résultats
-const maxFocusIndex = computed(() => {
-  let max = 1; // back button (0) + search input (1)
-  if (searchQuery.value) max++; // clear button
-  return max;
-});
 
-// Fonctions de navigation
-const navigateToNavbar = () => {
-  // Utiliser la navigation globale du store
-  navigationStore.navigateUp();
-};
-
-const navigateToSearchResults = () => {
-  if (searchResults.value.length > 0) {
-    // Marquer qu'on passe à la navigation globale
-    isInSearchResults.value = true;
-    // Utiliser la navigation globale du store
-    navigationStore.navigateDown();
-  }
-};
-
-// Navigation TV avec handlers personnalisés
+// Navigation TV avec handlers pour la gestion des résultats de recherche
 useTVNavigation({
-  onUp: () => {
-    if (isInSearchResults.value) {
-      // Si on est dans les résultats, on peut soit rester dans les résultats soit revenir à la navigation locale
-      const canNavigateUp =
-        navigationStore.activeElement?.navigateUp !== undefined;
-      if (!canNavigateUp) {
-        // Sortir des résultats et revenir à la navigation locale
-        isInSearchResults.value = false;
-        currentFocusIndex.value = maxFocusIndex.value;
-        updateFocus();
-      } else {
-        navigationStore.navigateUp();
-      }
-    } else if (currentFocusIndex.value > 0) {
-      currentFocusIndex.value--;
-      updateFocus();
-    } else {
-      // Si on est sur le premier élément (bouton retour), aller vers la navbar
-      navigateToNavbar();
-    }
-  },
-  onDown: () => {
-    if (currentFocusIndex.value < maxFocusIndex.value) {
-      currentFocusIndex.value++;
-      updateFocus();
-    } else if (searchResults.value.length > 0) {
-      // Si on est sur le dernier élément et qu'il y a des résultats, aller vers la liste
-      navigateToSearchResults();
-    }
-  },
-  onLeft: () => {
-    // Si on est dans la navigation globale (liste de résultats active)
-    if (isInSearchResults.value) {
-      navigationStore.navigateLeft();
-    }
-    // Sinon, pas de navigation horizontale locale
-  },
-  onRight: () => {
-    // Si on est dans la navigation globale (liste de résultats active)
-    if (isInSearchResults.value) {
-      navigationStore.navigateRight();
-    }
-    // Sinon, pas de navigation horizontale locale
-  },
   onSelect: () => {
-    handleSelect();
+    // Si on est dans les résultats, utiliser la navigation globale
+    if (isInSearchResults.value) {
+      navigationStore.handleSelect();
+    } else {
+      // Sinon utiliser la logique locale (sera gérée par l'élément enregistré)
+      navigationStore.handleSelect();
+    }
   },
   onBack: () => {
     goBack();
   },
 });
 
-// États des éléments focusés
-const isBackButtonFocused = computed(() => currentFocusIndex.value === 0);
-const isSearchFocused = computed(() => currentFocusIndex.value === 1);
-const isClearButtonFocused = computed(
-  () => searchQuery.value && currentFocusIndex.value === 2
-);
+// États des éléments focusés - tenant compte de l'état de navigation global
+const isBackButtonFocused = computed(() => {
+  return (
+    navigationStore.activeElement?.id === 'search-navigation' &&
+    currentFocusIndex.value === 0
+  );
+});
+
+const isSearchFocused = computed(() => {
+  return (
+    navigationStore.activeElement?.id === 'search-input' &&
+    currentFocusIndex.value === 1
+  );
+});
+
+const isClearButtonFocused = computed(() => {
+  return (
+    navigationStore.activeElement?.id === 'search-input' &&
+    searchQuery.value &&
+    currentFocusIndex.value === 2
+  );
+});
 
 // Configuration de la navigation
 onMounted(async () => {
   await nextTick();
 
-  // Désactiver la navigation globale au début (on commence en navigation locale)
-  if (navigationStore.isNavigationActive) {
-    navigationStore.deactivateNavigation();
+  // Créer un élément navigable pour la navigation (bouton retour)
+  const navigationElement = {
+    id: 'search-navigation',
+    title: 'Navigation page',
+    type: 'list' as const,
+    activate: () => {
+      isInSearchResults.value = false;
+      currentFocusIndex.value = 0; // Focus sur le bouton retour
+      updateFocus();
+    },
+    deactivate: () => {
+      backButtonRef.value?.blur();
+    },
+    getFocusedIndex: () => 0,
+    navigateLeft: () => {
+      // Pas de navigation horizontale pour le bouton retour
+    },
+    navigateRight: () => {
+      // Pas de navigation horizontale pour le bouton retour
+    },
+    navigateUp: () => {
+      // Pas de navigation vers le haut depuis le bouton retour
+    },
+    navigateDown: () => {
+      // Pas de navigation vers le bas depuis le bouton retour
+    },
+    handleSelect: () => {
+      goBack();
+    },
+    scrollToSection: () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+  };
+
+  // Créer un élément navigable pour la recherche (barre + bouton clear)
+  const searchElement = {
+    id: 'search-input',
+    title: 'Barre de recherche',
+    type: 'list' as const,
+    activate: (startIndex = 0) => {
+      isInSearchResults.value = false;
+      // startIndex 0 = barre de recherche, 1 = bouton clear (si présent)
+      const searchFocusIndex = startIndex === 0 ? 1 : searchQuery.value ? 2 : 1;
+      currentFocusIndex.value = searchFocusIndex;
+      updateFocus();
+    },
+    deactivate: () => {
+      searchInputRef.value?.blur();
+      clearButtonRef.value?.blur();
+    },
+    getFocusedIndex: () => {
+      // Retourner l'index relatif à cette section (0 pour barre, 1 pour clear)
+      return currentFocusIndex.value === 1
+        ? 0
+        : currentFocusIndex.value === 2
+          ? 1
+          : 0;
+    },
+    navigateLeft: () => {
+      if (currentFocusIndex.value === 2 && searchQuery.value) {
+        // Du bouton clear vers la barre de recherche
+        currentFocusIndex.value = 1;
+        updateFocus();
+      }
+    },
+    navigateRight: () => {
+      if (currentFocusIndex.value === 1 && searchQuery.value) {
+        // De la barre vers le bouton clear
+        currentFocusIndex.value = 2;
+        updateFocus();
+      }
+    },
+    navigateUp: () => {
+      // Pas de navigation vers le haut dans cette section
+    },
+    navigateDown: () => {
+      // Naviguer vers les résultats si présents
+      if (searchResults.value.length > 0) {
+        isInSearchResults.value = true;
+        navigationStore.navigateDown();
+      }
+    },
+    handleSelect: () => {
+      handleSelect();
+    },
+    scrollToSection: () => {
+      const searchSection = document.querySelector('.max-w-2xl');
+      if (searchSection) {
+        searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    },
+  };
+
+  // Enregistrer les éléments dans le store
+  navigationStore.registerElement(navigationElement);
+  navigationStore.registerElement(searchElement);
+
+  // Activer la navigation globale
+  if (!navigationStore.isNavigationActive) {
+    navigationStore.activateNavigation();
   }
 
   updateFocus();
@@ -252,6 +307,12 @@ onMounted(async () => {
   if (initialSearchQuery) {
     onSearchInput();
   }
+});
+
+// Nettoyage à la destruction du composant
+onUnmounted(() => {
+  navigationStore.unregisterElement('search-navigation');
+  navigationStore.unregisterElement('search-input');
 });
 
 const updateFocus = () => {
@@ -308,8 +369,10 @@ watch(
   (newElement) => {
     if (newElement?.id === 'search-results') {
       isInSearchResults.value = true;
-    } else if (isInSearchResults.value) {
-      // On a quitté les résultats de recherche
+    } else if (
+      newElement?.id === 'search-navigation' ||
+      newElement?.id === 'search-input'
+    ) {
       isInSearchResults.value = false;
     }
   }

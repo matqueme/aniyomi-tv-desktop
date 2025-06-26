@@ -127,11 +127,23 @@ const {
 
 // Computed properties pour les indices des éléments
 const elementIndices = computed(() => {
-  const searchIndex = 0;
-  const clearSearchIndex = searchQuery.value ? 1 : -1;
-  const settingsIndex = searchQuery.value ? 2 : 1;
+  const isOnSearchPage = router.currentRoute.value.name === 'Search';
 
-  return { searchIndex, clearSearchIndex, settingsIndex };
+  if (isOnSearchPage) {
+    // Sur la page de recherche, seuls les paramètres sont disponibles
+    return {
+      searchIndex: -1,
+      clearSearchIndex: -1,
+      settingsIndex: 0,
+    };
+  } else {
+    // Sur les autres pages, logique normale
+    const searchIndex = 0;
+    const clearSearchIndex = searchQuery.value ? 1 : -1;
+    const settingsIndex = searchQuery.value ? 2 : 1;
+
+    return { searchIndex, clearSearchIndex, settingsIndex };
+  }
 });
 
 // États des éléments focusés (computed properties)
@@ -154,11 +166,13 @@ const isSettingsFocused = computed(
 
 // Configuration des éléments navigables
 onMounted(() => {
-  // Ajouter le wrapper de recherche comme élément navigable
-  addElement('search', searchWrapperRef.value || null, () => {
-    // Juste donner le focus visuel, pas naviguer
-    // Le clic ou Enter navigueront
-  });
+  // Ajouter le wrapper de recherche comme élément navigable seulement si on n'est pas sur la page de recherche
+  if (router.currentRoute.value.name !== 'Search') {
+    addElement('search', searchWrapperRef.value || null, () => {
+      // Juste donner le focus visuel, pas naviguer
+      // Le clic ou Enter navigueront
+    });
+  }
 
   // Ajouter le bouton paramètres
   addElement('settings', settingsButtonRef.value || null, () => {
@@ -170,14 +184,17 @@ onMounted(() => {
 watch(
   [searchQuery, clearSearchButtonRef],
   ([newQuery, newRef]) => {
-    if (newQuery && newRef) {
-      // Ajouter le bouton de croix s'il y a du texte et une référence
-      addElement('clear-search', newRef, () => {
-        clearSearchButtonRef.value?.focus();
-      });
-    } else {
-      // Supprimer le bouton de croix s'il n'y a pas de texte
-      removeElement('clear-search');
+    // Seulement si on n'est pas sur la page de recherche
+    if (router.currentRoute.value.name !== 'Search') {
+      if (newQuery && newRef) {
+        // Ajouter le bouton de croix s'il y a du texte et une référence
+        addElement('clear-search', newRef, () => {
+          clearSearchButtonRef.value?.focus();
+        });
+      } else {
+        // Supprimer le bouton de croix s'il n'y a pas de texte
+        removeElement('clear-search');
+      }
     }
   },
   { immediate: true }
@@ -188,6 +205,37 @@ watch(
   () => props.modelValue,
   (newValue) => {
     searchQuery.value = newValue;
+  }
+);
+
+// Surveiller les changements de route pour réajuster les éléments navigables
+watch(
+  () => router.currentRoute.value.name,
+  (newRouteName, oldRouteName) => {
+    const wasOnSearch = oldRouteName === 'Search';
+    const isOnSearch = newRouteName === 'Search';
+
+    if (!wasOnSearch && isOnSearch) {
+      // On arrive sur la page de recherche, supprimer les éléments de recherche
+      removeElement('search');
+      removeElement('clear-search');
+    } else if (wasOnSearch && !isOnSearch) {
+      // On quitte la page de recherche, ajouter les éléments de recherche
+      nextTick(() => {
+        if (searchWrapperRef.value) {
+          addElement('search', searchWrapperRef.value, () => {
+            // Juste donner le focus visuel
+          });
+        }
+
+        // Réajouter le bouton clear si nécessaire
+        if (searchQuery.value && clearSearchButtonRef.value) {
+          addElement('clear-search', clearSearchButtonRef.value, () => {
+            clearSearchButtonRef.value?.focus();
+          });
+        }
+      });
+    }
   }
 );
 
