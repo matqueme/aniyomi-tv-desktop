@@ -18,8 +18,9 @@ if ($LASTEXITCODE -ne 0) {
 # Copy Tizen-specific files to dist
 Write-Host "Copying Tizen configuration files..." -ForegroundColor Yellow
 Copy-Item "config.xml" "dist/"
-Copy-Item "icon.svg" "dist/"
+Copy-Item "icon.svg" "dist/" -ErrorAction SilentlyContinue
 Copy-Item "icon.png" "dist/"
+Copy-Item "debug-navigation.html" "dist/" -ErrorAction SilentlyContinue
 
 # Create .tizen-package directory
 New-Item -ItemType Directory -Force -Path ".tizen-package"
