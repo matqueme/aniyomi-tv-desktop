@@ -43,16 +43,11 @@ export function useNavbarNavigation(navbarId: string = 'main-navbar') {
     });
   };
 
-  // Supprimer un élément
-  const removeElement = (id: string) => {
-    const index = elements.value.findIndex((el) => el.id === id);
-    if (index >= 0) {
-      elements.value.splice(index, 1);
-      // Ajuster l'index si nécessaire
-      if (currentFocusIndex.value >= elements.value.length) {
-        currentFocusIndex.value = Math.max(0, elements.value.length - 1);
-      }
-    }
+  // Supprimer tous les éléments
+  const clearElements = () => {
+    elements.value = [];
+    currentFocusIndex.value = 0;
+    isActive.value = false;
   };
 
   // Mettre à jour le focus
@@ -108,13 +103,11 @@ export function useNavbarNavigation(navbarId: string = 'main-navbar') {
     },
 
     navigateUp: () => {
-      // Dans la navbar, up/down passent à la section suivante/précédente
-      // Ces méthodes sont gérées par le store global
+      // Cette méthode est gérée par le store global
     },
 
     navigateDown: () => {
-      // Dans la navbar, up/down passent à la section suivante/précédente
-      // Ces méthodes sont gérées par le store global
+      // Cette méthode est gérée par le store global
     },
 
     handleSelect: () => {
@@ -129,11 +122,6 @@ export function useNavbarNavigation(navbarId: string = 'main-navbar') {
 
     focusOnFirstElement: () => {
       currentFocusIndex.value = 0;
-      updateFocus();
-    },
-
-    focusOnLastElement: () => {
-      currentFocusIndex.value = Math.max(0, elements.value.length - 1);
       updateFocus();
     },
 
@@ -162,7 +150,7 @@ export function useNavbarNavigation(navbarId: string = 'main-navbar') {
     currentFocusIndex,
     elements,
     addElement,
-    removeElement,
+    clearElements,
     updateFocus,
 
     // État pour les composants

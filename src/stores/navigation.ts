@@ -27,7 +27,6 @@ export interface NavigableList extends NavigableElement {
 export interface NavigableNavbar extends NavigableElement {
   type: 'navbar';
   focusOnFirstElement: () => void;
-  focusOnLastElement: () => void;
 }
 
 export const useNavigationStore = defineStore('navigation', () => {

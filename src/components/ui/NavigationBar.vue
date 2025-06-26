@@ -89,7 +89,7 @@ const {
   isActive: isNavbarActive,
   isElementFocused,
   addElement,
-  removeElement,
+  clearElements,
 } = useNavbarNavigation(navbarId);
 
 // Computed properties pour déterminer l'état de la page
@@ -121,8 +121,7 @@ const onSettingsClick = () => {
 // Fonction pour gérer les éléments navigables
 const updateNavigation = async () => {
   // Nettoyer les éléments existants
-  removeElement('search');
-  removeElement('settings');
+  clearElements();
 
   await nextTick();
 
