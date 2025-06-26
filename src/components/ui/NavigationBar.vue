@@ -27,8 +27,8 @@
       <!-- Bouton de recherche au centre -->
       <div v-if="$route.name !== 'Search'" class="mx-8 max-w-md flex-1">
         <button
-          ref="searchWrapperRef"
-          class="relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out"
+          ref="searchButtonRef"
+          class="relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out focus:outline-none"
           :class="[
             isSearchFocused
               ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick, computed } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { PhMagnifyingGlass, PhGear } from '@phosphor-icons/vue';
 import { useRouter } from 'vue-router';
 import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
@@ -81,15 +81,15 @@ const emit = defineEmits<Emits>();
 const navbarId = 'main-navbar';
 
 // Références pour les éléments focusables
-const searchWrapperRef = ref<HTMLButtonElement>();
+const searchButtonRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
 
 // Navigation navbar
 const {
   isActive: isNavbarActive,
+  isElementFocused,
   addElement,
   removeElement,
-  isElementFocused,
 } = useNavbarNavigation(navbarId);
 
 // Computed properties pour les indices des éléments
@@ -121,45 +121,6 @@ const isSettingsFocused = computed(
     isNavbarActive.value && isElementFocused(elementIndices.value.settingsIndex)
 );
 
-// Configuration des éléments navigables
-onMounted(() => {
-  // Ajouter le bouton de recherche comme élément navigable seulement si on n'est pas sur la page de recherche
-  if (router.currentRoute.value.name !== 'Search') {
-    addElement('search', searchWrapperRef.value || null, () => {
-      // Juste donner le focus visuel, pas naviguer
-      // Le clic ou Enter navigueront
-    });
-  }
-
-  // Ajouter le bouton paramètres
-  addElement('settings', settingsButtonRef.value || null, () => {
-    settingsButtonRef.value?.focus();
-  });
-});
-
-// Surveiller les changements de route pour réajuster les éléments navigables
-watch(
-  () => router.currentRoute.value.name,
-  (newRouteName, oldRouteName) => {
-    const wasOnSearch = oldRouteName === 'Search';
-    const isOnSearch = newRouteName === 'Search';
-
-    if (!wasOnSearch && isOnSearch) {
-      // On arrive sur la page de recherche, supprimer les éléments de recherche
-      removeElement('search');
-    } else if (wasOnSearch && !isOnSearch) {
-      // On quitte la page de recherche, ajouter les éléments de recherche
-      nextTick(() => {
-        if (searchWrapperRef.value) {
-          addElement('search', searchWrapperRef.value, () => {
-            // Juste donner le focus visuel
-          });
-        }
-      });
-    }
-  }
-);
-
 // Fonction pour gérer le clic sur le bouton de recherche
 const onSearchClick = () => {
   router.push('/search');
@@ -169,4 +130,44 @@ const onSearchClick = () => {
 const onSettingsClick = () => {
   emit('settings');
 };
+
+// Fonction pour enregistrer les éléments navigables
+const registerElements = async () => {
+  const isOnSearchPage = router.currentRoute.value.name === 'Search';
+
+  // Supprimer tous les éléments existants
+  removeElement('search');
+  removeElement('settings');
+
+  // Attendre que le DOM soit mis à jour
+  await nextTick();
+
+  if (!isOnSearchPage && searchButtonRef.value) {
+    // Ajouter le bouton de recherche si on n'est pas sur la page de recherche
+    addElement('search', searchButtonRef.value, () => {
+      searchButtonRef.value?.focus();
+    });
+  }
+
+  if (settingsButtonRef.value) {
+    // Toujours ajouter le bouton de paramètres
+    addElement('settings', settingsButtonRef.value, () => {
+      settingsButtonRef.value?.focus();
+    });
+  }
+};
+
+// Enregistrer les éléments au montage
+onMounted(() => {
+  registerElements();
+});
+
+// Réenregistrer les éléments quand la route change
+watch(
+  () => router.currentRoute.value.name,
+  async () => {
+    console.log('object');
+    await registerElements();
+  }
+);
 </script>
