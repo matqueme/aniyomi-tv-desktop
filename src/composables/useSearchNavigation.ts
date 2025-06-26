@@ -175,12 +175,23 @@ export function useSearchNavigation() {
     if (!navigationStore.isNavigationActive) {
       navigationStore.activateNavigation();
     }
+  };
 
-    // Activer la barre de recherche par défaut
+  // Fonction pour focuser la barre de recherche après ajout des éléments
+  const focusSearchInput = async () => {
     await nextTick();
-    navigationStore.navigateUp();
-    currentFocusIndex.value = 1;
-    updateFocus();
+
+    // Trouver l'index de la barre de recherche
+    const searchInputIndex = elements.value.findIndex(
+      (el) => el.id === 'search-input'
+    );
+
+    if (searchInputIndex >= 0) {
+      isActive.value = true;
+      isInSearchResults.value = false;
+      currentFocusIndex.value = searchInputIndex;
+      updateFocus();
+    }
   };
 
   // Nettoyage
@@ -211,6 +222,7 @@ export function useSearchNavigation() {
     handleSelect,
     initializeNavigation,
     cleanup,
+    focusSearchInput,
 
     // Helpers
     isElementFocused,

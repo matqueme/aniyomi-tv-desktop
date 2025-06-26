@@ -144,8 +144,7 @@ export function useAnimeListNavigation(options: AnimeListNavigationOptions) {
       if (focusedIndex.value > 0) {
         focusedIndex.value--;
       } else {
-        // Effet carrousel - aller à la fin
-        focusedIndex.value = options.animes.length - 1;
+        return;
       }
       scrollToFocused();
     },
@@ -156,8 +155,7 @@ export function useAnimeListNavigation(options: AnimeListNavigationOptions) {
       if (focusedIndex.value < options.animes.length - 1) {
         focusedIndex.value++;
       } else {
-        // Effet carrousel - revenir au début
-        focusedIndex.value = 0;
+        return;
       }
       scrollToFocused();
     },

@@ -195,6 +195,9 @@ onMounted(async () => {
     () => searchInputRef.value?.focus()
   );
 
+  // Focuser la barre de recherche après avoir ajouté tous les éléments
+  await searchNavigation.focusSearchInput();
+
   // Si il y a un terme de recherche initial, déclencher la recherche
   if (initialSearchQuery) {
     onSearchInput();
