@@ -14,6 +14,8 @@
     <main class="main-content">
       <router-view />
     </main>
+    <!-- Debug Navigation (seulement en développement) -->
+    <NavigationDebug v-if="isDev" />
 
     <!-- Footer (optionnel, pour plus tard) -->
     <!-- <AppFooter /> -->
@@ -23,6 +25,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import NavigationBar from './components/ui/NavigationBar.vue';
+import NavigationDebug from './components/debug/NavigationDebug.vue';
+
+const isDev = import.meta.env.DEV; // Vérifie si l'application est en mode développement
 
 const searchQuery = ref('');
 

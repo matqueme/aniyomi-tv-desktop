@@ -50,9 +50,6 @@
         />
       </div>
     </div>
-
-    <!-- Debug Navigation (seulement en développement) -->
-    <NavigationDebug v-if="isDev" />
   </div>
 </template>
 
@@ -64,10 +61,6 @@ import { useTVNavigation } from '@/composables/useTVNavigation';
 import type { Anime } from '@/types/anime';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import AnimeList from '@/components/anime/AnimeList.vue';
-import NavigationDebug from '@/components/debug/NavigationDebug.vue';
-
-// Mode développement
-const isDev = import.meta.env.DEV;
 
 const animeStore = useAnimeStore();
 const navigationStore = useNavigationStore();

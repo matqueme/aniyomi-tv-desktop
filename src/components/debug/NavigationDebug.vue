@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed right-4 bottom-4 rounded-lg border border-slate-600/40 bg-slate-900/90 p-4 font-mono text-sm text-white shadow-lg backdrop-blur-md"
+    class="fixed right-4 bottom-4 rounded-lg border border-slate-600/40 bg-slate-900/90 p-4 font-mono text-sm text-white shadow-lg backdrop-blur-md select-all"
   >
     <h3 class="mb-2 font-bold">🎮 Navigation Debug</h3>
     <div class="space-y-1">
