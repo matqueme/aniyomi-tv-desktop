@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://yourdomain/Aniyomi" version="0.2.1" viewmodes="maximized">
-    <tizen:application id="WJtqQgWwSf.Aniyomi" package="WJtqQgWwSf" required_version="2.3"/>
+    <tizen:application id="WJtqQgWwSf.Aniyomi" package="WJtqQgWwSf" required_version="8.0"/>
     <access origin="*" subdomains="true"/>
     <content src="index.html"/>
-    <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
     <icon src="icon.png"/>
     <tizen:metadata key="http://samsung.com/tv/metadata/prelaunch.support" value="true"/>
     <tizen:metadata key="http://tizen.org/metadata/app_ui_type/base_screen_resolution" value="extensive"/>
