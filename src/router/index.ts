@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import HomePage from '@/views/Home.vue';
+import Search from '@/views/Search.vue';
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -12,7 +13,7 @@ const router = createRouter({
     {
       path: '/search',
       name: 'Search',
-      component: () => import('@/views/Search.vue'),
+      component: Search,
     },
     // À ajouter plus tard :
     // {
