@@ -1,7 +1,7 @@
 <template>
   <div
     v-focus-section:search.default="searchSectionConfig"
-    class="min-h-screen w-full bg-transparent"
+    class="min-h-screen w-full bg-transparent pt-16"
   >
     <!-- Header de recherche -->
     <div class="px-6 pb-4 pt-6">
