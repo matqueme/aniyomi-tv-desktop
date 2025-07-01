@@ -1,17 +1,25 @@
 <template>
-  <div class="min-h-screen w-full bg-transparent">
+  <div
+    v-focus-section:search.default="searchSectionConfig"
+    class="min-h-screen w-full bg-transparent"
+  >
     <!-- Header de recherche -->
-    <div class="px-6 pt-6 pb-4">
+    <div class="px-6 pb-4 pt-6">
       <div class="mb-6 flex items-center gap-4">
         <button
           ref="backButtonRef"
+          v-focus
+          v-focus-events="{
+            'enter-up': goBack,
+            focused: () => (isBackButtonFocused = true),
+            unfocused: () => (isBackButtonFocused = false),
+          }"
           class="flex items-center justify-center rounded-lg border p-3 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
           :class="[
             isBackButtonFocused
               ? 'scale-[1.05] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
               : 'border-slate-600/40 hover:border-indigo-500/40 hover:bg-indigo-500/10',
           ]"
-          @click="goBack"
         >
           <ph-arrow-left :size="24" />
         </button>
@@ -36,6 +44,11 @@
           <input
             ref="searchInputRef"
             v-model="searchQuery"
+            v-focus
+            v-focus-events="{
+              focused: () => (isSearchFocused = true),
+              unfocused: () => (isSearchFocused = false),
+            }"
             type="text"
             placeholder="Tapez pour rechercher des animes..."
             class="flex-1 border-none bg-transparent text-lg text-slate-200 placeholder-slate-500 outline-none"
@@ -44,13 +57,18 @@
           <button
             v-if="searchQuery"
             ref="clearButtonRef"
+            v-focus
+            v-focus-events="{
+              'enter-up': clearSearch,
+              focused: () => (isClearButtonFocused = true),
+              unfocused: () => (isClearButtonFocused = false),
+            }"
             class="ml-4 cursor-pointer rounded p-2 text-slate-400 transition-all duration-200 hover:bg-indigo-500/10 hover:text-slate-200 focus:outline-none"
             :class="[
               isClearButtonFocused
                 ? 'scale-[1.05] bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
                 : '',
             ]"
-            @click="clearSearch"
           >
             <ph-x :size="20" />
           </button>
@@ -107,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   PhArrowLeft,
@@ -116,9 +134,7 @@ import {
   PhFileX,
 } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
-import { useNavigationStore } from '@/stores/navigation';
-import { useTVNavigation } from '@/composables/useTVNavigation';
-import { useSearchNavigation } from '@/composables/useSearchNavigation';
+import { useSpatialNavigation } from '@/composables/useSpatialNavigation';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import type { Anime } from '@/types/anime';
 
@@ -129,7 +145,6 @@ defineOptions({
 
 const router = useRouter();
 const animeStore = useAnimeStore();
-const navigationStore = useNavigationStore();
 
 // Récupérer le terme de recherche depuis l'URL
 const route = router.currentRoute;
@@ -146,102 +161,32 @@ const searchQuery = ref(initialSearchQuery);
 const searchResults = ref<Anime[]>([]);
 const hasSearched = ref(false);
 
-// Navigation simplifiée avec le composable
-const searchNavigation = useSearchNavigation();
+// États de focus
+const isBackButtonFocused = ref(false);
+const isSearchFocused = ref(false);
+const isClearButtonFocused = ref(false);
 
-// Navigation TV avec handlers pour la gestion des résultats de recherche
-useTVNavigation({
-  onSelect: () => {
-    if (searchNavigation.isInSearchResults.value) {
-      navigationStore.handleSelect();
-    } else {
-      searchNavigation.handleSelect();
-    }
-  },
-  onBack: () => {
-    goBack();
-  },
+// Configuration de la section spatiale
+const searchSectionConfig = ref({
+  enterTo: 'default-element',
+  leaveFor: {},
 });
 
-// États des éléments focusés
-const isBackButtonFocused = computed(() =>
-  searchNavigation.isBackButtonFocused()
-);
-const isSearchFocused = computed(() => searchNavigation.isSearchFocused());
-const isClearButtonFocused = computed(() =>
-  searchNavigation.isClearButtonFocused()
-);
+// Utiliser le composable de navigation spatiale
+const { focusElement } = useSpatialNavigation();
 
 // Configuration de la navigation
 onMounted(async () => {
-  // Initialiser la navigation avec le composable
-  await searchNavigation.initializeNavigation(() => {
-    if (searchResults.value.length > 0) {
-      navigationStore.navigateDown();
-    }
-  });
-
-  // Ajouter les éléments navigables
-  searchNavigation.addElement(
-    'back-button',
-    backButtonRef.value ?? null,
-    () => backButtonRef.value?.focus(),
-    () => goBack()
-  );
-
-  searchNavigation.addElement(
-    'search-input',
-    searchInputRef.value ?? null,
-    () => searchInputRef.value?.focus()
-  );
-
-  // Focuser la barre de recherche après avoir ajouté tous les éléments
-  await searchNavigation.focusSearchInput();
-
   // Si il y a un terme de recherche initial, déclencher la recherche
   if (initialSearchQuery) {
     onSearchInput();
   }
+
+  // Focuser la barre de recherche après le montage
+  setTimeout(() => {
+    focusElement('input[type="text"]');
+  }, 100);
 });
-
-// Nettoyage à la destruction du composant
-onUnmounted(() => {
-  searchNavigation.cleanup();
-});
-
-// Gérer l'ajout/suppression du bouton clear
-watch(searchQuery, (newValue, oldValue) => {
-  const hadClearButton = !!oldValue;
-  const hasClearButton = !!newValue;
-
-  if (!hadClearButton && hasClearButton) {
-    // Ajouter le bouton clear
-    searchNavigation.addElement(
-      'clear-button',
-      clearButtonRef.value || null,
-      () => clearButtonRef.value?.focus(),
-      () => clearSearch()
-    );
-  } else if (hadClearButton && !hasClearButton) {
-    // Supprimer le bouton clear
-    searchNavigation.removeElement('clear-button');
-  }
-});
-
-// Surveiller l'état de navigation global
-watch(
-  () => navigationStore.activeElement,
-  (newElement) => {
-    if (newElement?.id === 'search-results') {
-      searchNavigation.isInSearchResults.value = true;
-    } else if (
-      newElement?.id === 'search-navigation' ||
-      newElement?.id === 'search-input'
-    ) {
-      searchNavigation.isInSearchResults.value = false;
-    }
-  }
-);
 
 // Fonction de recherche avec debounce
 let searchTimeout: number;
@@ -282,7 +227,7 @@ const clearSearch = async () => {
   hasSearched.value = false;
 
   await nextTick();
-  searchNavigation.updateFocus(); // Focus sur la barre de recherche
+  focusElement('input[type="text"]');
 };
 
 const goBack = () => {

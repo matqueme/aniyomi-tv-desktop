@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Swiper custom elements styles */
+swiper-container {
+  display: block;
+  height: auto;
+}
+
+swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spatial navigation focus styles */
+[data-sn-focusable]:focus {
+  outline: none;
+}

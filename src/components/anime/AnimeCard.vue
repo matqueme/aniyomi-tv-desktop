@@ -4,13 +4,19 @@
       'anime-card group cursor-pointer transition-all duration-300',
       'relative overflow-hidden rounded-lg bg-slate-800/30',
       'border-2 transition-all duration-300',
+      'focus:outline-none',
       isFocused
         ? 'scale-105 border-indigo-400 shadow-lg shadow-indigo-500/20'
         : 'border-slate-600/40',
-      'hover:scale-105 hover:border-indigo-400/70 hover:shadow-lg hover:shadow-indigo-500/15',
+      'hover:border-indigo-400/70 hover:shadow-lg hover:shadow-indigo-500/15',
       'backdrop-blur-sm',
     ]"
+    :data-focused="isFocused"
+    tabindex="0"
     @click="$emit('select', anime)"
+    @keydown="handleKeyDown"
+    @focus="$emit('focus')"
+    @blur="$emit('blur')"
   >
     <!-- Image principale -->
     <div class="relative h-full w-full">
@@ -34,7 +40,7 @@
       <!-- Badge épisodes -->
       <div
         :class="[
-          'absolute top-3 right-3 rounded-lg border backdrop-blur-md',
+          'absolute right-3 top-3 rounded-lg border backdrop-blur-md',
           'px-2.5 py-1 text-xs font-semibold transition-all duration-300',
           'border-slate-600/50 bg-black/60 text-slate-200',
           'group-hover:border-indigo-400/70 group-hover:bg-indigo-500/80 group-hover:text-white',
@@ -47,7 +53,7 @@
     <!-- Contenu textuel -->
     <div
       :class="[
-        'absolute right-0 bottom-0 left-0 p-4 transition-all duration-300',
+        'absolute bottom-0 left-0 right-0 p-4 transition-all duration-300',
         'bg-gradient-to-t from-black/90 to-transparent',
         'translate-y-2 transform group-hover:translate-y-0',
         isFocused ? 'translate-y-0' : '',
@@ -55,7 +61,7 @@
     >
       <h3
         :class="[
-          'mb-2 line-clamp-1 text-base leading-tight font-bold text-white',
+          'mb-2 line-clamp-1 text-base font-bold leading-tight text-white',
           'transition-colors duration-300',
           'group-hover:text-indigo-200',
           isFocused ? 'text-indigo-200' : '',
@@ -88,10 +94,19 @@ interface Props {
 
 interface Emits {
   (e: 'select', anime: Anime): void;
+  (e: 'focus'): void;
+  (e: 'blur'): void;
 }
 
-defineProps<Props>();
-defineEmits<Emits>();
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    emit('select', props.anime);
+  }
+};
 </script>
 
 <style scoped>
@@ -137,49 +152,5 @@ defineEmits<Emits>();
 .anime-card.focused img {
   filter: brightness(1);
   transform: scale(1.1) translateZ(0);
-}
-
-/* Responsive pour éviter le scroll vertical - hauteurs fixes */
-@media (max-height: 800px) {
-  .anime-card {
-    width: 300px;
-    min-width: 300px;
-    height: 169px;
-    max-height: 169px;
-  }
-}
-
-@media (max-height: 600px) {
-  .anime-card {
-    width: 280px;
-    min-width: 280px;
-    height: 157px;
-    max-height: 157px;
-  }
-}
-
-@media (max-height: 500px) {
-  .anime-card {
-    width: 240px;
-    min-width: 240px;
-    height: 135px;
-    max-height: 135px;
-  }
-}
-
-@media (max-height: 400px) {
-  .anime-card {
-    width: 200px;
-    min-width: 200px;
-    height: 112px;
-    max-height: 112px;
-  }
-}
-
-/* Assurer qu'il n'y a pas de débordement */
-.anime-card,
-.anime-card * {
-  box-sizing: border-box;
-  max-width: 100%;
 }
 </style>

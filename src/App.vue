@@ -11,7 +11,7 @@
     />
 
     <!-- Contenu principal avec padding pour la navbar -->
-    <main class="main-content">
+    <main>
       <router-view />
     </main>
     <!-- Debug Navigation (seulement en développement) -->
@@ -55,30 +55,7 @@ body {
   padding: 0;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  background-attachment: fixed;
-  color: #fff;
-  overflow-x: hidden; /* Empêche le scroll horizontal */
-  overflow-y: auto; /* Permet le scroll vertical */
-}
-
-#app {
-  min-height: 100vh;
-  position: relative;
-}
-
 #app::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background:
     radial-gradient(
       circle at 20% 80%,
@@ -95,43 +72,6 @@ body {
       rgba(147, 197, 253, 0.03) 0%,
       transparent 50%
     );
-  pointer-events: none;
   z-index: -1;
-}
-
-.main-content {
-  padding-top: 64px; /* Hauteur de la navbar */
-  min-height: calc(100vh - 64px);
-}
-
-.tv-test-indicator {
-  position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(71, 85, 105, 0.4);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  max-width: 400px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.tv-test-text {
-  color: #6366f1;
-  font-size: 0.875rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.tv-test-search {
-  color: #94a3b8;
-  font-size: 0.75rem;
-  margin: 0;
-}
-
-/* Styles pour le scroll horizontal */
-.scroll-smooth {
-  scroll-behavior: smooth;
 }
 </style>

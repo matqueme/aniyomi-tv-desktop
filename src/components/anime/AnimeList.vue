@@ -1,27 +1,47 @@
 <template>
-  <div class="mb-2 box-border max-w-screen">
-    <h2 class="mb-4 ml-4 text-2xl font-bold text-white">{{ title }}</h2>
-    <div
-      ref="listContainer"
-      class="flex gap-6 overflow-x-visible scroll-smooth p-4 transition-transform duration-300 ease-out"
-      :style="{ transform: `translateX(${scrollOffset}px)` }"
+  <div class="max-w-screen mb-8 box-border" :data-sn-section="listId">
+    <h2 class="mb-6 ml-1 text-3xl font-bold text-white">{{ title }}</h2>
+    <swiper-container
+      ref="swiperRef"
+      :slides-per-view="'auto'"
+      :space-between="24"
+      :free-mode="true"
+      :grab-cursor="false"
+      :mouse-wheel="false"
+      :keyboard="false"
+      class="anime-swiper-element"
+      :data-sn-focusable="true"
+      tabindex="0"
+      @keydown="handleSwiperKeydown"
+      @focus="handleSwiperFocus"
+      @blur="handleSwiperBlur"
     >
-      <AnimeCard
+      <swiper-slide
         v-for="(anime, index) in animes"
         :key="anime.id"
-        :anime="anime"
-        :is-focused="index === focusedIndex && isActive"
-        @select="(anime) => emit('select', anime)"
-      />
-    </div>
+        :class="[
+          'anime-slide-element',
+          { focused: index === currentSlideIndex && swiperHasFocus },
+        ]"
+      >
+        <AnimeCard
+          :anime="anime"
+          :is-focused="index === focusedIndex"
+          class="anime-card-focusable"
+          @select="(anime: Anime) => emit('select', anime)"
+          @focus="() => handleFocus(index)"
+          @blur="() => handleUnfocus(index)"
+        />
+      </swiper-slide>
+    </swiper-container>
   </div>
 </template>
 
 <script setup lang="ts">
-import { readonly } from 'vue';
+import { ref, onMounted } from 'vue';
 import type { Anime } from '@/types/anime';
 import AnimeCard from '@/components/anime/AnimeCard.vue';
-import { useAnimeListNavigation } from '@/composables/useAnimeListNavigation';
+import { useSpatialNavigation } from '@/composables/useSpatialNavigation';
 
 interface Props {
   animes: Anime[];
@@ -34,44 +54,172 @@ interface Emits {
   (e: 'select', anime: Anime): void;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  itemsPerRow: 6,
-  listId: () => `list-${Math.random().toString(36).substr(2, 9)}`, // ID auto-généré
-});
+// Define Swiper Element interface
+interface SwiperElement extends HTMLElement {
+  swiper?: {
+    realIndex: number;
+    setTranslate: (translate: number) => void;
+    slideTo: (index: number, speed?: number) => void;
+    getTranslate: () => number;
+  };
+}
 
 const emit = defineEmits<Emits>();
+const props = defineProps<Props>();
 
-// Utilisation du composable pour la navigation
-const {
-  focusedIndex,
-  scrollOffset,
-  listContainer,
-  isActive,
-  activate,
-  deactivate,
-  focusOnLastRow,
-  focusOnFirstRow,
-} = useAnimeListNavigation({
-  animes: props.animes,
-  title: props.title,
-  itemsPerRow: props.itemsPerRow,
-  listId: props.listId,
-  onSelect: (anime) => emit('select', anime),
+const { addSection } = useSpatialNavigation();
+
+const focusedIndex = ref(-1);
+const swiperRef = ref<SwiperElement | null>(null);
+const currentSlideIndex = ref(0);
+const swiperHasFocus = ref(false);
+
+const handleFocus = (index: number) => {
+  focusedIndex.value = index;
+};
+
+const handleUnfocus = (index: number) => {
+  if (focusedIndex.value === index) {
+    focusedIndex.value = -1;
+  }
+};
+
+const handleSwiperKeydown = (event: KeyboardEvent) => {
+  // Gérer la navigation uniquement pour ce swiper s'il a le focus
+  if (document.activeElement !== swiperRef.value) return;
+
+  switch (event.key) {
+    case 'ArrowLeft':
+      event.preventDefault();
+      navigateToPreviousSlide();
+      break;
+    case 'ArrowRight':
+      event.preventDefault();
+      navigateToNextSlide();
+      break;
+    case 'Enter':
+    case ' ':
+      event.preventDefault();
+      if (currentSlideIndex.value < props.animes.length) {
+        emit('select', props.animes[currentSlideIndex.value]);
+      }
+      break;
+  }
+};
+
+const navigateToPreviousSlide = () => {
+  if (currentSlideIndex.value > 0) {
+    currentSlideIndex.value--;
+    scrollToSlide(currentSlideIndex.value);
+    focusedIndex.value = currentSlideIndex.value;
+  }
+};
+
+const navigateToNextSlide = () => {
+  if (currentSlideIndex.value < props.animes.length - 1) {
+    currentSlideIndex.value++;
+    scrollToSlide(currentSlideIndex.value);
+    focusedIndex.value = currentSlideIndex.value;
+  }
+};
+
+const scrollToSlide = (index: number) => {
+  if (!swiperRef.value?.swiper) return;
+
+  const slideWidth = 320 + 30; // Card width + spacing
+  const containerWidth = window.innerWidth;
+  const containerPadding = 48; // 24px de chaque côté
+  const cardWidth = 320;
+
+  // Pour les premières cartes, essayer de centrer
+  // Pour les dernières cartes, s'assurer qu'elles sont complètement visibles
+  let targetPosition: number;
+
+  const totalContentWidth = props.animes.length * slideWidth;
+  const availableWidth = containerWidth - containerPadding;
+
+  if (totalContentWidth <= availableWidth) {
+    // Si tout le contenu tient dans le container, pas de scroll nécessaire
+    targetPosition = 0;
+  } else {
+    const centerOffset = containerWidth / 2 - cardWidth / 2;
+    const centeredPosition = index * slideWidth - centerOffset;
+
+    // Position pour que la dernière carte soit complètement visible
+    const maxScrollForLastCard = totalContentWidth - availableWidth;
+
+    if (index >= props.animes.length - 2) {
+      // Pour les 2 dernières cartes, s'assurer qu'elles sont visibles
+      targetPosition = maxScrollForLastCard;
+    } else {
+      targetPosition = centeredPosition;
+    }
+  }
+
+  // Ensure we don't scroll past the beginning or end
+  const maxTranslate = 0;
+  const minTranslate = -(totalContentWidth - availableWidth);
+  const clampedPosition = Math.max(
+    minTranslate,
+    Math.min(maxTranslate, -targetPosition)
+  );
+
+  swiperRef.value.swiper.setTranslate(clampedPosition);
+};
+
+const handleSwiperFocus = () => {
+  // Quand le swiper reçoit le focus, s'assurer qu'un slide est sélectionné
+  swiperHasFocus.value = true;
+  if (focusedIndex.value === -1 && props.animes.length > 0) {
+    currentSlideIndex.value = 0;
+    focusedIndex.value = 0;
+    scrollToSlide(0);
+  }
+};
+
+const handleSwiperBlur = () => {
+  // Quand le swiper perd le focus, désélectionner tous les slides
+  swiperHasFocus.value = false;
+  focusedIndex.value = -1;
+  currentSlideIndex.value = 0;
+};
+
+// Watch for focused index changes to handle smooth scrolling
+// Swiper gère maintenant automatiquement le scroll avec keyboard: true
+
+onMounted(() => {
+  if (props.listId) {
+    // Configure spatial navigation section pour navigation verticale uniquement
+    addSection(props.listId, {
+      selector: `[data-sn-section="${props.listId}"] [data-sn-focusable]`,
+      straightOnly: true,
+      straightOverlapThreshold: 0.8,
+      // Restreindre la navigation aux directions verticales
+      restrict: 'self-first',
+      tabIndexIgnoreList:
+        'a, input, select, textarea, button, iframe, [tabindex]',
+    });
+  }
 });
 
-// Méthodes exposées
 defineExpose({
-  activate,
-  deactivate,
-  focusOnLastRow,
-  focusOnFirstRow,
-  focusedIndex: readonly(focusedIndex),
-  isActive: readonly(isActive),
+  focusedIndex,
+  swiperRef,
+  currentSlideIndex,
+  navigateToPreviousSlide,
+  navigateToNextSlide,
 });
 </script>
 
 <style scoped>
-.grid {
-  transition: transform 0.3s ease-in-out;
+.anime-swiper-element {
+  overflow: visible;
+  outline: none;
+}
+
+.anime-slide-element {
+  width: auto;
+  flex-shrink: 0;
+  padding: 2px; /* Ajustement pour l'espacement */
 }
 </style>

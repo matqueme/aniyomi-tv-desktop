@@ -1,9 +1,10 @@
 <template>
   <nav
-    class="fixed top-0 right-0 left-0 z-50 h-16 border-b shadow-sm backdrop-blur-md transition-all duration-300 ease-in-out"
+    v-focus-section:navbar="navbarConfig"
+    class="fixed left-0 right-0 top-0 z-50 h-16 border-b shadow-sm backdrop-blur-md transition-all duration-300 ease-in-out"
     :class="[
       isNavbarActive
-        ? 'border-indigo-400/40 bg-slate-900/98 shadow-lg'
+        ? 'bg-slate-900/98 border-indigo-400/40 shadow-lg'
         : 'border-slate-600/30 bg-slate-900/95 shadow-md',
     ]"
     :data-navbar-id="navbarId"
@@ -28,13 +29,18 @@
       <div v-if="$route.name !== 'Search'" class="mx-8 max-w-md flex-1">
         <button
           ref="searchButtonRef"
+          v-focus
+          v-focus-events="{
+            'enter-up': onSearchClick,
+            focused: () => (isSearchFocused = true),
+            unfocused: () => (isSearchFocused = false),
+          }"
           class="relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out focus:outline-none"
           :class="[
             isSearchFocused
               ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
               : 'border-slate-600/40 bg-slate-800/60',
           ]"
-          @click="onSearchClick"
         >
           <ph-magnifying-glass
             class="mr-3 flex-shrink-0 text-slate-400"
@@ -50,13 +56,18 @@
       <div class="flex flex-shrink-0 items-center">
         <button
           ref="settingsButtonRef"
+          v-focus
+          v-focus-events="{
+            'enter-up': onSettingsClick,
+            focused: () => (isSettingsFocused = true),
+            unfocused: () => (isSettingsFocused = false),
+          }"
           class="flex cursor-pointer items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
           :class="[
             isSettingsFocused
               ? 'scale-[1.01] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
               : 'border-transparent hover:border-indigo-500/40 hover:bg-indigo-500/10',
           ]"
-          @click="onSettingsClick"
         >
           <ph-gear :size="24" />
         </button>
@@ -66,10 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref } from 'vue';
 import { PhMagnifyingGlass, PhGear } from '@phosphor-icons/vue';
 import { useRouter } from 'vue-router';
-import { useNavbarNavigation } from '@/composables/useNavbarNavigation';
 
 interface Emits {
   (e: 'settings'): void;
@@ -84,29 +94,16 @@ const navbarId = 'main-navbar';
 const searchButtonRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
 
-// Navigation navbar
-const {
-  isActive: isNavbarActive,
-  isElementFocused,
-  addElement,
-  clearElements,
-} = useNavbarNavigation(navbarId);
-
-// Computed properties pour déterminer l'état de la page
-const isOnSearchPage = computed(
-  () => router.currentRoute.value.name === 'Search'
-);
-const searchIndex = computed(() => (isOnSearchPage.value ? -1 : 0));
-const settingsIndex = computed(() => (isOnSearchPage.value ? 0 : 1));
-
 // États des éléments focusés
-const isSearchFocused = computed(
-  () => isNavbarActive.value && isElementFocused(searchIndex.value)
-);
+const isNavbarActive = ref(false);
+const isSearchFocused = ref(false);
+const isSettingsFocused = ref(false);
 
-const isSettingsFocused = computed(
-  () => isNavbarActive.value && isElementFocused(settingsIndex.value)
-);
+// Configuration de la section spatiale
+const navbarConfig = ref({
+  enterTo: 'default-element',
+  leaveFor: {},
+});
 
 // Fonction pour gérer le clic sur le bouton de recherche
 const onSearchClick = () => {
@@ -117,37 +114,4 @@ const onSearchClick = () => {
 const onSettingsClick = () => {
   emit('settings');
 };
-
-// Fonction pour gérer les éléments navigables
-const updateNavigation = async () => {
-  // Nettoyer les éléments existants
-  clearElements();
-
-  await nextTick();
-
-  // Ajouter les éléments selon la page
-  if (!isOnSearchPage.value && searchButtonRef.value) {
-    addElement('search', searchButtonRef.value, () =>
-      searchButtonRef.value?.focus()
-    );
-  }
-
-  if (settingsButtonRef.value) {
-    addElement('settings', settingsButtonRef.value, () =>
-      settingsButtonRef.value?.focus()
-    );
-  }
-};
-
-// Initialisation et gestion des changements de route
-onMounted(() => {
-  updateNavigation();
-});
-
-watch(
-  () => router.currentRoute.value.name,
-  async () => {
-    await updateNavigation();
-  }
-);
 </script>

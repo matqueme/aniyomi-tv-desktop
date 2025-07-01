@@ -89,7 +89,7 @@ export const useNavigationStore = defineStore('navigation', () => {
   const clearLists = () => clearElements();
 
   // Actions - Navigation principale
-  const initializeNavigation = async () => {
+  const initializeNavigation = async (startIndex?: number) => {
     await nextTick();
 
     if (elements.value.length === 0) {
@@ -100,8 +100,21 @@ export const useNavigationStore = defineStore('navigation', () => {
     // Désactiver tous les éléments
     elements.value.forEach((element) => element.deactivate());
 
-    // Activer le deuxième élément s'il existe, sinon le premier
-    activeElementIndex.value = elements.value.length > 1 ? 1 : 0;
+    // Déterminer l'index de départ
+    let targetIndex: number;
+
+    if (startIndex !== undefined) {
+      // Utiliser l'index fourni
+      targetIndex = Math.max(
+        0,
+        Math.min(startIndex, elements.value.length - 1)
+      );
+    } else {
+      // Logique par défaut : activer le deuxième élément s'il existe, sinon le premier
+      targetIndex = elements.value.length > 1 ? 1 : 0;
+    }
+
+    activeElementIndex.value = targetIndex;
     if (activeElement.value) {
       activeElement.value.activate();
       activeElement.value.scrollToSection?.();
@@ -232,11 +245,12 @@ export const useNavigationStore = defineStore('navigation', () => {
       totalElements: elements.value.length,
       activeElementIndex: activeElementIndex.value,
       activeElementTitle: activeElement.value?.title || 'Aucun',
-      elements: elements.value.map((element) => ({
+      elements: elements.value.map((element, index) => ({
         id: element.id,
         title: element.title,
         type: element.type,
         focusedIndex: element.getFocusedIndex(),
+        isActive: index === activeElementIndex.value,
       })),
     };
   };
