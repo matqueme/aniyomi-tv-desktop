@@ -101,8 +101,8 @@ const focusedAnimeId = ref<string | null>(null);
 const resultsSectionConfig = ref({
   enterTo: 'default-element',
   leaveFor: {
-    left: 'keyboard',
-    up: 'header',
+    left: '@keyboard',
+    up: '@header',
   },
 });
 

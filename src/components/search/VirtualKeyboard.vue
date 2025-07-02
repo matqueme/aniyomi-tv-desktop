@@ -17,7 +17,6 @@
               focused: () => setFocusedKey(number),
               unfocused: () => setFocusedKey(null),
             }"
-            data-sn-up="@header"
             class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(number)"
           >
@@ -186,8 +185,8 @@ const focusedKey = ref<string | null>(null);
 const keyboardSectionConfig = ref({
   enterTo: 'default-element',
   leaveFor: {
-    up: 'header',
-    right: 'results',
+    up: '@header',
+    right: '@results',
   },
 });
 

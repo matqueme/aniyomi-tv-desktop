@@ -28,7 +28,7 @@
       <div v-if="$route.name !== 'Search'" class="mx-8 max-w-md flex-1">
         <button
           ref="searchButtonRef"
-          v-focus
+          v-focus="$route.name !== 'Search'"
           v-focus-events="{
             'enter-up': onSearchClick,
             focused: () => (isSearchFocused = true),
@@ -76,15 +76,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { PhMagnifyingGlass, PhGear } from '@phosphor-icons/vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 interface Emits {
   (e: 'settings'): void;
 }
 
 const router = useRouter();
+const route = useRoute();
 const emit = defineEmits<Emits>();
 
 // Références pour les éléments focusables
@@ -97,11 +98,12 @@ const isSearchFocused = ref(false);
 const isSettingsFocused = ref(false);
 
 // Configuration de la section spatiale
-const navbarConfig = ref({
+const navbarConfig = computed(() => ({
+  enterTo: 'default-element', // Permettre l'entrée par défaut dans la navbar
   leaveFor: {
-    down: 'trending', // Permettre la navigation vers la section trending en bas
+    down: route.name === 'Search' ? '@header' : '@trending', // Navigation adaptée selon la page
   },
-});
+}));
 
 // Fonction pour gérer le clic sur le bouton de recherche
 const onSearchClick = () => {

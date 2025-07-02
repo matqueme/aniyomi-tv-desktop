@@ -81,8 +81,8 @@ const showCursor = ref(true);
 const headerSectionConfig = ref({
   enterTo: 'default-element',
   leaveFor: {
-    down: 'keyboard',
-    up: 'navbar',
+    down: '@keyboard',
+    up: '@navbar',
   },
 });
 
