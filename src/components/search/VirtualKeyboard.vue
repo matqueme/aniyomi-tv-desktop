@@ -8,7 +8,8 @@
       <div class="flex justify-center">
         <div class="flex gap-1 lg:gap-2">
           <button
-            v-for="number in numbers"
+            v-for="(number, index) in numbers"
+            :id="`key-${number}`"
             :key="number"
             ref="keyButtonRefs"
             v-focus
@@ -17,6 +18,7 @@
               focused: () => setFocusedKey(number),
               unfocused: () => setFocusedKey(null),
             }"
+            :data-sn-down="getNavigationTarget('numbers', index, 'down')"
             class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(number)"
           >
@@ -29,7 +31,8 @@
       <div class="flex justify-center">
         <div class="flex gap-1 lg:gap-2">
           <button
-            v-for="letter in row1"
+            v-for="(letter, index) in row1"
+            :id="`key-${letter}`"
             :key="letter"
             ref="keyButtonRefs"
             v-focus
@@ -38,6 +41,8 @@
               focused: () => setFocusedKey(letter),
               unfocused: () => setFocusedKey(null),
             }"
+            :data-sn-down="getNavigationTarget('row1', index, 'down')"
+            :data-sn-up="getNavigationTarget('row1', index, 'up')"
             class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
           >
@@ -50,7 +55,8 @@
       <div class="flex justify-center">
         <div class="flex gap-1 lg:gap-2">
           <button
-            v-for="letter in row2"
+            v-for="(letter, index) in row2"
+            :id="`key-${letter}`"
             :key="letter"
             ref="keyButtonRefs"
             v-focus
@@ -59,6 +65,8 @@
               focused: () => setFocusedKey(letter),
               unfocused: () => setFocusedKey(null),
             }"
+            :data-sn-down="getNavigationTarget('row2', index, 'down')"
+            :data-sn-up="getNavigationTarget('row2', index, 'up')"
             class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
           >
@@ -73,7 +81,8 @@
           <!-- Groupe des lettres WXCVBN -->
           <div class="flex gap-1 lg:gap-2">
             <button
-              v-for="letter in row3"
+              v-for="(letter, index) in row3"
+              :id="`key-${letter}`"
               :key="letter"
               ref="keyButtonRefs"
               v-focus
@@ -82,6 +91,8 @@
                 focused: () => setFocusedKey(letter),
                 unfocused: () => setFocusedKey(null),
               }"
+              :data-sn-down="getNavigationTarget('row3', index, 'down')"
+              :data-sn-up="getNavigationTarget('row3', index, 'up')"
               class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
               :class="getKeyClass(letter)"
             >
@@ -91,6 +102,7 @@
 
           <!-- Backspace -->
           <button
+            id="key-BACKSPACE"
             ref="backspaceButtonRef"
             v-focus
             v-focus-events="{
@@ -98,6 +110,8 @@
               focused: () => setFocusedKey('BACKSPACE'),
               unfocused: () => setFocusedKey(null),
             }"
+            data-sn-down="#key-SPACE"
+            data-sn-up="#key-K"
             class="2xl flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:text-base lg:w-16 xl:w-20 xl:text-lg"
             :class="getKeyClass('BACKSPACE')"
           >
@@ -113,6 +127,7 @@
         <div class="flex items-center gap-2">
           <!-- Clear -->
           <button
+            id="key-CLEAR"
             ref="clearButtonRef"
             v-focus
             v-focus-events="{
@@ -120,6 +135,7 @@
               focused: () => setFocusedKey('CLEAR'),
               unfocused: () => setFocusedKey(null),
             }"
+            data-sn-up="#key-X"
             class="2xl flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 focus:outline-none xl:w-20 xl:text-lg"
             :class="getKeyClass('CLEAR')"
           >
@@ -129,6 +145,7 @@
 
           <!-- Espace -->
           <button
+            id="key-SPACE"
             ref="spaceButtonRef"
             v-focus
             v-focus-events="{
@@ -136,6 +153,7 @@
               focused: () => setFocusedKey('SPACE'),
               unfocused: () => setFocusedKey(null),
             }"
+            data-sn-up="#key-B"
             class="2xl flex h-10 w-28 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 focus:outline-none xl:w-40 xl:text-lg"
             :class="getKeyClass('SPACE')"
           >
@@ -202,6 +220,30 @@ const getKeyClass = (key: string) => {
       ? 'scale-[1.05] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
       : 'border-slate-600/40 bg-slate-800/60 text-slate-300 hover:border-indigo-500/40 hover:bg-indigo-500/10',
   ];
+};
+
+/**
+ * Obtenir la cible de navigation pour les touches du clavier virtuel en bout de ligne.
+ * @param row - La ligne du clavier (par exemple, 'row2' ou 'row3')
+ * @param index - L'index de la touche dans la ligne
+ * @param direction - La direction de navigation ('down' ou 'up')
+ * @returns L'ID de la touche cible ou undefined si aucune cible n'est définie
+ */
+const getNavigationTarget = (row: string, index: number, direction: string) => {
+  // Configuration pour la deuxième ligne (QSDFGHJKLM)
+  if (row === 'row2') {
+    if (direction === 'down') {
+      if (index === 0) return `#key-${row3[0]}`; // "Q" vers "W"
+      if (index === row2.length - 1) return '#key-BACKSPACE'; // "M" vers Backspace
+    }
+  }
+  // Configuration pour la troisième ligne (WXCVBN)
+  else if (row === 'row3') {
+    if (direction === 'down') {
+      if (index === 0) return '#key-CLEAR'; // "W" vers Clear
+    }
+  }
+  return undefined;
 };
 
 const onKeyPress = (key: string) => {
