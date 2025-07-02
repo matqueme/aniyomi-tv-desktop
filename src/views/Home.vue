@@ -60,15 +60,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, nextTick } from 'vue';
 import { useAnimeStore } from '@/stores/anime';
 import type { Anime } from '@/types/anime';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import AnimeList from '@/components/anime/AnimeList.vue';
-import { useSpatialNavigation } from '@/composables/useSpatialNavigation';
+import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 const animeStore = useAnimeStore();
-const { setDefaultSection, focusFirstSection } = useSpatialNavigation();
 
 // Références vers les composants AnimeList (maintenues pour compatibilité)
 const trendingListRef = ref<InstanceType<typeof AnimeList>>();
@@ -98,14 +97,9 @@ onMounted(async () => {
   // Charger les données
   await animeStore.fetchAnimes();
 
-  // Configurer la navigation spatiale après le chargement des données
-  if (animeStore.trendingAnimes.length > 0) {
-    setDefaultSection('trending');
-    // Focus sur le premier élément après un court délai pour laisser le DOM se mettre à jour
-    setTimeout(() => {
-      focusFirstSection();
-    }, 100);
-  }
+  // Focus sur la première section après le chargement
+  nextTick();
+  if (animeStore.trendingAnimes.length > 0) SpatialNavigation.focus('trending');
 });
 </script>
 

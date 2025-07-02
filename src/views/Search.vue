@@ -134,7 +134,7 @@ import {
   PhFileX,
 } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
-import { useSpatialNavigation } from '@/composables/useSpatialNavigation';
+import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import type { Anime } from '@/types/anime';
 
@@ -172,9 +172,6 @@ const searchSectionConfig = ref({
   leaveFor: {},
 });
 
-// Utiliser le composable de navigation spatiale
-const { focusElement } = useSpatialNavigation();
-
 // Configuration de la navigation
 onMounted(async () => {
   // Si il y a un terme de recherche initial, déclencher la recherche
@@ -184,7 +181,7 @@ onMounted(async () => {
 
   // Focuser la barre de recherche après le montage
   setTimeout(() => {
-    focusElement('input[type="text"]');
+    SpatialNavigation.focus('sn-search-input');
   }, 100);
 });
 
@@ -227,7 +224,7 @@ const clearSearch = async () => {
   hasSearched.value = false;
 
   await nextTick();
-  focusElement('input[type="text"]');
+  SpatialNavigation.focus('sn-search-input');
 };
 
 const goBack = () => {
