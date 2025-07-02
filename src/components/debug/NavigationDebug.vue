@@ -2,48 +2,14 @@
   <div
     class="fixed bottom-4 right-4 z-50 max-h-[80vh] w-80 select-all overflow-y-auto rounded-lg border border-slate-600/40 bg-slate-900/95 p-4 font-mono text-sm text-white shadow-lg backdrop-blur-md"
   >
-    <h3 class="mb-2 font-bold">🎮 Navigation Debug</h3>
-
-    <!-- État général -->
-    <div class="space-y-1">
-      <div>Navigation Spatiale: ✅ Activée</div>
-      <div>Système: vue-spatial-nav</div>
-      <div class="mt-1 text-xs text-slate-400">
-        Navigation automatique par directives
-      </div>
-    </div>
-
-    <!-- Sections de navigation -->
-    <div class="mt-3 border-t border-slate-600/50 pt-2">
-      <h4 class="mb-1 text-xs font-semibold text-yellow-300">
-        📋 Sections ({{ sections.length }})
-      </h4>
-      <div class="space-y-1">
-        <div v-if="sections.length === 0" class="text-xs text-slate-500">
-          Aucune section détectée
-        </div>
-        <div
-          v-for="section in sections"
-          :key="section.id"
-          class="text-xs"
-          :class="{
-            'text-green-300': section.isDefault,
-            'text-blue-300': !section.isDefault && section.isEnabled,
-            'text-red-300': !section.isEnabled,
-          }"
-        >
-          {{ section.id }}
-          <span v-if="section.isDefault" class="text-yellow-300">(défaut)</span>
-          <span v-if="!section.isEnabled" class="text-red-400"
-            >(désactivée)</span
-          >
-          - {{ section.focusableCount }} éléments
-        </div>
-      </div>
-    </div>
+    <h3
+      class="mb-3 border-b border-slate-600/50 pb-2 text-lg font-bold text-white"
+    >
+      🎮 Navigation Debug
+    </h3>
 
     <!-- Éléments focusables -->
-    <div class="mt-3 border-t border-slate-600/50 pt-2">
+    <div class="space-y-1">
       <h4 class="mb-1 text-xs font-semibold text-blue-300">
         🎯 Éléments focusables ({{ focusableElements.length }})
       </h4>
@@ -114,13 +80,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
 // Types pour les données de navigation
-interface SectionInfo {
-  id: string;
-  isDefault: boolean;
-  isEnabled: boolean;
-  focusableCount: number;
-}
-
 interface FocusableElement {
   tagName: string;
   id?: string;
@@ -130,102 +89,11 @@ interface FocusableElement {
 
 // État réactif
 const lastKeyPressed = ref<string>('');
-const sections = ref<SectionInfo[]>([]);
 const focusableElements = ref<FocusableElement[]>([]);
 const currentFocus = ref<FocusableElement | null>(null);
 
 // Injection de l'instance SpatialNavigation (pour usage futur)
 // const spatialNavigation = inject('spatialNavigation');
-
-// Détection des sections de navigation spatiale
-const detectSections = (): SectionInfo[] => {
-  const sectionsMap = new Map<string, SectionInfo>();
-
-  // 1. Chercher les sections par attributs data générés par Vue (v-focus-section)
-  const vueGeneratedSections = document.querySelectorAll(
-    '[data-v-focus-section]'
-  );
-  vueGeneratedSections.forEach((element) => {
-    // Essayer de récupérer l'ID de section depuis différents attributs
-    let sectionId = '';
-
-    // Méthode 1: Chercher dans les attributs data-v-*
-    for (const attr of element.attributes) {
-      if (attr.name.includes('focus-section') && attr.name.includes(':')) {
-        sectionId = attr.name.split(':')[1] || `section-${Date.now()}`;
-        break;
-      }
-    }
-
-    // Méthode 2: Utiliser l'id de l'élément ou générer un automatique
-    if (!sectionId) {
-      sectionId = element.id || `auto-section-${sectionsMap.size + 1}`;
-    }
-
-    // Compter les éléments focusables (plus large sélection)
-    const focusableSelectors = [
-      '[v-focus]',
-      '[data-v-focus]',
-      'button:not([disabled])',
-      'input:not([disabled])',
-      'select:not([disabled])',
-      'textarea:not([disabled])',
-      'a[href]',
-      '[tabindex]:not([tabindex="-1"])',
-      'swiper-container',
-      '.anime-card',
-      '.focusable',
-    ];
-
-    const focusableInSection = element.querySelectorAll(
-      focusableSelectors.join(', ')
-    ).length;
-
-    // Vérifier si c'est une section par défaut
-    const isDefault =
-      element.hasAttribute('data-v-focus-section-default') ||
-      sectionId.includes('trending') ||
-      sectionsMap.size === 0;
-
-    const isEnabled = !element.hasAttribute('data-v-disable-focus-section');
-
-    if (!sectionsMap.has(sectionId)) {
-      sectionsMap.set(sectionId, {
-        id: sectionId,
-        isDefault,
-        isEnabled,
-        focusableCount: focusableInSection,
-      });
-    }
-  });
-
-  // 3. Fallback: sections basées sur la structure du DOM
-  if (sectionsMap.size === 0) {
-    const potentialSections = document.querySelectorAll(
-      'nav, .anime-section, [class*="section"]'
-    );
-    potentialSections.forEach((element, index) => {
-      const sectionId = element.className.includes('navbar')
-        ? 'navbar'
-        : element.className.includes('anime')
-          ? `anime-section-${index}`
-          : `section-${index + 1}`;
-
-      const focusableInSection = element.querySelectorAll(
-        'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"]), swiper-container'
-      ).length;
-
-      sectionsMap.set(sectionId, {
-        id: sectionId,
-        isDefault: index === 0,
-        isEnabled: true,
-        focusableCount: focusableInSection,
-      });
-    });
-  }
-
-  return Array.from(sectionsMap.values());
-};
 
 // Détection des éléments focusables
 const detectFocusableElements = (): FocusableElement[] => {
@@ -313,7 +181,6 @@ const updateCurrentFocus = () => {
 
 // Mise à jour de toutes les données de navigation
 const updateNavigationData = () => {
-  sections.value = detectSections();
   focusableElements.value = detectFocusableElements();
   updateCurrentFocus();
 };
@@ -385,13 +252,7 @@ onMounted(() => {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: [
-      'data-sn-focusable',
-      'v-focus',
-      'data-v-focus',
-      'v-focus-section',
-      'data-v-focus-section',
-    ],
+    attributeFilter: ['data-sn-focusable', 'v-focus', 'data-v-focus'],
   });
 
   // Mise à jour périodique pour s'assurer que les données sont à jour
