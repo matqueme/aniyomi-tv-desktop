@@ -1,8 +1,14 @@
 <template>
-  <div class="max-w-screen mb-8 box-border" :data-sn-section="listId">
+  <div
+    v-focus-section:[listId]="sectionConfig"
+    class="max-w-screen mb-8 box-border"
+    :data-sn-section="listId"
+    :data-section-id="listId"
+  >
     <h2 class="mb-6 ml-1 text-3xl font-bold text-white">{{ title }}</h2>
     <swiper-container
       ref="swiperRef"
+      v-focus
       :slides-per-view="'auto'"
       :space-between="24"
       :free-mode="true"
@@ -10,7 +16,6 @@
       :mouse-wheel="false"
       :keyboard="false"
       class="anime-swiper-element"
-      :data-sn-focusable="true"
       tabindex="0"
       @keydown="handleSwiperKeydown"
       @focus="handleSwiperFocus"
@@ -41,13 +46,14 @@
 import { ref, onMounted } from 'vue';
 import type { Anime } from '@/types/anime';
 import AnimeCard from '@/components/anime/AnimeCard.vue';
-import { useSpatialNavigation } from '@/composables/useSpatialNavigation';
 
 interface Props {
   animes: Anime[];
   title: string;
   itemsPerRow?: number;
   listId?: string;
+  leaveUpTo?: string; // Section vers laquelle naviguer vers le haut
+  leaveDownTo?: string; // Section vers laquelle naviguer vers le bas
 }
 
 interface Emits {
@@ -67,12 +73,13 @@ interface SwiperElement extends HTMLElement {
 const emit = defineEmits<Emits>();
 const props = defineProps<Props>();
 
-const { addSection } = useSpatialNavigation();
-
 const focusedIndex = ref(-1);
 const swiperRef = ref<SwiperElement | null>(null);
 const currentSlideIndex = ref(0);
 const swiperHasFocus = ref(false);
+
+// Configuration de la section spatiale
+const sectionConfig = ref<Record<string, unknown>>({});
 
 const handleFocus = (index: number) => {
   focusedIndex.value = index;
@@ -189,16 +196,26 @@ const handleSwiperBlur = () => {
 
 onMounted(() => {
   if (props.listId) {
-    // Configure spatial navigation section pour navigation verticale uniquement
-    addSection(props.listId, {
-      selector: `[data-sn-section="${props.listId}"] [data-sn-focusable]`,
+    // Configure spatial navigation section avec la navigation directionnelle
+    const leaveFor: Record<string, string> = {};
+
+    if (props.leaveUpTo) {
+      leaveFor.up = props.leaveUpTo;
+    }
+
+    if (props.leaveDownTo) {
+      leaveFor.down = props.leaveDownTo;
+    }
+
+    // Mettre à jour la configuration de la section
+    sectionConfig.value = {
       straightOnly: true,
       straightOverlapThreshold: 0.8,
-      // Restreindre la navigation aux directions verticales
+      leaveFor, // Configuration pour permettre la navigation vers d'autres sections
       restrict: 'self-first',
       tabIndexIgnoreList:
         'a, input, select, textarea, button, iframe, [tabindex]',
-    });
+    };
   }
 });
 

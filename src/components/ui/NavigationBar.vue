@@ -1,13 +1,14 @@
 <template>
   <nav
     v-focus-section:navbar="navbarConfig"
+    :data-navbar-id="navbarId"
+    data-sn-section="navbar"
     class="fixed left-0 right-0 top-0 z-50 h-16 border-b shadow-sm backdrop-blur-md transition-all duration-300 ease-in-out"
     :class="[
       isNavbarActive
         ? 'bg-slate-900/98 border-indigo-400/40 shadow-lg'
         : 'border-slate-600/30 bg-slate-900/95 shadow-md',
     ]"
-    :data-navbar-id="navbarId"
   >
     <div
       class="mx-auto flex h-full max-w-7xl items-center justify-between px-8"
@@ -102,7 +103,10 @@ const isSettingsFocused = ref(false);
 // Configuration de la section spatiale
 const navbarConfig = ref({
   enterTo: 'default-element',
-  leaveFor: {},
+  leaveFor: {
+    down: 'trending', // Permettre la navigation vers la section trending en bas
+  },
+  restrict: 'self-first',
 });
 
 // Fonction pour gérer le clic sur le bouton de recherche

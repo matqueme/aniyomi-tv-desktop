@@ -17,6 +17,8 @@
           :list-id="'trending'"
           title="Tendances"
           class="first-focusable"
+          :leave-up-to="'navbar'"
+          :leave-down-to="'all-animes'"
           @select="handleAnimeSelect"
         />
       </div>
@@ -32,6 +34,8 @@
           :animes="animeStore.animes"
           :list-id="'all-animes'"
           title="Tous les animes"
+          :leave-up-to="'trending'"
+          :leave-down-to="'action'"
           @select="handleAnimeSelect"
         />
       </div>
@@ -47,6 +51,7 @@
           :animes="actionAnimes"
           :list-id="'action'"
           title="Action"
+          :leave-up-to="'all-animes'"
           @select="handleAnimeSelect"
         />
       </div>

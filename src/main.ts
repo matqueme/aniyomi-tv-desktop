@@ -20,8 +20,15 @@ const i18n = createI18n({
 const spatialNavConfig = {
   straightOnly: false,
   straightOverlapThreshold: 0.5,
-  rememberSource: true,
+  rememberSource: false,
   disabled: false,
+  defaultElement: '',
+  enterTo: '',
+  leaveFor: undefined,
+  restrict: 'self-first' as const,
+  tabIndexIgnoreList:
+    'a, input, select, textarea, button, iframe, [contentEditable=true]',
+  navigableFilter: undefined,
   scrollOptions: {
     behavior: 'smooth' as const,
     block: 'center' as const,
