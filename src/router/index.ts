@@ -112,12 +112,7 @@ function focusDefaultForPage(sectionId: string) {
  */
 function focusFirstFocusableElement() {
   // Chercher dans l'ordre de priorité
-  const selectors = [
-    '[data-sn-section="navbar"] [data-focusable="true"]',
-    '[data-sn-section="trending"] [data-focusable="true"]',
-    '[data-sn-section="search"] [data-focusable="true"]',
-    '[data-focusable="true"]',
-  ];
+  const selectors = ['[data-focusable="true"]'];
 
   for (const selector of selectors) {
     const element = document.querySelector(selector) as HTMLElement;

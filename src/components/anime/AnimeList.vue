@@ -2,8 +2,6 @@
   <div
     v-focus-section:[listId]="sectionConfig"
     class="max-w-screen mb-8 box-border"
-    :data-sn-section="listId"
-    :data-section-id="listId"
   >
     <h2 class="mb-6 ml-1 text-3xl font-bold text-white">{{ title }}</h2>
     <swiper-container

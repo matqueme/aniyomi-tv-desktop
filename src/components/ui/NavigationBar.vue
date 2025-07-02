@@ -1,8 +1,6 @@
 <template>
   <nav
     v-focus-section:navbar="navbarConfig"
-    :data-navbar-id="navbarId"
-    data-sn-section="navbar"
     class="fixed left-0 right-0 top-0 z-50 h-16 border-b shadow-sm backdrop-blur-md transition-all duration-300 ease-in-out"
     :class="[
       isNavbarActive
@@ -88,8 +86,6 @@ interface Emits {
 
 const router = useRouter();
 const emit = defineEmits<Emits>();
-
-const navbarId = 'main-navbar';
 
 // Références pour les éléments focusables
 const searchButtonRef = ref<HTMLButtonElement>();

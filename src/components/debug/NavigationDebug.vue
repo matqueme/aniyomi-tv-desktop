@@ -141,27 +141,7 @@ const currentFocus = ref<FocusableElement | null>(null);
 const detectSections = (): SectionInfo[] => {
   const sectionsMap = new Map<string, SectionInfo>();
 
-  // 1. Chercher les éléments avec data-sn-section (attribut ajouté manuellement)
-  const sectionElements = document.querySelectorAll('[data-sn-section]');
-  sectionElements.forEach((element) => {
-    const sectionId = element.getAttribute('data-sn-section') || 'default';
-    const focusableInSection = element.querySelectorAll(
-      '[v-focus], [data-v-focus], button, input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-    ).length;
-    const isDefault =
-      element.hasAttribute('data-sn-default-section') ||
-      sectionId === 'default';
-    const isEnabled = !element.hasAttribute('data-sn-disabled');
-
-    sectionsMap.set(sectionId, {
-      id: sectionId,
-      isDefault,
-      isEnabled,
-      focusableCount: focusableInSection,
-    });
-  });
-
-  // 2. Chercher les sections par attributs data générés par Vue
+  // 1. Chercher les sections par attributs data générés par Vue (v-focus-section)
   const vueGeneratedSections = document.querySelectorAll(
     '[data-v-focus-section]'
   );
@@ -177,13 +157,9 @@ const detectSections = (): SectionInfo[] => {
       }
     }
 
-    // Méthode 2: Utiliser data-navbar-id ou similar
+    // Méthode 2: Utiliser l'id de l'élément ou générer un automatique
     if (!sectionId) {
-      sectionId =
-        element.getAttribute('data-navbar-id') ||
-        element.getAttribute('data-section-id') ||
-        element.id ||
-        `auto-section-${sectionsMap.size + 1}`;
+      sectionId = element.id || `auto-section-${sectionsMap.size + 1}`;
     }
 
     // Compter les éléments focusables (plus large sélection)
@@ -411,7 +387,6 @@ onMounted(() => {
     attributes: true,
     attributeFilter: [
       'data-sn-focusable',
-      'data-sn-section',
       'v-focus',
       'data-v-focus',
       'v-focus-section',
