@@ -25,7 +25,7 @@
     <!-- Affichage du texte de recherche -->
     <div class="flex-1">
       <div
-        class="flex items-center rounded-xl border px-6 py-4 transition-all duration-300 ease-in-out"
+        class="flex items-center rounded-xl border px-6 py-3 transition-all duration-300 ease-in-out"
         :class="[
           searchText
             ? 'border-indigo-500/60 bg-slate-800/90'
@@ -34,21 +34,24 @@
       >
         <ph-magnifying-glass
           class="mr-4 flex-shrink-0 text-slate-400"
-          :size="24"
+          :size="20"
         />
-        <div class="flex-1">
-          <span v-if="searchText" class="text-lg text-slate-200">
+        <div class="flex flex-1 items-center">
+          <span
+            v-if="searchText"
+            class="whitespace-pre text-base text-slate-200"
+          >
             {{ searchText }}
           </span>
-          <span v-else class="text-lg text-slate-500">
+          <span v-else class="text-base text-slate-500">
             Utilisez le clavier virtuel pour rechercher...
           </span>
-          <span
-            class="ml-1 animate-pulse text-lg text-indigo-400"
-            :class="{ 'opacity-0': !showCursor }"
-          >
-            |
-          </span>
+          <PhLineVertical
+            v-if="searchText"
+            :size="24"
+            class="-ml-2 text-base text-indigo-400 transition-opacity duration-150"
+            :class="{ 'opacity-0': !showCursor, 'opacity-100': showCursor }"
+          />
         </div>
       </div>
     </div>
@@ -58,7 +61,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { PhArrowLeft, PhMagnifyingGlass } from '@phosphor-icons/vue';
+import {
+  PhArrowLeft,
+  PhMagnifyingGlass,
+  PhLineVertical,
+} from '@phosphor-icons/vue';
 
 // Props
 interface Props {

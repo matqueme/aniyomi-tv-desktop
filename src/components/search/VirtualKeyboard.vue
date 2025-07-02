@@ -241,6 +241,10 @@ const getNavigationTarget = (row: string, index: number, direction: string) => {
   else if (row === 'row3') {
     if (direction === 'down') {
       if (index === 0) return '#key-CLEAR'; // "W" vers Clear
+      if (index === 1) return '#key-CLEAR'; // "X" vers Clear
+      if (index === 2) return '#key-CLEAR'; // "C" vers Clear
+      if (index === row3.length - 1) return '#key-SPACE'; // "N" vers Espace
+      if (index === row3.length - 3) return '#key-SPACE'; // "V" vers Espace
     }
   }
   return undefined;
