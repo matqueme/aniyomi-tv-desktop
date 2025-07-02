@@ -209,12 +209,8 @@ onMounted(() => {
 
     // Mettre à jour la configuration de la section
     sectionConfig.value = {
-      straightOnly: true,
-      straightOverlapThreshold: 0.8,
       leaveFor, // Configuration pour permettre la navigation vers d'autres sections
       restrict: 'self-first',
-      tabIndexIgnoreList:
-        'a, input, select, textarea, button, iframe, [tabindex]',
     };
   }
 });

@@ -102,11 +102,9 @@ const isSettingsFocused = ref(false);
 
 // Configuration de la section spatiale
 const navbarConfig = ref({
-  enterTo: 'default-element',
   leaveFor: {
     down: 'trending', // Permettre la navigation vers la section trending en bas
   },
-  restrict: 'self-first',
 });
 
 // Fonction pour gérer le clic sur le bouton de recherche

@@ -18,8 +18,8 @@ const i18n = createI18n({
 
 // Configuration pour la navigation TV
 const spatialNavConfig = {
-  straightOnly: false,
-  straightOverlapThreshold: 0.5,
+  straightOnly: true,
+  straightOverlapThreshold: 0.8,
   rememberSource: false,
   disabled: false,
   defaultElement: '',
