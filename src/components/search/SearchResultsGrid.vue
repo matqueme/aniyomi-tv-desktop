@@ -14,7 +14,7 @@
           focused: () => setFocusedAnime(anime.id),
           unfocused: () => setFocusedAnime(null),
         }"
-        class="group cursor-pointer transition-all duration-300 ease-in-out focus:outline-none"
+        class="focuse-none group cursor-pointer transition-all duration-300 ease-in-out"
         :class="[
           focusedAnimeId === anime.id
             ? 'scale-[1.05] transform'

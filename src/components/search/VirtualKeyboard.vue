@@ -19,7 +19,7 @@
               unfocused: () => setFocusedKey(null),
             }"
             :data-sn-down="getNavigationTarget('numbers', index, 'down')"
-            class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(number)"
           >
             {{ number }}
@@ -43,7 +43,7 @@
             }"
             :data-sn-down="getNavigationTarget('row1', index, 'down')"
             :data-sn-up="getNavigationTarget('row1', index, 'up')"
-            class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
           >
             {{ letter }}
@@ -67,7 +67,7 @@
             }"
             :data-sn-down="getNavigationTarget('row2', index, 'down')"
             :data-sn-up="getNavigationTarget('row2', index, 'up')"
-            class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
           >
             {{ letter }}
@@ -93,7 +93,7 @@
               }"
               :data-sn-down="getNavigationTarget('row3', index, 'down')"
               :data-sn-up="getNavigationTarget('row3', index, 'up')"
-              class="2xl h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+              class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
               :class="getKeyClass(letter)"
             >
               {{ letter }}
@@ -112,7 +112,7 @@
             }"
             data-sn-down="#key-SPACE"
             data-sn-up="#key-K"
-            class="2xl flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-semibold transition-all duration-200 focus:outline-none sm:h-10 sm:text-base lg:w-16 xl:w-20 xl:text-lg"
+            class="2xl focuse-none flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:text-base lg:w-16 xl:w-20 xl:text-lg"
             :class="getKeyClass('BACKSPACE')"
           >
             <PhBackspace :size="12" class="lg:hidden" />
@@ -136,7 +136,7 @@
               unfocused: () => setFocusedKey(null),
             }"
             data-sn-up="#key-X"
-            class="2xl flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 focus:outline-none xl:w-20 xl:text-lg"
+            class="2xl focuse-none flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-20 xl:text-lg"
             :class="getKeyClass('CLEAR')"
           >
             <PhTrash :size="18" class="xl:hidden" />
@@ -154,7 +154,7 @@
               unfocused: () => setFocusedKey(null),
             }"
             data-sn-up="#key-B"
-            class="2xl flex h-10 w-28 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 focus:outline-none xl:w-40 xl:text-lg"
+            class="2xl focuse-none flex h-10 w-28 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-40 xl:text-lg"
             :class="getKeyClass('SPACE')"
           >
             ESPACE

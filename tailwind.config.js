@@ -8,5 +8,14 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const newUtilities = {
+        '.focuse-none': {
+          outline: 'none',
+        },
+      };
+      addUtilities(newUtilities);
+    },
+  ],
 };

@@ -131,8 +131,8 @@ const performSearch = () => {
 
   searchTimeout = setTimeout(async () => {
     try {
-      // Simulated search - replace with real API call
-      const allAnimes = [...animeStore.animes, ...animeStore.trendingAnimes];
+      // TODO: Remplacer par une vraie API de recherche
+      const allAnimes = [...animeStore.animes];
       const filtered = allAnimes.filter(
         (anime) =>
           anime.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||

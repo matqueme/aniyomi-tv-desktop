@@ -4,7 +4,7 @@
       'anime-card group cursor-pointer transition-all duration-300',
       'relative overflow-hidden rounded-lg bg-slate-800/30',
       'border-2 transition-all duration-300',
-      'focus:outline-none',
+      'focuse-none',
       isFocused
         ? 'scale-105 border-indigo-400 shadow-lg shadow-indigo-500/20'
         : 'border-slate-600/40',

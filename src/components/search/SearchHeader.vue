@@ -12,7 +12,7 @@
         focused: () => (isBackButtonFocused = true),
         unfocused: () => (isBackButtonFocused = false),
       }"
-      class="flex items-center justify-center rounded-lg border p-3 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200 focus:outline-none"
+      class="focuse-none flex items-center justify-center rounded-lg border p-3 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200"
       :class="[
         isBackButtonFocused
           ? 'scale-[1.05] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
