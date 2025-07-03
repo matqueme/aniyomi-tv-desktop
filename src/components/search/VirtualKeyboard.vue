@@ -19,8 +19,9 @@
               unfocused: () => setFocusedKey(null),
             }"
             :data-sn-down="getNavigationTarget('numbers', index, 'down')"
-            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focus-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(number)"
+            @click="() => onKeyPress(number)"
           >
             {{ number }}
           </button>
@@ -43,8 +44,9 @@
             }"
             :data-sn-down="getNavigationTarget('row1', index, 'down')"
             :data-sn-up="getNavigationTarget('row1', index, 'up')"
-            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focus-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
+            @click="() => onKeyPress(letter)"
           >
             {{ letter }}
           </button>
@@ -67,8 +69,9 @@
             }"
             :data-sn-down="getNavigationTarget('row2', index, 'down')"
             :data-sn-up="getNavigationTarget('row2', index, 'up')"
-            class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+            class="2xl focus-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
             :class="getKeyClass(letter)"
+            @click="() => onKeyPress(letter)"
           >
             {{ letter }}
           </button>
@@ -93,8 +96,9 @@
               }"
               :data-sn-down="getNavigationTarget('row3', index, 'down')"
               :data-sn-up="getNavigationTarget('row3', index, 'up')"
-              class="2xl focuse-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
+              class="2xl focus-none h-8 w-8 flex-shrink-0 rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:w-10 sm:text-base xl:text-lg 2xl:w-12"
               :class="getKeyClass(letter)"
+              @click="() => onKeyPress(letter)"
             >
               {{ letter }}
             </button>
@@ -112,8 +116,9 @@
             }"
             data-sn-down="#key-SPACE"
             data-sn-up="#key-K"
-            class="2xl focuse-none flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:text-base lg:w-16 xl:w-20 xl:text-lg"
+            class="2xl focus-none flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-semibold transition-all duration-200 sm:h-10 sm:text-base lg:w-16 xl:w-20 xl:text-lg"
             :class="getKeyClass('BACKSPACE')"
+            @click="onBackspace"
           >
             <PhBackspace :size="12" class="lg:hidden" />
             <PhBackspace :size="18" class="hidden lg:block xl:hidden" />
@@ -136,8 +141,9 @@
               unfocused: () => setFocusedKey(null),
             }"
             data-sn-up="#key-X"
-            class="2xl focuse-none flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-20 xl:text-lg"
+            class="2xl focus-none flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-20 xl:text-lg"
             :class="getKeyClass('CLEAR')"
+            @click="onClear"
           >
             <PhTrash :size="18" class="xl:hidden" />
             <PhTrash :size="20" class="hidden xl:block" />
@@ -154,8 +160,9 @@
               unfocused: () => setFocusedKey(null),
             }"
             data-sn-up="#key-B"
-            class="2xl focuse-none flex h-10 w-28 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-40 xl:text-lg"
+            class="2xl focus-none flex h-10 w-28 flex-shrink-0 items-center justify-center rounded-lg border text-base font-semibold transition-all duration-200 xl:w-40 xl:text-lg"
             :class="getKeyClass('SPACE')"
+            @click="() => onKeyPress(' ')"
           >
             ESPACE
           </button>

@@ -14,12 +14,13 @@
           focused: () => setFocusedAnime(anime.id),
           unfocused: () => setFocusedAnime(null),
         }"
-        class="focuse-none group cursor-pointer transition-all duration-300 ease-in-out"
+        class="focus-none group cursor-pointer transition-all duration-300 ease-in-out"
         :class="[
           focusedAnimeId === anime.id
             ? 'scale-[1.05] transform'
             : 'hover:scale-[1.02]',
         ]"
+        @click="() => handleSelect(anime)"
       >
         <!-- Image de l'anime -->
         <div

@@ -12,12 +12,13 @@
         focused: () => (isBackButtonFocused = true),
         unfocused: () => (isBackButtonFocused = false),
       }"
-      class="focuse-none flex items-center justify-center rounded-lg border p-3 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200"
+      class="focus-none flex items-center justify-center rounded-lg border p-3 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200"
       :class="[
         isBackButtonFocused
           ? 'scale-[1.05] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
           : 'border-slate-600/40 hover:border-indigo-500/40 hover:bg-indigo-500/10',
       ]"
+      @click="goBack"
     >
       <ph-arrow-left :size="24" />
     </button>

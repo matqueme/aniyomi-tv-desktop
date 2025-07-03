@@ -4,7 +4,7 @@
       'anime-card group cursor-pointer transition-all duration-300',
       'relative overflow-hidden rounded-lg bg-slate-800/30',
       'border-2 transition-all duration-300',
-      'focuse-none',
+      'focus-none',
       isFocused
         ? 'scale-105 border-indigo-400 shadow-lg shadow-indigo-500/20'
         : 'border-slate-600/40',
@@ -13,10 +13,10 @@
     ]"
     :data-focused="isFocused"
     tabindex="0"
-    @click="$emit('select', anime)"
+    @click="handleClick"
     @keydown="handleKeyDown"
-    @focus="$emit('focus')"
-    @blur="$emit('blur')"
+    @focus="handleFocus"
+    @blur="handleBlur"
   >
     <!-- Image principale -->
     <div class="relative h-full w-full">
@@ -100,6 +100,19 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+const handleClick = (event: MouseEvent) => {
+  event.preventDefault();
+  emit('select', props.anime);
+};
+
+const handleFocus = () => {
+  emit('focus');
+};
+
+const handleBlur = () => {
+  emit('blur');
+};
 
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter' || event.key === ' ') {

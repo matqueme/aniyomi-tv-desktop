@@ -9,12 +9,13 @@
           focused: () => (isBackFocused = true),
           unfocused: () => (isBackFocused = false),
         }"
-        class="focuse-none flex items-center gap-2 rounded-lg px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300"
+        class="focus-none flex items-center gap-2 rounded-lg px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300"
         :class="[
           isBackFocused
             ? 'scale-105 bg-slate-800/90 text-white shadow-lg shadow-slate-500/30'
             : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800/80',
         ]"
+        @click="goBack"
       >
         <ph-arrow-left :size="20" />
         Retour
@@ -132,12 +133,13 @@
                 focused: () => (isPlayFocused = true),
                 unfocused: () => (isPlayFocused = false),
               }"
-              class="focuse-none flex items-center gap-2 rounded-lg px-6 py-3 font-semibold transition-all duration-300"
+              class="focus-none flex items-center gap-2 rounded-lg px-6 py-3 font-semibold transition-all duration-300"
               :class="[
                 isPlayFocused
                   ? 'scale-105 bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
                   : 'bg-indigo-500 text-white hover:bg-indigo-600',
               ]"
+              @click="playAnime"
             >
               <ph-play :size="20" />
               Regarder maintenant
@@ -151,12 +153,13 @@
                 focused: () => (isFavoriteFocused = true),
                 unfocused: () => (isFavoriteFocused = false),
               }"
-              class="focuse-none flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300"
+              class="focus-none flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300"
               :class="[
                 isFavoriteFocused
                   ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-indigo-200 shadow-lg'
                   : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-indigo-400 hover:bg-indigo-500/10',
               ]"
+              @click="toggleFavorite"
             >
               <ph-heart :size="20" :weight="isFavorite ? 'fill' : 'regular'" />
               {{ isFavorite ? 'Supprimer des favoris' : 'Ajouter aux favoris' }}
@@ -185,12 +188,13 @@
                   focused: () => setFocusedEpisode(episode.id),
                   unfocused: () => setFocusedEpisode(null),
                 }"
-                class="focuse-none flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300"
+                class="focus-none flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300"
                 :class="[
                   focusedEpisodeId === episode.id
                     ? 'scale-[1.02] border-indigo-400 bg-indigo-500/10 shadow-lg'
                     : 'border-slate-600/40 bg-slate-800/30 hover:border-indigo-400/70 hover:bg-indigo-500/5',
                 ]"
+                @click="() => watchEpisode(episode)"
               >
                 <!-- Miniature de l'épisode -->
                 <div class="h-16 w-28 flex-shrink-0 overflow-hidden rounded">
@@ -274,12 +278,13 @@
                 focused: () => (isTrailerFocused = true),
                 unfocused: () => (isTrailerFocused = false),
               }"
-              class="focuse-none flex w-full items-center justify-center gap-2 rounded-lg border py-3 transition-all duration-300"
+              class="focus-none flex w-full items-center justify-center gap-2 rounded-lg border py-3 transition-all duration-300"
               :class="[
                 isTrailerFocused
                   ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-indigo-200'
                   : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-indigo-400',
               ]"
+              @click="playTrailer"
             >
               <ph-play :size="20" />
               Voir la bande-annonce

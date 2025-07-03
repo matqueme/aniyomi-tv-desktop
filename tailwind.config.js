@@ -11,7 +11,7 @@ export default {
   plugins: [
     function ({ addUtilities }) {
       const newUtilities = {
-        '.focuse-none': {
+        '.focus-none': {
           outline: 'none',
         },
       };
