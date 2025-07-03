@@ -165,8 +165,6 @@ const onClear = () => {
 };
 
 const handleAnimeSelect = (anime: Anime) => {
-  console.log('Anime sélectionné:', anime);
-  // Ici vous pouvez naviguer vers la page de détail de l'anime
-  // router.push(`/anime/${anime.id}`);
+  router.push(`/anime/${anime.id}`);
 };
 </script>

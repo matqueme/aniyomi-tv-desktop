@@ -5,6 +5,7 @@
   >
     <!-- Navigation Header -->
     <NavigationBar
+      v-if="shouldShowNavbar"
       v-model="searchQuery"
       @search="handleSearch"
       @settings="handleSettings"
@@ -23,13 +24,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import NavigationBar from './components/ui/NavigationBar.vue';
 import NavigationDebug from './components/debug/NavigationDebug.vue';
 
+const route = useRoute();
 const isDev = import.meta.env.DEV; // Vérifie si l'application est en mode développement
 
 const searchQuery = ref('');
+
+// Computed pour déterminer si la navbar doit être affichée
+const shouldShowNavbar = computed(() => {
+  // Masquer la navbar sur la page de détail d'anime
+  return route.name !== 'AnimeDetail';
+});
 
 const handleSearch = (query: string) => {
   console.log('Recherche:', query);

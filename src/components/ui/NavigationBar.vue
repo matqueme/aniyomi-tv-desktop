@@ -105,13 +105,21 @@ const navbarConfig = computed(() => ({
   },
 }));
 
+const disableFocus = () => {
+  isNavbarActive.value = false;
+  isSearchFocused.value = false;
+  isSettingsFocused.value = false;
+};
+
 // Fonction pour gérer le clic sur le bouton de recherche
 const onSearchClick = () => {
+  disableFocus();
   router.push('/search');
 };
 
 // Fonction pour gérer le clic sur le bouton de paramètres
 const onSettingsClick = () => {
+  disableFocus();
   emit('settings');
 };
 </script>

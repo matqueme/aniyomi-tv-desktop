@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAnimeStore } from '@/stores/anime';
 import type { Anime } from '@/types/anime';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
@@ -68,6 +69,7 @@ import AnimeList from '@/components/anime/AnimeList.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 const animeStore = useAnimeStore();
+const router = useRouter();
 
 // Références vers les composants AnimeList (maintenues pour compatibilité)
 const trendingListRef = ref<InstanceType<typeof AnimeList>>();
@@ -86,10 +88,8 @@ const actionAnimes = computed(() =>
 
 // Gestion de la sélection d'anime
 const handleAnimeSelect = (anime: Anime) => {
-  console.log('Anime sélectionné:', anime);
   animeStore.setFeaturedAnime(anime);
-  // Navigation vers une page de détail si nécessaire
-  // router.push(`/anime/${anime.id}`);
+  router.push(`/anime/${anime.id}`);
 };
 
 // Lifecycle

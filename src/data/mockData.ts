@@ -1,4 +1,4 @@
-import type { Anime } from '@/types/anime';
+import type { Anime, Episode } from '@/types/anime';
 
 export const mockAnimes: Anime[] = [
   {
@@ -106,5 +106,157 @@ export const mockAnimes: Anime[] = [
     episodeCount: 1,
     duration: '125 min',
     studio: 'Studio Ghibli',
+  },
+];
+
+export const mockEpisodes: Episode[] = [
+  // Attack on Titan episodes
+  {
+    id: 'ep1-1',
+    animeId: '1',
+    number: 1,
+    title: 'À toi, dans 2000 ans',
+    description:
+      "L'humanité vit retranchée derrière d'immenses murailles pour se protéger des Titans. Eren Yeager assiste à la destruction du mur Maria.",
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/aot-ep1.mp4',
+    duration: '24 min',
+    airDate: new Date('2013-04-07'),
+  },
+  {
+    id: 'ep1-2',
+    animeId: '1',
+    number: 2,
+    title: 'Ce jour-là',
+    description:
+      "Eren rejoint l'armée pour venger sa mère et détruire tous les Titans.",
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/aot-ep2.mp4',
+    duration: '24 min',
+    airDate: new Date('2013-04-14'),
+  },
+  {
+    id: 'ep1-3',
+    animeId: '1',
+    number: 3,
+    title: "Une faible lueur d'espoir",
+    description: "L'entraînement militaire commence pour Eren et ses amis.",
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/aot-ep3.mp4',
+    duration: '24 min',
+    airDate: new Date('2013-04-21'),
+  },
+
+  // Demon Slayer episodes
+  {
+    id: 'ep2-1',
+    animeId: '2',
+    number: 1,
+    title: 'Cruauté',
+    description:
+      'Tanjiro découvre sa famille massacrée et sa sœur transformée en démon.',
+    thumbnailUrl:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1IOvRfuM-mALNOC_dD0_6yQ7IXqHXiKxBCA&s',
+    videoUrl: 'https://example.com/episodes/ds-ep1.mp4',
+    duration: '23 min',
+    airDate: new Date('2019-04-06'),
+  },
+  {
+    id: 'ep2-2',
+    animeId: '2',
+    number: 2,
+    title: "L'Instructeur Sakonji Urokodaki",
+    description:
+      "Tanjiro rencontre l'ancien pilier de l'eau qui accepte de l'entraîner.",
+    thumbnailUrl:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1IOvRfuM-mALNOC_dD0_6yQ7IXqHXiKxBCA&s',
+    videoUrl: 'https://example.com/episodes/ds-ep2.mp4',
+    duration: '23 min',
+    airDate: new Date('2019-04-13'),
+  },
+
+  // One Piece episodes
+  {
+    id: 'ep3-1',
+    animeId: '3',
+    number: 1,
+    title: "Je suis Luffy ! L'homme qui deviendra le Roi des Pirates !",
+    description:
+      'Monkey D. Luffy commence son aventure pour devenir le Roi des Pirates.',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/op-ep1.mp4',
+    duration: '24 min',
+    airDate: new Date('1999-10-20'),
+  },
+  {
+    id: 'ep3-2',
+    animeId: '3',
+    number: 2,
+    title: "L'homme au chapeau de paille",
+    description: 'Luffy recrute Zoro comme premier membre de son équipage.',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/op-ep2.mp4',
+    duration: '24 min',
+    airDate: new Date('1999-11-03'),
+  },
+
+  // My Hero Academia episodes
+  {
+    id: 'ep4-1',
+    animeId: '4',
+    number: 1,
+    title: 'Izuku Midoriya : Origine',
+    description:
+      'Izuku Midoriya rêve de devenir un héros malgré son absence de Alter.',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/mha-ep1.mp4',
+    duration: '24 min',
+    airDate: new Date('2016-04-03'),
+  },
+  {
+    id: 'ep4-2',
+    animeId: '4',
+    number: 2,
+    title: "Qu'est-ce qu'il faut pour être un héros",
+    description: 'All Might choisit Izuku comme successeur de son pouvoir.',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/mha-ep2.mp4',
+    duration: '24 min',
+    airDate: new Date('2016-04-10'),
+  },
+
+  // Jujutsu Kaisen episodes
+  {
+    id: 'ep5-1',
+    animeId: '5',
+    number: 1,
+    title: 'Ryomen Sukuna',
+    description:
+      "Yuji Itadori avale un doigt maudit et devient l'hôte du Roi des Fléaux.",
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/jjk-ep1.mp4',
+    duration: '23 min',
+    airDate: new Date('2020-10-03'),
+  },
+  {
+    id: 'ep5-2',
+    animeId: '5',
+    number: 2,
+    title: 'Pour moi',
+    description:
+      "Yuji rejoint l'École d'Exorcisme de Tokyo et rencontre ses nouveaux camarades.",
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300&h=200&fit=crop',
+    videoUrl: 'https://example.com/episodes/jjk-ep2.mp4',
+    duration: '23 min',
+    airDate: new Date('2020-10-10'),
   },
 ];
