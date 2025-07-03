@@ -16,7 +16,7 @@
       <router-view />
     </main>
     <!-- Debug Navigation (seulement en développement) -->
-    <NavigationDebug v-if="isDev" />
+    <NavigationDebug v-if="isDev && false" />
 
     <!-- Footer (optionnel, pour plus tard) -->
     <!-- <AppFooter /> -->

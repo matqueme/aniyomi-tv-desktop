@@ -17,7 +17,7 @@
         ]"
         @click="goBack"
       >
-        <ph-arrow-left :size="20" />
+        <PhArrowLeft :size="20" />
         Retour
       </button>
     </div>
@@ -133,15 +133,30 @@
                 focused: () => (isPlayFocused = true),
                 unfocused: () => (isPlayFocused = false),
               }"
-              class="focus-none flex items-center gap-2 rounded-lg px-6 py-3 font-semibold transition-all duration-300"
+              class="focus-none flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300"
               :class="[
                 isPlayFocused
-                  ? 'scale-105 bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'bg-indigo-500 text-white hover:bg-indigo-600',
+                  ? 'scale-105 border-indigo-400 bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                  : 'border-indigo-500 bg-indigo-500 text-white hover:border-indigo-400 hover:bg-indigo-600',
               ]"
               @click="playAnime"
+              @mouseenter="isPlayHovered = true"
+              @mouseleave="isPlayHovered = false"
             >
-              <ph-play :size="20" />
+              <div class="relative">
+                <PhPlay
+                  :size="20"
+                  weight="regular"
+                  class="transition-opacity duration-500"
+                  :style="{ opacity: isPlayFocused || isPlayHovered ? 0 : 1 }"
+                />
+                <PhPlay
+                  :size="20"
+                  weight="fill"
+                  class="absolute inset-0 transition-opacity duration-500"
+                  :style="{ opacity: isPlayFocused || isPlayHovered ? 1 : 0 }"
+                />
+              </div>
               Regarder maintenant
             </button>
 
@@ -161,7 +176,7 @@
               ]"
               @click="toggleFavorite"
             >
-              <ph-heart :size="20" :weight="isFavorite ? 'fill' : 'regular'" />
+              <PhHeart :size="20" :weight="isFavorite ? 'fill' : 'regular'" />
               {{ isFavorite ? 'Supprimer des favoris' : 'Ajouter aux favoris' }}
             </button>
           </div>
@@ -208,7 +223,7 @@
                     v-else
                     class="flex h-full w-full items-center justify-center bg-slate-700"
                   >
-                    <ph-play :size="24" class="text-slate-400" />
+                    <PhPlay :size="24" class="text-slate-400" />
                   </div>
                 </div>
 
@@ -267,29 +282,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Trailer (si disponible) -->
-          <div v-if="anime?.trailer" class="rounded-lg bg-slate-800/50 p-6">
-            <h3 class="mb-4 text-lg font-semibold text-white">Bande-annonce</h3>
-            <button
-              v-focus
-              v-focus-events="{
-                'enter-up': playTrailer,
-                focused: () => (isTrailerFocused = true),
-                unfocused: () => (isTrailerFocused = false),
-              }"
-              class="focus-none flex w-full items-center justify-center gap-2 rounded-lg border py-3 transition-all duration-300"
-              :class="[
-                isTrailerFocused
-                  ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-indigo-200'
-                  : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-indigo-400',
-              ]"
-              @click="playTrailer"
-            >
-              <ph-play :size="20" />
-              Voir la bande-annonce
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -316,8 +308,8 @@ const focusedEpisodeId = ref<string | null>(null);
 
 // États de focus
 const isPlayFocused = ref(false);
+const isPlayHovered = ref(false);
 const isFavoriteFocused = ref(false);
-const isTrailerFocused = ref(false);
 const isBackFocused = ref(false);
 
 // Références pour la navigation spatiale
@@ -436,13 +428,6 @@ const toggleFavorite = () => {
     animeStore.addToFavorites(anime.value.id);
   }
   isFavorite.value = !isFavorite.value;
-};
-
-const playTrailer = () => {
-  if (anime.value?.trailer) {
-    // TODO: Ouvrir le trailer
-    console.log('Lire la bande-annonce:', anime.value.trailer);
-  }
 };
 
 const setFocusedEpisode = (episodeId: string | null) => {
