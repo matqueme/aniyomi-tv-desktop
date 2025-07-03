@@ -166,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { PhBackspace, PhTrash } from '@phosphor-icons/vue';
 
 // Props
@@ -270,12 +270,9 @@ const onClear = () => {
 };
 
 // Focus automatique sur A au montage
-onMounted(() => {
-  setTimeout(() => {
-    const firstKey = keyButtonRefs.value[0];
-    if (firstKey) {
-      firstKey.focus();
-    }
-  }, 150);
+onMounted(async () => {
+  await nextTick();
+  const firstKey = keyButtonRefs.value[0];
+  if (firstKey) firstKey.focus();
 });
 </script>

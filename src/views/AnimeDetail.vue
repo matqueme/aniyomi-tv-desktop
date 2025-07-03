@@ -292,10 +292,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PhPlay, PhHeart, PhArrowLeft } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
+import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import type { Anime, Episode } from '@/types/anime';
 
 const route = useRoute();
@@ -452,8 +453,12 @@ const formatDate = (date: Date) => {
 };
 
 // Lifecycle
-onMounted(() => {
-  loadAnimeDetails();
+onMounted(async () => {
+  await loadAnimeDetails();
+
+  await nextTick();
+  // Focus automatiquement sur le bouton play
+  SpatialNavigation.focus('actions');
 });
 </script>
 

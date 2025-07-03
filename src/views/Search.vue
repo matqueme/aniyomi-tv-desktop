@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { PhMagnifyingGlass, PhFileX } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
@@ -105,16 +105,8 @@ const searchSectionConfig = ref({
 
 // Configuration de la navigation
 onMounted(async () => {
-  // Si il y a un terme de recherche initial, déclencher la recherche
-  if (initialSearchQuery) {
-    performSearch();
-  }
-
-  // Attendre un peu pour que les composants soient montés, puis focus le clavier
-  setTimeout(() => {
-    // Focus automatiquement sur le clavier virtuel
-    SpatialNavigation.focus('keyboard');
-  }, 200);
+  await nextTick();
+  SpatialNavigation.focus('keyboard');
 });
 
 // Fonction de recherche avec debounce
