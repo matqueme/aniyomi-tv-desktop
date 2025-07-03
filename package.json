@@ -1,7 +1,9 @@
 {
-  "name": "aniyomi-tizen",
+  "name": "aniyomi-tv-desktop",
+  "description": "Aniyomi TV Desktop is a desktop application for Aniyomi, an anime reader app, designed for TV devices.",
+  "author": "matqueme",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
