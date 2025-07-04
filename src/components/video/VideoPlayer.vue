@@ -1,11 +1,9 @@
 <template>
   <div
-    ref="containerRef"
     class="video-player-container relative h-full w-full bg-black"
-    tabindex="0"
-    @keydown="handleKeyDown"
     @mousemove="onMouseMove"
     @click="togglePlayPause"
+    @keydown="handleKeyDown"
   >
     <!-- Bouton de retour en haut à gauche -->
     <VideoBackButton
@@ -15,7 +13,6 @@
       :focused-control="focusedControl"
       @go-back="emit('goBack')"
       @control-focus="onControlFocus"
-      @control-unfocus="onControlUnfocus"
     />
 
     <!-- Lecteur vidéo -->
@@ -59,7 +56,6 @@
       @next-episode="emit('nextEpisode')"
       @seek="seekToTime"
       @control-focus="onControlFocus"
-      @control-unfocus="onControlUnfocus"
     />
 
     <!-- Overlays de chargement et d'erreur -->
@@ -75,6 +71,7 @@ import VideoBackButton from './VideoBackButton.vue';
 import VideoSeekIndicator from './VideoSeekIndicator.vue';
 import VideoControls from './VideoControls.vue';
 import VideoOverlays from './VideoOverlays.vue';
+import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 // Types
 interface VideoPlayerProps {
@@ -114,7 +111,6 @@ const emit = defineEmits<{
 }>();
 
 // Références
-const containerRef = ref<HTMLDivElement>();
 const videoRef = ref<HTMLVideoElement>();
 const videoContainer = ref<HTMLDivElement>();
 
@@ -144,14 +140,11 @@ const togglePlayPause = () => {
 
   if (isPlaying.value) {
     player.value.pause();
+    SpatialNavigation.focus('video-controls');
   } else {
     player.value.play();
+    SpatialNavigation.focus('video-progress-bar');
   }
-};
-
-const toggleMute = () => {
-  if (!player.value) return;
-  player.value.muted(!player.value.muted());
 };
 
 const toggleFullscreen = () => {
@@ -183,11 +176,6 @@ const onControlFocus = (controlName: string) => {
   }
 };
 
-const onControlUnfocus = () => {
-  // On peut garder le focus visuel un moment après avoir quitté
-  // focusedControl.value = '';
-};
-
 // Navigation spatiale améliorée - gestion des touches qui n'interfèrent pas avec la navigation
 const handleKeyDown = (event: KeyboardEvent) => {
   // Gestion des touches spéciales globales qui ne sont pas des flèches directionnelles
@@ -206,11 +194,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
     case 'KeyF':
       event.preventDefault();
       toggleFullscreen();
-      showControls();
-      break;
-    case 'KeyM':
-      event.preventDefault();
-      toggleMute();
       showControls();
       break;
     case 'KeyJ':
