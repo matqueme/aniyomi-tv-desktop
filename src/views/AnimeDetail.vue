@@ -407,16 +407,17 @@ const loadAnimeDetails = async () => {
 };
 
 const playAnime = () => {
-  if (episodes.value.length > 0) {
+  if (episodes.value.length > 0 && anime.value) {
     // Naviguer vers le premier épisode
-    watchEpisode(episodes.value[0]);
+    router.push(`/watch/${anime.value.id}/1`);
   }
 };
 
 const watchEpisode = (episode: Episode) => {
-  // TODO: Naviguer vers la page de lecture de l'épisode
-  console.log("Regarder l'épisode:", episode);
-  // router.push(`/watch/${episode.id}`);
+  if (anime.value) {
+    // Naviguer vers la page de lecture de l'épisode spécifique
+    router.push(`/watch/${anime.value.id}/${episode.number}`);
+  }
 };
 
 const toggleFavorite = () => {

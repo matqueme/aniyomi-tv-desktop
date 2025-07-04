@@ -34,7 +34,7 @@
             focused: () => (isSearchFocused = true),
             unfocused: () => (isSearchFocused = false),
           }"
-          class="focus-none relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out"
+          class="relative flex w-full cursor-pointer items-center rounded-xl border px-4 py-3 transition-all duration-300 ease-in-out focus-none"
           :class="[
             isSearchFocused
               ? 'scale-[1.01] border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/20'
@@ -62,7 +62,7 @@
             focused: () => (isSettingsFocused = true),
             unfocused: () => (isSettingsFocused = false),
           }"
-          class="focus-none flex cursor-pointer items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out hover:text-slate-200"
+          class="flex cursor-pointer items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out focus-none hover:text-slate-200"
           :class="[
             isSettingsFocused
               ? 'scale-[1.01] border-indigo-500 bg-indigo-500/20 text-indigo-200 shadow-lg shadow-indigo-500/20'
@@ -103,7 +103,13 @@ const isSettingsFocused = ref(false);
 const navbarConfig = computed(() => ({
   enterTo: 'default-element', // Permettre l'entrée par défaut dans la navbar
   leaveFor: {
-    down: route.name === 'Search' ? '@header' : '@trending', // Navigation adaptée selon la page
+    down:
+      route.name === 'Search'
+        ? '@header'
+        : route.name === 'VideoWatch'
+          ? '@video-top-controls'
+          : '@trending', // Navigation adaptée selon la page
+    up: route.name === 'VideoWatch' ? '@video-top-controls' : '', // Permettre la navigation vers les contrôles vidéo
   },
 }));
 

@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import HomePage from '@/views/Home.vue';
 import Search from '@/views/Search.vue';
 import AnimeDetail from '@/views/AnimeDetail.vue';
+import VideoWatch from '@/views/VideoWatch.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 const router = createRouter({
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/anime/:id',
       name: 'AnimeDetail',
       component: AnimeDetail,
+    },
+    {
+      path: '/watch/:animeId/:episode',
+      name: 'VideoWatch',
+      component: VideoWatch,
     },
     // À ajouter plus tard :
     // {
