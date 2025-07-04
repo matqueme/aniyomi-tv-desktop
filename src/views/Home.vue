@@ -98,7 +98,7 @@ onMounted(async () => {
   await animeStore.fetchAnimes();
 
   // Focus sur la première section après le chargement
-  nextTick();
+  await nextTick();
   if (animeStore.trendingAnimes.length > 0) SpatialNavigation.focus('trending');
 });
 </script>

@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="videoWatchContainer"
-    v-focus-section:video-watch.default
-    class="video-watch-container min-h-screen bg-black"
-  >
+  <div class="video-watch-container min-h-screen bg-black">
     <!-- Lecteur vidéo en plein écran avec navigation intégrée -->
     <VideoPlayer
       v-if="videoSource"
@@ -59,9 +55,6 @@ const posterImage = ref<string>('');
 const animeInfo = ref<AnimeInfo | null>(null);
 const currentEpisode = ref<number>(1);
 const episodeInfo = ref<EpisodeInfo | null>(null);
-
-// UI State - simplifiées car intégrées dans le VideoPlayer
-const videoWatchContainer = ref<HTMLElement | null>(null);
 
 const hasNextEpisode = computed(() => {
   return !!(
