@@ -72,6 +72,10 @@ import VideoSeekIndicator from './VideoSeekIndicator.vue';
 import VideoControls from './VideoControls.vue';
 import VideoOverlays from './VideoOverlays.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
+import { usePlatform } from '@/composables/usePlatform';
+
+// Détection de plateforme
+const { isTv } = usePlatform();
 
 // Types
 interface VideoPlayerProps {
@@ -148,7 +152,7 @@ const togglePlayPause = () => {
 };
 
 const toggleFullscreen = () => {
-  if (!player.value) return;
+  if (!player.value || isTv.value) return; // Désactiver sur TV
   if (player.value.isFullscreen()) {
     player.value.exitFullscreen();
   } else {
@@ -182,7 +186,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
   switch (event.code) {
     case 'Escape':
       event.preventDefault();
-      if (player.value?.isFullscreen()) {
+      if (!isTv.value && player.value?.isFullscreen()) {
         player.value.exitFullscreen();
       }
       break;
@@ -192,9 +196,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
       showControls();
       break;
     case 'KeyF':
-      event.preventDefault();
-      toggleFullscreen();
-      showControls();
+      // Fullscreen uniquement sur desktop
+      if (!isTv.value) {
+        event.preventDefault();
+        toggleFullscreen();
+        showControls();
+      }
       break;
     case 'KeyJ':
       // Reculer de 10 secondes avec J

@@ -79,6 +79,7 @@
           </div>
 
           <button
+            v-if="!isTv"
             ref="fullscreenRef"
             v-focus
             v-focus-events="{
@@ -109,6 +110,10 @@ import {
   PhCaretRight,
 } from '@phosphor-icons/vue';
 import VideoProgressBar from './VideoProgressBar.vue';
+import { usePlatform } from '@/composables/usePlatform';
+
+// Détection de plateforme
+const { isTv } = usePlatform();
 
 interface Props {
   visible: boolean;
