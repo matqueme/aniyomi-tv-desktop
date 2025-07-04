@@ -37,7 +37,7 @@ const searchQuery = ref('');
 // Computed pour déterminer si la navbar doit être affichée
 const shouldShowNavbar = computed(() => {
   // Masquer la navbar sur la page de détail d'anime
-  return route.name !== 'AnimeDetail';
+  return route.name !== 'AnimeDetail' && route.name !== 'VideoWatch';
 });
 
 const handleSearch = (query: string) => {
