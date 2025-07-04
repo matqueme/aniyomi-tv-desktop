@@ -1,6 +1,6 @@
 <template>
   <div
-    class="video-player-container relative h-full w-full bg-black"
+    class="video-player-container relative flex h-full w-full items-center justify-center bg-black"
     @mousemove="onMouseMove"
     @click="togglePlayPause"
     @keydown="handleKeyDown"
@@ -16,7 +16,7 @@
     />
 
     <!-- Lecteur vidéo -->
-    <div ref="videoContainer" class="video-container h-full w-full">
+    <div ref="videoContainer" class="video-container aspect-video w-full">
       <video
         ref="videoRef"
         class="video-js vjs-theme-forest h-full w-full"
@@ -273,6 +273,7 @@ const showControls = () => {
     if (isPlaying.value) {
       SpatialNavigation.focus('video-progress-bar');
       controlsVisible.value = false;
+      clearTimeout(hideControlsTimeout);
     }
   }, 4000);
 };
@@ -414,7 +415,7 @@ watch(
 <style scoped>
 .video-player-container {
   outline: none;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: #000000;
 }
 
 /* Style Video.js personnalisé */
@@ -437,8 +438,8 @@ watch(
 
 /* Forcer l'alignement en haut pour la vidéo */
 .video-js .vjs-tech {
-  object-fit: cover;
-  object-position: top center;
+  object-fit: contain;
+  object-position: center;
   width: 100% !important;
   height: 100% !important;
   position: absolute;
