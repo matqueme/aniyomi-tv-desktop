@@ -271,6 +271,7 @@ const showControls = () => {
   clearTimeout(hideControlsTimeout);
   hideControlsTimeout = window.setTimeout(() => {
     if (isPlaying.value) {
+      SpatialNavigation.focus('video-progress-bar');
       controlsVisible.value = false;
     }
   }, 4000);
