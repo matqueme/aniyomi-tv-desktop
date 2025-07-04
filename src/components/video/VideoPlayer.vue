@@ -8,31 +8,15 @@
     @click="togglePlayPause"
   >
     <!-- Bouton de retour en haut à gauche -->
-    <div
-      v-if="showCustomControls"
-      v-focus-section:video-top-controls="topControlsConfig"
-      class="absolute left-0 right-0 top-0 z-20"
-    >
-      <button
-        ref="backButtonRef"
-        v-focus
-        v-focus-events="{
-          'enter-up': () => emit('goBack'),
-          focused: () => onControlFocus('back'),
-          unfocused: () => onControlUnfocus(),
-        }"
-        class="absolute left-4 top-4 flex items-center justify-center rounded-lg border border-slate-600/30 bg-slate-800/60 p-3 font-medium text-slate-200 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-red-400/40 hover:bg-slate-700/80 hover:text-white focus:scale-105 focus:border-red-400/80 focus:bg-red-400/70 focus:text-white focus:shadow-[0_0_0_2px_rgba(248,113,113,0.3),0_8px_20px_rgba(248,113,113,0.25)] focus:outline-none"
-        :class="{
-          'opacity-0': !controlsVisible && isPlaying,
-          'opacity-100': controlsVisible || !isPlaying,
-          'scale-105 border-red-400/80 bg-red-400/70 text-white shadow-[0_0_0_2px_rgba(248,113,113,0.3),0_8px_20px_rgba(248,113,113,0.25)]':
-            focusedControl === 'back',
-        }"
-        @click="() => emit('goBack')"
-      >
-        <PhArrowLeft :size="24" />
-      </button>
-    </div>
+    <VideoBackButton
+      :visible="showCustomControls"
+      :controls-visible="controlsVisible"
+      :is-playing="isPlaying"
+      :focused-control="focusedControl"
+      @go-back="emit('goBack')"
+      @control-focus="onControlFocus"
+      @control-unfocus="onControlUnfocus"
+    />
 
     <!-- Lecteur vidéo -->
     <div ref="videoContainer" class="video-container h-full w-full">
@@ -53,222 +37,46 @@
       </video>
     </div>
 
-    <!-- Indicateurs visuels style Netflix -->
-    <div
-      class="pointer-events-none absolute inset-0 flex items-center justify-center"
-    >
-      <!-- Indicateur de seek -->
-      <div
-        v-if="showSeekIndicator"
-        class="seek-indicator flex items-center justify-center rounded-lg bg-black/50 px-4 py-3 backdrop-blur-sm transition-all duration-300 ease-out"
-      >
-        <component
-          :is="seekDirection === 'forward' ? PhFastForward : PhRewind"
-          :size="28"
-          class="text-white/90"
-        />
-        <span class="ml-2 text-base font-medium text-white/90">10s</span>
-      </div>
-    </div>
+    <!-- Indicateur de seek -->
+    <VideoSeekIndicator
+      :visible="showSeekIndicator"
+      :direction="seekDirection"
+    />
 
-    <!-- Contrôles personnalisés modernes style Netflix -->
-    <div
-      v-if="showCustomControls"
-      v-focus-section:video-controls="controlsConfig"
-      class="custom-controls absolute inset-x-0 bottom-0 transition-all duration-500 ease-in-out"
-      :class="{
-        'translate-y-full opacity-0': !controlsVisible,
-        'translate-y-0 opacity-100': controlsVisible,
-      }"
-    >
-      <!-- Gradient backdrop -->
-      <div
-        class="controls-backdrop absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"
-      ></div>
+    <!-- Contrôles personnalisés -->
+    <VideoControls
+      :visible="showCustomControls"
+      :controls-visible="controlsVisible"
+      :is-playing="isPlaying"
+      :current-time="currentTime"
+      :duration="duration"
+      :focused-control="focusedControl"
+      :anime-title="animeTitle"
+      :current-episode="currentEpisode"
+      :has-previous-episode="hasPreviousEpisode"
+      :has-next-episode="hasNextEpisode"
+      @toggle-play-pause="togglePlayPause"
+      @toggle-fullscreen="toggleFullscreen"
+      @next-episode="emit('nextEpisode')"
+      @previous-episode="emit('previousEpisode')"
+      @seek="seekToTime"
+      @control-focus="onControlFocus"
+      @control-unfocus="onControlUnfocus"
+    />
 
-      <!-- Container des contrôles -->
-      <div class="relative z-10 p-6 pb-8">
-        <!-- Barre de progression moderne -->
-        <div class="progress-container mb-6">
-          <!-- Temps et infos -->
-          <div class="mb-3 flex items-center justify-between">
-            <div class="flex items-center space-x-4 text-sm font-medium">
-              <span class="text-white">{{ formatTime(currentTime) }}</span>
-              <span class="text-slate-400">/</span>
-              <span class="text-slate-300">{{ formatTime(duration) }}</span>
-            </div>
-          </div>
-
-          <!-- Barre de progression -->
-          <div
-            ref="progressBarRef"
-            v-focus
-            v-focus-events="{
-              'enter-up': handleProgressClick,
-              focused: () => onControlFocus('progress'),
-              unfocused: () => onControlUnfocus(),
-            }"
-            class="progress-bar group relative h-1.5 cursor-pointer rounded-full bg-slate-600/60 backdrop-blur-sm transition-all duration-200 hover:h-2"
-            :class="{
-              'h-2 ring-2 ring-indigo-400 ring-offset-2 ring-offset-black/50':
-                focusedControl === 'progress',
-              'h-2': focusedControl === 'progress',
-            }"
-            @click="seekToPosition"
-          >
-            <!-- Buffer (optionnel) -->
-            <div
-              class="absolute inset-y-0 left-0 rounded-full bg-slate-500/40"
-              style="width: 85%"
-            ></div>
-
-            <!-- Progress actuel -->
-            <div
-              class="progress-fill relative h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400 shadow-lg transition-all duration-150"
-              :style="{ width: progressPercentage + '%' }"
-            >
-              <!-- Thumb -->
-              <div
-                class="progress-thumb absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 translate-x-1/2 transform rounded-full bg-white shadow-lg transition-all duration-200 group-hover:scale-110"
-                :class="{
-                  'scale-125 shadow-indigo-500/50':
-                    focusedControl === 'progress',
-                }"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Contrôles principaux -->
-        <div class="flex items-center justify-between">
-          <!-- Groupe de gauche: Play/Pause uniquement -->
-          <div class="flex items-center space-x-3">
-            <button
-              ref="playPauseRef"
-              v-focus
-              v-focus-events="{
-                'enter-up': togglePlayPause,
-                focused: () => onControlFocus('playPause'),
-                unfocused: () => onControlUnfocus(),
-              }"
-              class="flex items-center justify-center rounded-lg border border-slate-600/30 bg-slate-800/60 px-4 py-2 font-medium text-slate-200 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-400/50 hover:bg-slate-700/80 hover:text-white focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/80 focus:text-white focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
-              :class="{
-                'scale-105 border-indigo-600 bg-indigo-600/80 text-white shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
-                  focusedControl === 'playPause',
-              }"
-              @click="togglePlayPause"
-            >
-              <component :is="isPlaying ? PhPause : PhPlay" :size="20" />
-            </button>
-          </div>
-
-          <!-- Informations anime/épisode au centre -->
-          <div v-if="animeTitle && currentEpisode" class="text-center">
-            <div class="text-sm font-semibold text-white">
-              {{ animeTitle }} - Épisode {{ currentEpisode }}
-            </div>
-          </div>
-
-          <!-- Groupe de droite: Episodes, Volume et plein écran -->
-          <div class="flex items-center space-x-3">
-            <!-- Navigation épisodes -->
-            <div
-              v-if="hasPreviousEpisode || hasNextEpisode"
-              class="flex items-center space-x-2"
-            >
-              <button
-                v-if="hasNextEpisode"
-                ref="nextEpisodeRef"
-                v-focus
-                v-focus-events="{
-                  'enter-up': () => emit('nextEpisode'),
-                  focused: () => onControlFocus('nextEpisode'),
-                  unfocused: () => onControlUnfocus(),
-                }"
-                class="flex items-center justify-center rounded-lg border border-indigo-600/50 bg-indigo-600/60 px-3 py-2 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-600 hover:bg-indigo-600/80 focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/90 focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
-                :class="{
-                  'scale-105 border-indigo-600 bg-indigo-600/90 shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
-                    focusedControl === 'nextEpisode',
-                }"
-                @click="() => emit('nextEpisode')"
-              >
-                <span class="mr-1 text-xs font-medium">Suivant</span>
-                <PhCaretRight :size="20" />
-              </button>
-            </div>
-
-            <button
-              ref="fullscreenRef"
-              v-focus
-              v-focus-events="{
-                'enter-up': toggleFullscreen,
-                focused: () => onControlFocus('fullscreen'),
-                unfocused: () => onControlUnfocus(),
-              }"
-              class="flex items-center justify-center rounded-lg border border-slate-600/30 bg-slate-800/60 px-4 py-2.5 font-medium text-slate-200 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-400/50 hover:bg-slate-700/80 hover:text-white focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/80 focus:text-white focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
-              :class="{
-                'scale-105 border-indigo-600 bg-indigo-600/80 text-white shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
-                  focusedControl === 'fullscreen',
-              }"
-              @click="toggleFullscreen"
-            >
-              <PhArrowsOut :size="24" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Overlay de chargement moderne -->
-    <div
-      v-if="isLoading"
-      class="loading-overlay absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md"
-    >
-      <LoadingSpinner />
-      <p class="mt-4 text-lg font-medium text-slate-300">
-        Chargement de la vidéo...
-      </p>
-    </div>
-
-    <!-- Overlay d'erreur moderne -->
-    <div
-      v-if="error"
-      class="error-overlay absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md"
-    >
-      <div class="max-w-md text-center">
-        <div class="mb-6 flex justify-center">
-          <div class="rounded-full bg-red-500/20 p-4">
-            <PhWarning :size="48" class="text-red-400" />
-          </div>
-        </div>
-        <h3 class="mb-3 text-2xl font-bold text-white">Erreur de lecture</h3>
-        <p class="mb-6 leading-relaxed text-slate-300">{{ error }}</p>
-        <button
-          class="rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-indigo-700 hover:to-indigo-600 hover:shadow-xl focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900"
-          @click="retry"
-        >
-          Réessayer
-        </button>
-      </div>
-    </div>
+    <!-- Overlays de chargement et d'erreur -->
+    <VideoOverlays :is-loading="isLoading" :error="error" @retry="retry" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import {
-  PhPlay,
-  PhPause,
-  PhRewind,
-  PhFastForward,
-  PhArrowsOut,
-  PhWarning,
-  PhCaretRight,
-  PhArrowLeft,
-} from '@phosphor-icons/vue';
-import LoadingSpinner from '../ui/LoadingSpinner.vue';
+import VideoBackButton from './VideoBackButton.vue';
+import VideoSeekIndicator from './VideoSeekIndicator.vue';
+import VideoControls from './VideoControls.vue';
+import VideoOverlays from './VideoOverlays.vue';
 
 // Types
 interface VideoPlayerProps {
@@ -314,11 +122,6 @@ const emit = defineEmits<{
 const containerRef = ref<HTMLDivElement>();
 const videoRef = ref<HTMLVideoElement>();
 const videoContainer = ref<HTMLDivElement>();
-const progressBarRef = ref<HTMLDivElement>();
-const playPauseRef = ref<HTMLButtonElement>();
-const fullscreenRef = ref<HTMLButtonElement>();
-const backButtonRef = ref<HTMLButtonElement>();
-const nextEpisodeRef = ref<HTMLButtonElement>();
 
 // État du composant
 const player = ref<ReturnType<typeof videojs> | null>(null);
@@ -339,42 +142,6 @@ const seekIndicatorTimeout = ref<number | null>(null);
 
 // Timeout pour masquer les contrôles
 let hideControlsTimeout: number;
-
-// Configuration pour la navigation spatiale
-const controlsConfig = computed(() => ({
-  enterTo: 'default-element',
-  leaveFor: {
-    up: '@video-top-controls',
-    down: '',
-    left: '',
-    right: '',
-  },
-  restrict: 'self-first',
-}));
-
-// Configuration pour les contrôles du haut (bouton croix)
-const topControlsConfig = computed(() => ({
-  enterTo: 'default-element',
-  leaveFor: {
-    up: '@navbar',
-    down: '@video-controls',
-    left: '@navbar',
-    right: '',
-  },
-  restrict: 'self-first',
-}));
-
-// Computed
-const progressPercentage = computed(() => {
-  return duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0;
-});
-
-// Méthodes utilitaires
-const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
 
 // Contrôles vidéo
 const togglePlayPause = () => {
@@ -401,13 +168,9 @@ const toggleFullscreen = () => {
   }
 };
 
-const seekToPosition = (event: MouseEvent) => {
-  if (!player.value || !progressBarRef.value) return;
-
-  const rect = progressBarRef.value.getBoundingClientRect();
-  const percent = (event.clientX - rect.left) / rect.width;
-  const newTime = percent * duration.value;
-  player.value.currentTime(newTime);
+const seekToTime = (time: number) => {
+  if (!player.value) return;
+  player.value.currentTime(time);
 };
 
 const retry = () => {
@@ -428,16 +191,6 @@ const onControlFocus = (controlName: string) => {
 const onControlUnfocus = () => {
   // On peut garder le focus visuel un moment après avoir quitté
   // focusedControl.value = '';
-};
-
-// Gestionnaire spécial pour la barre de progression
-const handleProgressClick = () => {
-  // Avancer de 10% quand on clique sur Entrée sur la barre de progression
-  const newTime = Math.min(
-    duration.value,
-    currentTime.value + duration.value * 0.1
-  );
-  player.value?.currentTime(newTime);
 };
 
 // Navigation spatiale améliorée - gestion des touches qui n'interfèrent pas avec la navigation
@@ -641,11 +394,8 @@ const initializePlayer = async () => {
 
     await nextTick();
 
-    // Focus automatiquement sur le bouton play/pause au démarrage
-    if (playPauseRef.value) {
-      playPauseRef.value.focus();
-      focusedControl.value = 'playPause';
-    }
+    // Le focus sera géré par les sous-composants
+    focusedControl.value = 'playPause';
   } catch (err) {
     console.error("Erreur lors de l'initialisation du lecteur:", err);
     error.value = "Impossible d'initialiser le lecteur vidéo";
@@ -688,173 +438,6 @@ watch(
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
-/* Bouton principal (Play/Pause) */
-.control-button-primary {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-out;
-  background-color: rgba(30, 41, 59, 0.6);
-  color: rgb(226, 232, 240);
-  border: 1px solid rgba(71, 85, 105, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  backdrop-filter: blur(12px);
-}
-
-.control-button-primary:hover {
-  background-color: rgba(51, 65, 85, 0.8);
-  color: rgb(255, 255, 255);
-  border-color: rgba(99, 102, 241, 0.5);
-  transform: scale(1.02);
-}
-
-.control-button-primary.focused {
-  background-color: rgba(99, 102, 241, 0.8);
-  color: rgb(255, 255, 255);
-  border-color: rgb(99, 102, 241);
-  transform: scale(1.05);
-  box-shadow:
-    0 0 0 2px rgb(99, 102, 241),
-    0 8px 20px rgba(99, 102, 241, 0.4);
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-/* Boutons secondaires */
-.control-button-secondary {
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-out;
-  background-color: rgba(30, 41, 59, 0.6);
-  color: rgb(226, 232, 240);
-  border: 1px solid rgba(71, 85, 105, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  backdrop-filter: blur(12px);
-}
-
-/* Boutons d'épisodes */
-.control-button-episode {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-out;
-  background-color: rgba(99, 102, 241, 0.6);
-  color: rgb(255, 255, 255);
-  border: 1px solid rgba(99, 102, 241, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  backdrop-filter: blur(12px);
-}
-
-.control-button-episode:hover {
-  background-color: rgba(99, 102, 241, 0.8);
-  border-color: rgb(99, 102, 241);
-  transform: scale(1.02);
-}
-
-.control-button-episode.focused {
-  background-color: rgba(99, 102, 241, 0.9);
-  border-color: rgb(99, 102, 241);
-  transform: scale(1.05);
-  box-shadow:
-    0 0 0 2px rgb(99, 102, 241),
-    0 8px 20px rgba(99, 102, 241, 0.4);
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-/* Bouton de retour */
-.control-button-back {
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  background-color: rgba(30, 41, 59, 0.6);
-  color: rgb(226, 232, 240);
-  border: 1px solid rgba(71, 85, 105, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(12px);
-  transition: all 0.2s ease-out;
-  font-weight: 500;
-}
-
-.control-button-back:hover {
-  background-color: rgba(51, 65, 85, 0.8);
-  color: rgb(255, 255, 255);
-  border-color: rgba(248, 113, 113, 0.4);
-  transform: scale(1.02);
-}
-
-.control-button-back.focused {
-  background-color: rgba(248, 113, 113, 0.7);
-  color: rgb(255, 255, 255);
-  border-color: rgba(248, 113, 113, 0.8);
-  transform: scale(1.05);
-  box-shadow:
-    0 0 0 2px rgba(248, 113, 113, 0.3),
-    0 8px 20px rgba(248, 113, 113, 0.25);
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-.control-button-secondary:hover {
-  background-color: rgba(51, 65, 85, 0.8);
-  color: rgb(255, 255, 255);
-  border-color: rgba(99, 102, 241, 0.5);
-}
-
-.control-button-secondary.focused {
-  background-color: rgba(99, 102, 241, 0.8);
-  color: rgb(255, 255, 255);
-  border-color: rgb(99, 102, 241);
-  transform: scale(1.05);
-  box-shadow:
-    0 0 0 2px rgb(99, 102, 241),
-    0 8px 20px rgba(99, 102, 241, 0.4);
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-/* Barre de progression */
-.progress-bar {
-  outline: none;
-  transition: height 0.2s ease-out;
-}
-
-.progress-bar:hover .progress-thumb {
-  transform: translateY(-50%) translateX(50%) scale(1.2);
-}
-
-.progress-fill {
-  position: relative;
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-}
-
-.progress-thumb {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 2px 6px rgba(99, 102, 241, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-}
-
-/* Animation des contrôles */
-.custom-controls {
-  transform-origin: bottom;
-}
-
-/* Masquer les contrôles natifs de Video.js */
-.video-js .vjs-control-bar {
-  display: v-bind('props.showCustomControls ? "none" : "flex"');
-}
-
 /* Style Video.js personnalisé */
 .vjs-theme-forest {
   --vjs-theme-forest--primary: #6366f1;
@@ -868,6 +451,11 @@ watch(
   height: 100% !important;
 }
 
+/* Masquer les contrôles natifs de Video.js */
+.video-js .vjs-control-bar {
+  display: v-bind('props.showCustomControls ? "none" : "flex"');
+}
+
 /* Forcer l'alignement en haut pour la vidéo */
 .video-js .vjs-tech {
   object-fit: cover;
@@ -877,94 +465,6 @@ watch(
   position: absolute;
   top: 0;
   left: 0;
-}
-
-/* Amélioration du backdrop blur */
-.custom-controls::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.6) 40%,
-    rgba(0, 0, 0, 0.3) 70%,
-    transparent 100%
-  );
-  backdrop-filter: blur(2px);
-  z-index: -1;
-}
-
-.controls-backdrop {
-  -webkit-mask-image: linear-gradient(to top, black 70%, transparent 100%);
-  mask-image: linear-gradient(to top, black 70%, transparent 100%);
-}
-
-/* Animations d'entrée/sortie */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideOutDown {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-}
-
-.custom-controls {
-  animation: slideInUp 0.3s ease-out;
-}
-
-/* Style pour l'indicateur de seek */
-@keyframes seekFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes seekFadeOut {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-}
-
-.seek-indicator {
-  animation: seekFadeIn 0.2s ease-out;
-}
-
-/* Responsive design pour mobile/TV */
-@media (max-width: 768px) {
-  .control-button-secondary {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-
-  .custom-controls {
-    padding: 1rem;
-    padding-bottom: 1.5rem;
-  }
 }
 
 /* Focus indicators pour la navigation spatiale */
