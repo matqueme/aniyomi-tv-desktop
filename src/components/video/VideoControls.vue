@@ -21,7 +21,6 @@
         :focused-control="focusedControl"
         @seek="(time) => emit('seek', time)"
         @control-focus="(control) => emit('controlFocus', control)"
-        @control-unfocus="emit('controlUnfocus')"
       />
 
       <!-- Contrôles principaux -->
@@ -37,7 +36,6 @@
             v-focus-events="{
               'enter-up': () => emit('togglePlayPause'),
               focused: () => emit('controlFocus', 'playPause'),
-              unfocused: () => emit('controlUnfocus'),
             }"
             class="flex items-center justify-center rounded-lg border border-slate-600/30 bg-slate-800/60 px-4 py-2 font-medium text-slate-200 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-400/50 hover:bg-slate-700/80 hover:text-white focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/80 focus:text-white focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
             :class="{
@@ -67,7 +65,6 @@
               v-focus-events="{
                 'enter-up': () => emit('nextEpisode'),
                 focused: () => emit('controlFocus', 'nextEpisode'),
-                unfocused: () => emit('controlUnfocus'),
               }"
               class="flex items-center justify-center rounded-lg border border-indigo-600/50 bg-indigo-600/60 px-3 py-2 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-600 hover:bg-indigo-600/80 focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/90 focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
               :class="{
@@ -87,7 +84,6 @@
             v-focus-events="{
               'enter-up': () => emit('toggleFullscreen'),
               focused: () => emit('controlFocus', 'fullscreen'),
-              unfocused: () => emit('controlUnfocus'),
             }"
             class="flex items-center justify-center rounded-lg border border-slate-600/30 bg-slate-800/60 px-4 py-2.5 font-medium text-slate-200 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-indigo-400/50 hover:bg-slate-700/80 hover:text-white focus:scale-105 focus:border-indigo-600 focus:bg-indigo-600/80 focus:text-white focus:shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)] focus:outline-none"
             :class="{
@@ -134,7 +130,6 @@ const emit = defineEmits<{
   nextEpisode: [];
   seek: [time: number];
   controlFocus: [control: string];
-  controlUnfocus: [];
 }>();
 
 const playPauseRef = ref<HTMLButtonElement>();

@@ -19,7 +19,6 @@
       v-focus-events="{
         'enter-up': handleProgressClick,
         focused: () => emit('controlFocus', 'progress'),
-        unfocused: () => emit('controlUnfocus'),
       }"
       class="progress-bar group relative h-1.5 cursor-pointer rounded-full bg-slate-600/60 backdrop-blur-sm transition-all duration-200 hover:h-2"
       :class="{
@@ -66,7 +65,6 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   seek: [time: number];
   controlFocus: [control: string];
-  controlUnfocus: [];
 }>();
 
 // Configuration pour la navigation spatiale
