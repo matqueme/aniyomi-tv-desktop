@@ -53,12 +53,10 @@
       :focused-control="focusedControl"
       :anime-title="animeTitle"
       :current-episode="currentEpisode"
-      :has-previous-episode="hasPreviousEpisode"
       :has-next-episode="hasNextEpisode"
       @toggle-play-pause="togglePlayPause"
       @toggle-fullscreen="toggleFullscreen"
       @next-episode="emit('nextEpisode')"
-      @previous-episode="emit('previousEpisode')"
       @seek="seekToTime"
       @control-focus="onControlFocus"
       @control-unfocus="onControlUnfocus"
@@ -86,7 +84,6 @@ interface VideoPlayerProps {
   autoplay?: boolean;
   showCustomControls?: boolean;
   // Nouveaux props pour la navigation d'épisodes
-  hasPreviousEpisode?: boolean;
   hasNextEpisode?: boolean;
   currentEpisode?: number;
   animeTitle?: string;
@@ -98,7 +95,6 @@ const props = withDefaults(defineProps<VideoPlayerProps>(), {
   poster: '',
   autoplay: false,
   showCustomControls: true,
-  hasPreviousEpisode: false,
   hasNextEpisode: false,
   currentEpisode: 1,
   animeTitle: '',
@@ -113,7 +109,6 @@ const emit = defineEmits<{
   error: [error: string];
   timeupdate: [currentTime: number];
   // Nouveaux événements pour la navigation
-  previousEpisode: [];
   nextEpisode: [];
   goBack: [];
 }>();

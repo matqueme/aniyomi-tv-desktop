@@ -1,5 +1,9 @@
 <template>
-  <div class="video-watch-container min-h-screen bg-black">
+  <div
+    ref="videoWatchContainer"
+    v-focus-section:video-watch.default
+    class="video-watch-container min-h-screen bg-black"
+  >
     <!-- Lecteur vidéo en plein écran avec navigation intégrée -->
     <VideoPlayer
       v-if="videoSource"
@@ -8,13 +12,11 @@
       :poster="posterImage"
       :autoplay="true"
       :show-custom-controls="true"
-      :has-previous-episode="hasPreviousEpisode"
       :has-next-episode="hasNextEpisode"
       :current-episode="currentEpisode"
       :anime-title="animeInfo?.title"
       @ended="onEnded"
       @error="onError"
-      @previous-episode="goToPreviousEpisode"
       @next-episode="goToNextEpisode"
       @go-back="goBack"
     />
@@ -22,11 +24,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VideoPlayer from '../components/video/VideoPlayer.vue';
 import { getVideoSource } from '@/data/mockVideoData';
 import { mockAnimes } from '@/data/mockData';
+import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 // Types
 interface AnimeInfo {
@@ -58,14 +61,7 @@ const currentEpisode = ref<number>(1);
 const episodeInfo = ref<EpisodeInfo | null>(null);
 
 // UI State - simplifiées car intégrées dans le VideoPlayer
-const focusedNav = ref<string>('');
-
-// Navigation - plus besoin de timeout car géré par le VideoPlayer
-
-// Computed
-const hasPreviousEpisode = computed(() => {
-  return !!(animeInfo.value && currentEpisode.value > 1);
-});
+const videoWatchContainer = ref<HTMLElement | null>(null);
 
 const hasNextEpisode = computed(() => {
   return !!(
@@ -123,19 +119,6 @@ const loadAnimeData = () => {
   }
 };
 
-const goToPreviousEpisode = () => {
-  if (hasPreviousEpisode.value) {
-    const newEpisode = currentEpisode.value - 1;
-    router.push({
-      name: 'VideoWatch',
-      params: {
-        animeId: animeInfo.value?.id,
-        episode: newEpisode.toString(),
-      },
-    });
-  }
-};
-
 const goToNextEpisode = () => {
   if (hasNextEpisode.value) {
     const newEpisode = currentEpisode.value + 1;
@@ -167,21 +150,13 @@ const onError = (error: string) => {
 };
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   loadAnimeData();
 
-  // Focus initial sur la navigation si disponible
-  if (hasNextEpisode.value) {
-    focusedNav.value = 'next';
-  } else if (hasPreviousEpisode.value) {
-    focusedNav.value = 'prev';
-  } else {
-    focusedNav.value = 'back';
-  }
-});
+  await nextTick();
 
-onUnmounted(() => {
-  // Plus besoin de nettoyer hideInfoTimeout car supprimé
+  // Forcer le focus spatial sur la section au montage
+  SpatialNavigation.focus('video-controls');
 });
 
 // Watchers pour les changements de route

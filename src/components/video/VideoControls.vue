@@ -60,12 +60,8 @@
         <!-- Groupe de droite: Episodes, Volume et plein écran -->
         <div class="flex items-center space-x-3">
           <!-- Navigation épisodes -->
-          <div
-            v-if="hasPreviousEpisode || hasNextEpisode"
-            class="flex items-center space-x-2"
-          >
+          <div v-if="hasNextEpisode" class="flex items-center space-x-2">
             <button
-              v-if="hasNextEpisode"
               ref="nextEpisodeRef"
               v-focus
               v-focus-events="{
@@ -127,7 +123,6 @@ interface Props {
   focusedControl: string;
   animeTitle?: string;
   currentEpisode?: number;
-  hasPreviousEpisode?: boolean;
   hasNextEpisode?: boolean;
 }
 
@@ -137,7 +132,6 @@ const emit = defineEmits<{
   togglePlayPause: [];
   toggleFullscreen: [];
   nextEpisode: [];
-  previousEpisode: [];
   seek: [time: number];
   controlFocus: [control: string];
   controlUnfocus: [];
