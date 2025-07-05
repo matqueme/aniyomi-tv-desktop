@@ -476,15 +476,26 @@ watch(
   display: v-bind('props.showCustomControls ? "none" : "flex"');
 }
 
-/* Forcer l'alignement en haut pour la vidéo */
+/* Pour les petits écrans - conteneur vidéo */
+.video-container {
+  width: 100vw !important;
+  max-width: 100vw;
+  height: auto !important;
+  max-height: 100vh;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pour les petits écrans - style de la vidéo */
 .video-js .vjs-tech {
   object-fit: contain;
-  object-position: center;
   width: 100% !important;
   height: 100% !important;
-  position: absolute;
-  top: 0;
-  left: 0;
+  max-width: 100vw;
+  max-height: 100vh;
+  position: static;
 }
 
 /* Focus indicators pour la navigation spatiale */
