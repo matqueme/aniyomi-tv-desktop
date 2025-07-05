@@ -17,7 +17,7 @@
       ref="progressBarRef"
       v-focus
       v-focus-events="{
-        'enter-up': handleProgressClick,
+        'enter-up': () => emit('togglePlayPause'),
         focused: () => emit('controlFocus', 'progress'),
       }"
       class="progress-bar group relative h-1.5 cursor-pointer rounded-full bg-slate-600/60 backdrop-blur-sm transition-all duration-200 hover:h-2"
@@ -65,6 +65,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   seek: [time: number];
   controlFocus: [control: string];
+  togglePlayPause: [];
 }>();
 
 // Configuration pour la navigation spatiale
@@ -96,15 +97,6 @@ const seekToPosition = (event: MouseEvent) => {
   const rect = progressBarRef.value.getBoundingClientRect();
   const percent = (event.clientX - rect.left) / rect.width;
   const newTime = percent * props.duration;
-  emit('seek', newTime);
-};
-
-const handleProgressClick = () => {
-  // Avancer de 10% quand on clique sur Entrée sur la barre de progression
-  const newTime = Math.min(
-    props.duration,
-    props.currentTime + props.duration * 0.1
-  );
   emit('seek', newTime);
 };
 

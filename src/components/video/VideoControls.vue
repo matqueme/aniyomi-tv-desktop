@@ -42,7 +42,7 @@
               'scale-105 border-indigo-600 bg-indigo-600/80 text-white shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
                 focusedControl === 'playPause',
             }"
-            @click="() => emit('togglePlayPause')"
+            @click="onPlayPauseClick"
           >
             <component :is="isPlaying ? PhPause : PhPlay" :size="20" />
           </button>
@@ -71,7 +71,7 @@
                 'scale-105 border-indigo-600 bg-indigo-600/90 shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
                   focusedControl === 'nextEpisode',
               }"
-              @click="() => emit('nextEpisode')"
+              @click="onNextEpisodeClick"
             >
               <span class="mr-1 text-xs font-medium">Suivant</span>
               <PhCaretRight :size="20" />
@@ -91,7 +91,7 @@
               'scale-105 border-indigo-600 bg-indigo-600/80 text-white shadow-[0_0_0_2px_rgb(99,102,241),0_8px_20px_rgba(99,102,241,0.4)]':
                 focusedControl === 'fullscreen',
             }"
-            @click="() => emit('toggleFullscreen')"
+            @click="onFullscreenClick"
           >
             <PhArrowsOut :size="20" />
           </button>
@@ -150,6 +150,16 @@ const controlsButtonsConfig = computed(() => ({
     right: '',
   },
 }));
+
+function onPlayPauseClick(event: MouseEvent) {
+  if (event.detail !== 0) emit('togglePlayPause');
+}
+function onNextEpisodeClick(event: MouseEvent) {
+  if (event.detail !== 0) emit('nextEpisode');
+}
+function onFullscreenClick(event: MouseEvent) {
+  if (event.detail !== 0) emit('toggleFullscreen');
+}
 
 defineExpose({
   playPauseRef,

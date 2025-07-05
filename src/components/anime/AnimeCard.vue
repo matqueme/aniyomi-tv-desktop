@@ -14,7 +14,7 @@
     :data-focused="isFocused"
     tabindex="0"
     @click="handleClick"
-    @keydown="handleKeyDown"
+    @keyup="handlekeydup"
     @focus="handleFocus"
     @blur="handleBlur"
   >
@@ -114,7 +114,7 @@ const handleBlur = () => {
   emit('blur');
 };
 
-const handleKeyDown = (event: KeyboardEvent) => {
+const handlekeydup = (event: KeyboardEvent) => {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     emit('select', props.anime);

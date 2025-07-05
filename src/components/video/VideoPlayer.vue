@@ -2,8 +2,8 @@
   <div
     class="video-player-container relative flex h-full w-full items-center justify-center bg-black"
     @mousemove="onMouseMove"
-    @click="togglePlayPause"
-    @keydown="handleKeyDown"
+    @click="clickTogglePlayPause"
+    @keyup="handleKeyUp"
   >
     <!-- Bouton de retour en haut à gauche -->
     <VideoBackButton
@@ -151,6 +151,16 @@ const togglePlayPause = () => {
   }
 };
 
+/**
+ * Gestion du clic pour basculer play/pause
+ * Permet de ne pas interférer avec la navigation spatiale
+ * @param {MouseEvent} event - L'événement de clic
+ * @returns {void}
+ **/
+const clickTogglePlayPause = (event: MouseEvent) => {
+  if (event.detail !== 0) togglePlayPause();
+};
+
 const toggleFullscreen = () => {
   if (!player.value || isTv.value) return; // Désactiver sur TV
   if (player.value.isFullscreen()) {
@@ -181,7 +191,11 @@ const onControlFocus = (controlName: string) => {
 };
 
 // Navigation spatiale améliorée - gestion des touches qui n'interfèrent pas avec la navigation
-const handleKeyDown = (event: KeyboardEvent) => {
+const handleKeyUp = (event: KeyboardEvent) => {
+  // Empêcher le handler global si le focus est sur un bouton de contrôle vidéo
+  const active = document.activeElement;
+  if (active && active.tagName === 'BUTTON' && event.code === 'Enter') return;
+
   // Gestion des touches spéciales globales qui ne sont pas des flèches directionnelles
   switch (event.code) {
     case 'Escape':
@@ -190,6 +204,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
         player.value.exitFullscreen();
       }
       break;
+    case 'Enter':
     case 'Space':
       event.preventDefault();
       togglePlayPause();
@@ -252,6 +267,24 @@ const handleKeyDown = (event: KeyboardEvent) => {
       // Navigation par pourcentage (0-9 = 0%-90%)
       event.preventDefault();
       const digit = parseInt(event.code.replace('Digit', ''));
+      const targetTime = (digit / 10) * duration.value;
+      player.value?.currentTime(targetTime);
+      showControls();
+      break;
+    }
+    case 'Numpad0':
+    case 'Numpad1':
+    case 'Numpad2':
+    case 'Numpad3':
+    case 'Numpad4':
+    case 'Numpad5':
+    case 'Numpad6':
+    case 'Numpad7':
+    case 'Numpad8':
+    case 'Numpad9': {
+      // Navigation par pourcentage (Numpad0-9 = 0%-90%)
+      event.preventDefault();
+      const digit = parseInt(event.code.replace('Numpad', ''));
       const targetTime = (digit / 10) * duration.value;
       player.value?.currentTime(targetTime);
       showControls();

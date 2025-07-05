@@ -186,7 +186,7 @@ const updateNavigationData = () => {
 };
 
 // Gestionnaire d'événements pour les touches
-const handleKeyDown = (event: KeyboardEvent) => {
+const handleKeyUp = (event: KeyboardEvent) => {
   const keyName = getKeyName(event);
   lastKeyPressed.value = keyName;
 
@@ -238,7 +238,7 @@ onMounted(() => {
   updateNavigationData();
 
   // Écoute des événements
-  document.addEventListener('keydown', handleKeyDown);
+  document.addEventListener('keyup', handleKeyUp);
   document.addEventListener('focusin', handleFocusChange);
   document.addEventListener('focusout', handleFocusChange);
 
@@ -265,7 +265,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown);
+  document.removeEventListener('keyup', handleKeyUp);
   document.removeEventListener('focusin', handleFocusChange);
   document.removeEventListener('focusout', handleFocusChange);
 

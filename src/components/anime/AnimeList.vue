@@ -15,7 +15,7 @@
       :keyboard="false"
       class="anime-swiper-element"
       tabindex="0"
-      @keydown="handleSwiperKeydown"
+      @keyup="handleSwiperkeydup"
       @focus="handleSwiperFocus"
       @blur="handleSwiperBlur"
     >
@@ -89,7 +89,7 @@ const handleUnfocus = (index: number) => {
   }
 };
 
-const handleSwiperKeydown = (event: KeyboardEvent) => {
+const handleSwiperkeydup = (event: KeyboardEvent) => {
   // Gérer la navigation uniquement pour ce swiper s'il a le focus
   if (document.activeElement !== swiperRef.value) return;
 
