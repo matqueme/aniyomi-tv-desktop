@@ -126,7 +126,14 @@ const goToNextEpisode = () => {
 };
 
 const goBack = () => {
-  router.back();
+  if (animeInfo.value?.id) {
+    router.push({
+      name: 'AnimeDetail',
+      params: { id: animeInfo.value.id },
+    });
+  } else {
+    router.push({ name: 'Home' }); // fallback si pas d'id
+  }
 };
 
 const onEnded = () => {

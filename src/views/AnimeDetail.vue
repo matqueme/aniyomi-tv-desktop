@@ -9,7 +9,7 @@
           focused: () => (isBackFocused = true),
           unfocused: () => (isBackFocused = false),
         }"
-        class="focus-none flex items-center gap-2 rounded-lg px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300"
+        class="flex items-center gap-2 rounded-lg px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300 focus-none"
         :class="[
           isBackFocused
             ? 'scale-105 bg-slate-800/90 text-white shadow-lg shadow-slate-500/30'
@@ -133,7 +133,7 @@
                 focused: () => (isPlayFocused = true),
                 unfocused: () => (isPlayFocused = false),
               }"
-              class="focus-none flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300"
+              class="flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300 focus-none"
               :class="[
                 isPlayFocused
                   ? 'scale-105 border-indigo-400 bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
@@ -168,7 +168,7 @@
                 focused: () => (isFavoriteFocused = true),
                 unfocused: () => (isFavoriteFocused = false),
               }"
-              class="focus-none flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300"
+              class="flex items-center gap-2 rounded-lg border px-6 py-3 font-semibold transition-all duration-300 focus-none"
               :class="[
                 isFavoriteFocused
                   ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-indigo-200 shadow-lg'
@@ -203,7 +203,7 @@
                   focused: () => setFocusedEpisode(episode.id),
                   unfocused: () => setFocusedEpisode(null),
                 }"
-                class="focus-none flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300"
+                class="flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300 focus-none"
                 :class="[
                   focusedEpisodeId === episode.id
                     ? 'scale-[1.02] border-indigo-400 bg-indigo-500/10 shadow-lg'
@@ -377,7 +377,9 @@ const statusClass = computed(() => {
 
 // Fonctions
 const goBack = () => {
-  router.go(-1); // Retour à la page précédente
+  router.push({
+    name: 'Home',
+  });
 };
 
 const loadAnimeDetails = async () => {

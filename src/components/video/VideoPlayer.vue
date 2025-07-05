@@ -2,7 +2,6 @@
   <div
     class="video-player-container relative flex h-full w-full items-center justify-center bg-black"
     @mousemove="onMouseMove"
-    @click="clickTogglePlayPause"
     @keyup="handleKeyUp"
   >
     <!-- Bouton de retour en haut à gauche -->
@@ -16,7 +15,11 @@
     />
 
     <!-- Lecteur vidéo -->
-    <div ref="videoContainer" class="video-container aspect-video w-full">
+    <div
+      ref="videoContainer"
+      class="video-container aspect-video w-full"
+      @click="clickTogglePlayPause"
+    >
       <video
         ref="videoRef"
         class="video-js vjs-theme-forest h-full w-full"
