@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full bg-transparent pt-16">
+  <div class="min-h-screen w-full bg-transparent pt-16" @keyup="handleKeyUp">
     <!-- Simple Loading State - Overlay sur tout -->
     <LoadingSpinner v-if="animeStore.loading" title="Chargement des anime..." />
 
@@ -67,6 +67,7 @@ import type { Anime } from '@/types/anime';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
+import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
 
 const animeStore = useAnimeStore();
 const router = useRouter();
@@ -90,6 +91,18 @@ const actionAnimes = computed(() =>
 const handleAnimeSelect = (anime: Anime) => {
   animeStore.setFeaturedAnime(anime);
   router.push(`/anime/${anime.id}`);
+};
+
+// Gestion du bouton retour de la télécommande
+const handleKeyUp = (event: KeyboardEvent) => {
+  const keyData = normalizeKeyboardEvent(event);
+
+  if (isBackKey(keyData.code, keyData.keyCode)) {
+    event.preventDefault();
+    // Sur la page d'accueil, on ne fait rien ou on peut sortir de l'app si souhaité
+    // Pour l'instant, on ne fait rien car c'est la page racine
+    return;
+  }
 };
 
 // Lifecycle

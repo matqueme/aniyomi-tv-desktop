@@ -1,5 +1,5 @@
 <template>
-  <div class="anime-detail min-h-screen bg-slate-900">
+  <div class="anime-detail min-h-screen bg-slate-900" @keyup="handleKeyUp">
     <!-- Bouton retour -->
     <div v-focus-section:back="backConfig" class="fixed left-4 top-4 z-50">
       <button
@@ -295,6 +295,7 @@ import { PhPlay, PhHeart, PhArrowLeft } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import type { Anime, Episode } from '@/types/anime';
+import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
 
 const route = useRoute();
 const router = useRouter();
@@ -443,6 +444,16 @@ const formatDate = (date: Date) => {
     month: 'long',
     day: 'numeric',
   }).format(new Date(date));
+};
+
+// Gestion du bouton retour de la télécommande
+const handleKeyUp = (event: KeyboardEvent) => {
+  const keyData = normalizeKeyboardEvent(event);
+
+  if (isBackKey(keyData.code, keyData.keyCode)) {
+    event.preventDefault();
+    goBack();
+  }
 };
 
 // Lifecycle

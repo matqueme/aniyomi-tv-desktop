@@ -2,6 +2,7 @@
   <div
     v-focus-section:search.default="searchSectionConfig"
     class="min-h-screen w-full bg-transparent pt-16"
+    @keyup="handleKeyUp"
   >
     <!-- Header avec bouton retour et texte de recherche -->
     <div class="px-6 pb-6 pt-6">
@@ -79,6 +80,7 @@ import VirtualKeyboard from '@/components/search/VirtualKeyboard.vue';
 import SearchHeader from '@/components/search/SearchHeader.vue';
 import SearchResultsGrid from '@/components/search/SearchResultsGrid.vue';
 import type { Anime } from '@/types/anime';
+import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
 
 // Options du composant pour éviter l'erreur ESLint
 defineOptions({
@@ -158,5 +160,15 @@ const onClear = () => {
 
 const handleAnimeSelect = (anime: Anime) => {
   router.push(`/anime/${anime.id}`);
+};
+
+// Gestion du bouton retour de la télécommande
+const handleKeyUp = (event: KeyboardEvent) => {
+  const keyData = normalizeKeyboardEvent(event);
+
+  if (isBackKey(keyData.code, keyData.keyCode)) {
+    event.preventDefault();
+    router.push({ name: 'Home' });
+  }
 };
 </script>
