@@ -276,10 +276,6 @@
                 <span class="text-slate-400">Épisodes:</span>
                 <span class="text-slate-200">{{ anime?.episodeCount }}</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Durée:</span>
-                <span class="text-slate-200">{{ anime?.duration }}</span>
-              </div>
             </div>
           </div>
         </div>
