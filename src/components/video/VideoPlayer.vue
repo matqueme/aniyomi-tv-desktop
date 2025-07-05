@@ -195,6 +195,11 @@ const onControlFocus = (controlName: string) => {
 
 // Navigation spatiale améliorée - gestion des touches qui n'interfèrent pas avec la navigation
 const handleKeyUp = (event: KeyboardEvent) => {
+  // Si les contrôles sont cachés, n'importe quelle touche les réveille et on ne fait rien d'autre
+  if (!controlsVisible.value) {
+    showControls();
+    return;
+  }
   // Empêcher le handler global si le focus est sur un bouton de contrôle vidéo
   const active = document.activeElement;
   if (active && active.tagName === 'BUTTON' && event.code === 'Enter') return;
