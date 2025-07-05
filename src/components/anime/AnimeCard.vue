@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import type { Anime } from '@/types/anime';
+import { normalizeKeyboardEvent } from '@/utils/keyboardUtils';
 
 interface Props {
   anime: Anime;
@@ -115,7 +116,10 @@ const handleBlur = () => {
 };
 
 const handlekeydup = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' || event.key === ' ') {
+  // Normaliser l'événement clavier pour la compatibilité TV
+  const keyData = normalizeKeyboardEvent(event);
+  
+  if (keyData.isEnterKey || keyData.isSpaceKey) {
     event.preventDefault();
     emit('select', props.anime);
   }

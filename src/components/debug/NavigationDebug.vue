@@ -78,6 +78,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { normalizeKeyboardEvent, getKeyDisplayName } from '@/utils/keyboardUtils';
 
 // Types pour les données de navigation
 interface FocusableElement {
@@ -187,7 +188,10 @@ const updateNavigationData = () => {
 
 // Gestionnaire d'événements pour les touches
 const handleKeyUp = (event: KeyboardEvent) => {
-  const keyName = getKeyName(event);
+  // Normaliser l'événement clavier pour la compatibilité TV
+  const keyData = normalizeKeyboardEvent(event);
+  const keyName = getKeyDisplayName(keyData.code, keyData.keyCode);
+  
   lastKeyPressed.value = keyName;
 
   // Mettre à jour les données de navigation après un délai pour permettre à la navigation de se faire
@@ -206,28 +210,6 @@ const handleKeyUp = (event: KeyboardEvent) => {
 // Gestionnaire d'événements pour les changements de focus
 const handleFocusChange = () => {
   updateNavigationData();
-};
-
-// Convertir les codes de touches en noms lisibles
-const getKeyName = (event: KeyboardEvent): string => {
-  switch (event.keyCode) {
-    case 37:
-      return '⬅️ LEFT';
-    case 38:
-      return '⬆️ UP';
-    case 39:
-      return '➡️ RIGHT';
-    case 40:
-      return '⬇️ DOWN';
-    case 13:
-      return '⏎ ENTER';
-    case 27:
-      return '⎋ ESC';
-    case 10009:
-      return '🔙 BACK (Tizen)';
-    default:
-      return `${event.key || event.keyCode}`;
-  }
 };
 
 // Observateur pour détecter les changements dans le DOM

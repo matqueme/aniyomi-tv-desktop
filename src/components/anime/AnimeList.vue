@@ -44,6 +44,7 @@
 import { ref, onMounted } from 'vue';
 import type { Anime } from '@/types/anime';
 import AnimeCard from '@/components/anime/AnimeCard.vue';
+import { normalizeKeyboardEvent } from '@/utils/keyboardUtils';
 
 interface Props {
   animes: Anime[];
@@ -93,22 +94,20 @@ const handleSwiperkeydup = (event: KeyboardEvent) => {
   // Gérer la navigation uniquement pour ce swiper s'il a le focus
   if (document.activeElement !== swiperRef.value) return;
 
-  switch (event.key) {
-    case 'ArrowLeft':
-      event.preventDefault();
-      navigateToPreviousSlide();
-      break;
-    case 'ArrowRight':
-      event.preventDefault();
-      navigateToNextSlide();
-      break;
-    case 'Enter':
-    case ' ':
-      event.preventDefault();
-      if (currentSlideIndex.value < props.animes.length) {
-        emit('select', props.animes[currentSlideIndex.value]);
-      }
-      break;
+  // Normaliser l'événement clavier pour la compatibilité TV
+  const keyData = normalizeKeyboardEvent(event);
+
+  if (keyData.code === 'ArrowLeft' || keyData.keyCode === 37) {
+    event.preventDefault();
+    navigateToPreviousSlide();
+  } else if (keyData.code === 'ArrowRight' || keyData.keyCode === 39) {
+    event.preventDefault();
+    navigateToNextSlide();
+  } else if (keyData.isEnterKey || keyData.isSpaceKey) {
+    event.preventDefault();
+    if (currentSlideIndex.value < props.animes.length) {
+      emit('select', props.animes[currentSlideIndex.value]);
+    }
   }
 };
 

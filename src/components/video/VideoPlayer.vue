@@ -76,6 +76,11 @@ import VideoControls from './VideoControls.vue';
 import VideoOverlays from './VideoOverlays.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import { usePlatform } from '@/composables/usePlatform';
+import { 
+  normalizeKeyboardEvent, 
+  isBackKey, 
+  getDigitFromKey 
+} from '@/utils/keyboardUtils';
 
 // Détection de plateforme
 const { isTv } = usePlatform();
@@ -195,108 +200,81 @@ const onControlFocus = (controlName: string) => {
 
 // Navigation spatiale améliorée - gestion des touches qui n'interfèrent pas avec la navigation
 const handleKeyUp = (event: KeyboardEvent) => {
+  // Normaliser l'événement clavier pour la compatibilité TV
+  const keyData = normalizeKeyboardEvent(event);
+
   // Si les contrôles sont cachés, n'importe quelle touche les réveille et on ne fait rien d'autre
   if (!controlsVisible.value) {
     showControls();
     return;
   }
+
   // Empêcher le handler global si le focus est sur un bouton de contrôle vidéo
   const active = document.activeElement;
-  if (active && active.tagName === 'BUTTON' && event.code === 'Enter') return;
+  if (active && active.tagName === 'BUTTON' && keyData.isEnterKey) return;
 
   // Gestion des touches spéciales globales qui ne sont pas des flèches directionnelles
-  switch (event.code) {
-    case 'Escape':
-      event.preventDefault();
-      if (!isTv.value && player.value?.isFullscreen()) {
-        player.value.exitFullscreen();
-      }
-      break;
-    case 'Enter':
-    case 'Space':
-      event.preventDefault();
-      togglePlayPause();
-      showControls();
-      break;
-    case 'KeyF':
-      // Fullscreen uniquement sur desktop
-      if (!isTv.value) {
-        event.preventDefault();
-        toggleFullscreen();
-        showControls();
-      }
-      break;
-    case 'KeyJ':
-      // Reculer de 10 secondes avec J
-      event.preventDefault();
-      if (player.value) {
-        const newTime = Math.max(0, currentTime.value - 10);
-        player.value.currentTime(newTime);
-        showSeekFeedback('backward');
-        showControls();
-      }
-      break;
-    case 'KeyL':
-      // Avancer de 10 secondes avec L
-      event.preventDefault();
-      if (player.value) {
-        const newTime = Math.min(duration.value, currentTime.value + 10);
-        player.value.currentTime(newTime);
-        showSeekFeedback('forward');
-        showControls();
-      }
-      break;
-    case 'ArrowLeft':
-    case 'ArrowRight':
-      // Seulement si on est focalisé sur la barre de progression
-      if (focusedControl.value === 'progress') {
-        event.preventDefault();
-        const direction = event.code === 'ArrowRight' ? 1 : -1;
-        const newTime = Math.max(
-          0,
-          Math.min(duration.value, currentTime.value + direction * 10)
-        );
-        player.value?.currentTime(newTime);
-        showSeekFeedback(direction > 0 ? 'forward' : 'backward');
-        showControls();
-      }
-      // Sinon, ne pas empêcher l'événement pour laisser la navigation spatiale fonctionner
-      break;
-    case 'Digit0':
-    case 'Digit1':
-    case 'Digit2':
-    case 'Digit3':
-    case 'Digit4':
-    case 'Digit5':
-    case 'Digit6':
-    case 'Digit7':
-    case 'Digit8':
-    case 'Digit9': {
-      // Navigation par pourcentage (0-9 = 0%-90%)
-      event.preventDefault();
-      const digit = parseInt(event.code.replace('Digit', ''));
-      const targetTime = (digit / 10) * duration.value;
-      player.value?.currentTime(targetTime);
-      showControls();
-      break;
+  if (keyData.isEscapeKey) {
+    event.preventDefault();
+    if (!isTv.value && player.value?.isFullscreen()) {
+      player.value.exitFullscreen();
     }
-    case 'Numpad0':
-    case 'Numpad1':
-    case 'Numpad2':
-    case 'Numpad3':
-    case 'Numpad4':
-    case 'Numpad5':
-    case 'Numpad6':
-    case 'Numpad7':
-    case 'Numpad8':
-    case 'Numpad9': {
-      // Navigation par pourcentage (Numpad0-9 = 0%-90%)
+  } else if (isBackKey(keyData.code, keyData.keyCode)) {
+    // Ajout pour la touche retour télécommande
+    event.preventDefault();
+    emit('goBack');
+  } else if (keyData.isEnterKey || keyData.isSpaceKey) {
+    event.preventDefault();
+    togglePlayPause();
+    showControls();
+  } else if (keyData.code === 'KeyF' || (keyData.keyCode === 70 && !keyData.code)) {
+    // Fullscreen uniquement sur desktop
+    if (!isTv.value) {
       event.preventDefault();
-      const digit = parseInt(event.code.replace('Numpad', ''));
+      toggleFullscreen();
+      showControls();
+    }
+  } else if (keyData.code === 'KeyJ' || (keyData.keyCode === 74 && !keyData.code)) {
+    // Reculer de 10 secondes avec J
+    event.preventDefault();
+    if (player.value) {
+      const newTime = Math.max(0, currentTime.value - 10);
+      player.value.currentTime(newTime);
+      showSeekFeedback('backward');
+      showControls();
+    }
+  } else if (keyData.code === 'KeyL' || (keyData.keyCode === 76 && !keyData.code)) {
+    // Avancer de 10 secondes avec L
+    event.preventDefault();
+    if (player.value) {
+      const newTime = Math.min(duration.value, currentTime.value + 10);
+      player.value.currentTime(newTime);
+      showSeekFeedback('forward');
+      showControls();
+    }
+  } else if ((keyData.code === 'ArrowLeft' || keyData.code === 'ArrowRight') || 
+            (keyData.keyCode === 37 || keyData.keyCode === 39)) {
+    // Seulement si on est focalisé sur la barre de progression
+    if (focusedControl.value === 'progress') {
+      event.preventDefault();
+      const direction = (keyData.code === 'ArrowRight' || keyData.keyCode === 39) ? 1 : -1;
+      const newTime = Math.max(
+        0,
+        Math.min(duration.value, currentTime.value + direction * 10)
+      );
+      player.value?.currentTime(newTime);
+      showSeekFeedback(direction > 0 ? 'forward' : 'backward');
+      showControls();
+    }
+    // Sinon, ne pas empêcher l'événement pour laisser la navigation spatiale fonctionner
+  } else if (keyData.isDigitKey) {
+    // Navigation par pourcentage (0-9 = 0%-90%)
+    event.preventDefault();
+    const digit = getDigitFromKey(keyData.code, keyData.keyCode);
+    if (digit !== null) {
       const targetTime = (digit / 10) * duration.value;
       player.value?.currentTime(targetTime);
       showControls();
-      break;
     }
   }
 };
