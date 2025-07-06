@@ -28,6 +28,11 @@ const router = createRouter({
       name: 'VideoWatch',
       component: VideoWatch,
     },
+    {
+      path: '/extension-test',
+      name: 'ExtensionTest',
+      component: () => import('../views/ExtensionTest.vue'),
+    },
     // À ajouter plus tard :
     // {
     //   path: '/watch/:id',
