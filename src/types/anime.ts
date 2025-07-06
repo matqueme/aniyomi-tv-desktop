@@ -13,6 +13,9 @@ export interface Anime {
   duration: string;
   studio: string;
   trailer?: string;
+  // Nouvelles propriétés pour l'extension et la saison
+  extension?: string;
+  season?: string;
 }
 
 export interface Episode {

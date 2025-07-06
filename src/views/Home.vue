@@ -161,7 +161,16 @@ const actionAnimes = computed(() =>
 // Gestion de la sélection d'anime
 const handleAnimeSelect = (anime: Anime) => {
   animeStore.setFeaturedAnime(anime);
-  router.push(`/anime/${anime.id}`);
+
+  // Utiliser l'extension et la saison depuis l'anime, ou des valeurs par défaut
+  const extension = anime.extension || 'animesama';
+  const season = anime.season || '1';
+  const animeName = anime.title
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  router.push(`/${extension}/${animeName}/${season}`);
 };
 
 // Fonction pour réessayer le chargement

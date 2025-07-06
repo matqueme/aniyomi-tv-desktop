@@ -18,6 +18,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 87,
     duration: '24 min',
     studio: 'WIT Studio / MAPPA',
+    extension: 'animesama',
+    season: '4',
   },
   {
     id: '2',
@@ -36,6 +38,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 44,
     duration: '23 min',
     studio: 'Ufotable',
+    extension: 'animesama',
+    season: '3',
   },
   {
     id: '3',
@@ -53,6 +57,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 1000,
     duration: '24 min',
     studio: 'Toei Animation',
+    extension: 'animesama',
+    season: '1',
   },
   {
     id: '4',
@@ -71,6 +77,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 154,
     duration: '24 min',
     studio: 'Bones',
+    extension: 'animesama',
+    season: '7',
   },
   {
     id: '5',
@@ -88,6 +96,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 24,
     duration: '23 min',
     studio: 'MAPPA',
+    extension: 'animesama',
+    season: '2',
   },
   {
     id: '6',
@@ -106,6 +116,8 @@ export const mockAnimes: Anime[] = [
     episodeCount: 1,
     duration: '125 min',
     studio: 'Studio Ghibli',
+    extension: 'animesama',
+    season: '1',
   },
 ];
 

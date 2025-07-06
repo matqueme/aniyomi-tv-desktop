@@ -19,8 +19,13 @@ const router = createRouter({
       component: Search,
     },
     {
-      path: '/anime/:id',
+      path: '/:extension/:animeName/:season',
       name: 'AnimeDetail',
+      component: AnimeDetail,
+    },
+    {
+      path: '/anime/:id',
+      name: 'AnimeDetailLegacy',
       component: AnimeDetail,
     },
     {
