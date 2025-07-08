@@ -26,7 +26,6 @@ export type { ExtensionConfig, AnimeSamaConfig, ExtensionInfo } from './config';
 
 // Imports pour utilisation interne
 import { extensionManager } from './manager';
-import { animeSamaService } from './animesama';
 import { extensionCache } from './cache';
 import { EXTENSION_CONFIG } from './config';
 
@@ -70,26 +69,6 @@ export async function initializeExtensionSystem(): Promise<{
     const activeExtensions = extensions.filter((ext) => ext.isEnabled);
     if (activeExtensions.length === 0) {
       console.warn('⚠️ Aucune extension active trouvée');
-    }
-
-    // Test de connectivité pour AnimeSama si activé
-    const animeSamaExt = extensions.find((ext) => ext.key === 'animesama');
-    if (animeSamaExt?.isEnabled) {
-      try {
-        const connectionTest = await animeSamaService.testConnection();
-        if (connectionTest.success) {
-          console.log(
-            `✅ AnimeSama connecté (${connectionTest.responseTime}ms)`
-          );
-        } else {
-          console.warn(`❌ AnimeSama non accessible: ${connectionTest.error}`);
-        }
-      } catch (error) {
-        console.warn(
-          '❌ Erreur lors du test de connectivité AnimeSama:',
-          error
-        );
-      }
     }
 
     // Initialiser le cache
