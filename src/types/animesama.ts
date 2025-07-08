@@ -4,8 +4,12 @@ export interface AnimeSamaAnime {
   thumbnailUrl?: string;
   description?: string;
   genre?: string;
-  status: 'ongoing' | 'completed' | 'unknown';
+  status?: 'ongoing' | 'completed' | 'unknown' | undefined;
   initialized: boolean;
+  year?: number;
+  studio?: string;
+  type?: string;
+  totalEpisodes?: number;
 }
 
 export interface AnimeSamaEpisode {

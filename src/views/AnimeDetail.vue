@@ -115,8 +115,7 @@
                       >{{ animeDetails.totalEpisodes }} épisode{{
                         animeDetails.totalEpisodes > 1 ? 's' : ''
                       }}
-                      au total</span
-                    >
+                    </span>
                   </span>
                   <span
                     v-if="
@@ -151,7 +150,7 @@
                     <span class="font-semibold">{{ animeDetails.studio }}</span>
                   </span>
                   <span
-                    v-if="animeDetails?.status && statusText !== 'Inconnu'"
+                    v-if="animeDetails?.status"
                     class="flex items-center gap-1 rounded-full px-2 py-1"
                     :class="statusClass"
                   >
@@ -400,45 +399,30 @@
           <!-- Sidebar -->
           <div v-focus-section:sidebar="sidebarConfig" class="space-y-6">
             <!-- Informations détaillées -->
-            <div class="rounded-lg bg-slate-800/50 p-6">
+            <div
+              v-if="hasInformationContent"
+              class="rounded-lg bg-slate-800/50 p-6"
+            >
               <h3 class="mb-4 text-lg font-semibold text-white">
                 Informations
               </h3>
               <div class="space-y-3 text-sm">
-                <div
-                  v-if="
-                    animeDetails?.studio &&
-                    animeDetails.studio !== 'Studio Animation'
-                  "
-                  class="flex justify-between"
-                >
-                  <span class="text-slate-400">Studio:</span>
+                <div v-if="animeDetails?.studio" class="flex justify-between">
+                  <span class="text-slate-400">Studio :</span>
                   <span class="text-slate-200">{{ animeDetails.studio }}</span>
                 </div>
-                <div
-                  v-if="animeDetails?.year && animeDetails.year !== 2024"
-                  class="flex justify-between"
-                >
-                  <span class="text-slate-400">Année:</span>
+                <div v-if="animeDetails?.year" class="flex justify-between">
+                  <span class="text-slate-400">Année :</span>
                   <span class="text-slate-200">{{ animeDetails.year }}</span>
                 </div>
-                <div
-                  v-if="animeDetails?.status && statusText !== 'Inconnu'"
-                  class="flex justify-between"
-                >
-                  <span class="text-slate-400">Statut:</span>
+                <div v-if="animeDetails?.status" class="flex justify-between">
+                  <span class="text-slate-400">Statut :</span>
                   <span class="text-slate-200">{{ statusText }}</span>
                 </div>
-                <div
-                  v-if="
-                    animeDetails?.totalEpisodes &&
-                    animeDetails.totalEpisodes > 0
-                  "
-                  class="flex justify-between"
-                >
-                  <span class="text-slate-400">Total épisodes:</span>
+                <div v-if="currentSeasonData" class="flex justify-between">
+                  <span class="text-slate-400">Épisodes de la saison :</span>
                   <span class="text-slate-200">{{
-                    animeDetails.totalEpisodes
+                    currentSeasonData.episodeCount
                   }}</span>
                 </div>
                 <div
@@ -447,15 +431,22 @@
                   "
                   class="flex justify-between"
                 >
-                  <span class="text-slate-400">Saisons:</span>
+                  <span class="text-slate-400">Saisons :</span>
                   <span class="text-slate-200">{{
                     animeDetails.seasons.length
                   }}</span>
                 </div>
-                <div v-if="currentSeasonData" class="flex justify-between">
-                  <span class="text-slate-400">Épisodes saison:</span>
+                <div
+                  v-if="
+                    animeDetails?.totalEpisodes &&
+                    animeDetails.totalEpisodes !==
+                      currentSeasonData?.episodeCount
+                  "
+                  class="flex justify-between"
+                >
+                  <span class="text-slate-400">Total épisodes :</span>
                   <span class="text-slate-200">{{
-                    currentSeasonData.episodeCount
+                    animeDetails.totalEpisodes
                   }}</span>
                 </div>
                 <div
@@ -464,7 +455,7 @@
                   "
                   class="flex justify-between"
                 >
-                  <span class="text-slate-400">Durée:</span>
+                  <span class="text-slate-400">Durée :</span>
                   <span class="text-slate-200">{{
                     animeDetails.duration
                   }}</span>
@@ -473,17 +464,17 @@
                   v-if="animeDetails?.rating && animeDetails.rating !== 8.5"
                   class="flex justify-between"
                 >
-                  <span class="text-slate-400">Note:</span>
+                  <span class="text-slate-400">Note :</span>
                   <span class="text-slate-200"
                     >{{ animeDetails.rating }}/10</span
                   >
                 </div>
-                <div v-if="isNewRoute" class="flex justify-between">
-                  <span class="text-slate-400">Extension:</span>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Extension :</span>
                   <span class="text-slate-200">{{ extensionName }}</span>
                 </div>
                 <div v-if="isNewRoute" class="flex justify-between">
-                  <span class="text-slate-400">Saison actuelle:</span>
+                  <span class="text-slate-400">Saison actuelle :</span>
                   <span class="text-slate-200">{{ season }}</span>
                 </div>
               </div>
@@ -583,6 +574,7 @@ const availableSeasons = computed(() => {
 
 // Computed pour le statut
 const statusText = computed(() => {
+  console.log(`Anime status: ${animeDetails.value?.status}`);
   switch (animeDetails.value?.status) {
     case 'ongoing':
       return 'En cours';
@@ -591,7 +583,7 @@ const statusText = computed(() => {
     case 'upcoming':
       return 'À venir';
     default:
-      return 'Inconnu';
+      return undefined;
   }
 });
 
@@ -624,6 +616,35 @@ const isGenericDescription = computed(() => {
   if (!animeDetails.value?.description) return true;
   const description = animeDetails.value.description;
   return description.startsWith('Anime ') && description.includes(' - Saison ');
+});
+
+// Vérifier si la section informations a du contenu utile
+const hasInformationContent = computed(() => {
+  if (!animeDetails.value) return false;
+
+  // Vérifier chaque condition d'affichage des informations avec les mêmes critères que le template
+  const hasStudio = animeDetails.value.studio;
+  const hasYear = animeDetails.value.year;
+  const hasStatus = animeDetails.value.status;
+  const hasTotalEpisodes = animeDetails.value.totalEpisodes;
+  const hasSeasons =
+    animeDetails.value.seasons && animeDetails.value.seasons.length > 0;
+  const hasCurrentSeasonData = !!currentSeasonData.value;
+  const hasDuration = animeDetails.value.duration;
+  const hasRating = animeDetails.value.rating;
+  const hasExtensionInfo = isNewRoute.value;
+
+  return (
+    hasStudio ||
+    hasYear ||
+    hasStatus ||
+    hasTotalEpisodes ||
+    hasSeasons ||
+    hasCurrentSeasonData ||
+    hasDuration ||
+    hasRating ||
+    hasExtensionInfo
+  );
 });
 
 // Fonctions
@@ -665,8 +686,7 @@ const loadFromExtension = async () => {
   // Charger les épisodes pour la saison sélectionnée
   episodes.value = await extensionManager.getEpisodes(
     extensionName.value,
-    animeName.value,
-    selectedSeason.value.toString()
+    animeName.value
   );
 
   // Créer un objet anime compatible pour les anciens composants

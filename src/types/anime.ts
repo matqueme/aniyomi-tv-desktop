@@ -4,7 +4,7 @@ export interface AnimeCardInfo {
   posterUrl: string;
   year?: number;
   numberOfEpisodes?: number;
-  extension?: string; // Extension d'où provient l'anime
+  extension?: string;
 }
 
 export interface Episode {
@@ -23,21 +23,20 @@ export interface AnimeDetails {
   id: string;
   title: string;
   originalTitle?: string;
-  description: string;
+  description?: string;
   posterUrl: string;
   bannerUrl?: string;
-  year: number;
-  status: 'ongoing' | 'completed' | 'upcoming';
-  genres: string[];
-  rating: number;
-  duration: string;
-  studio: string;
+  year?: number;
+  status?: 'ongoing' | 'completed' | 'upcoming';
+  genres?: string[];
+  rating?: number;
+  duration?: string;
+  studio?: string;
   trailer?: string;
   extension: string;
 
-  // Informations sur les saisons
-  seasons: Season[];
-  totalEpisodes: number;
+  seasons?: Season[];
+  totalEpisodes?: number;
 }
 
 export interface Season {
@@ -45,7 +44,7 @@ export interface Season {
   title: string;
   episodeCount: number;
   airDate?: Date;
-  status: 'ongoing' | 'completed' | 'upcoming';
+  status?: 'ongoing' | 'completed' | 'upcoming' | undefined;
   posterUrl?: string;
   description?: string;
 }
