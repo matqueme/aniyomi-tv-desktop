@@ -95,9 +95,11 @@ export const useAnimeStore = defineStore('anime', () => {
     }
   };
 
-  // Action pour charger toutes les données
+  /**
+   * Action pour charger toutes les données des animes
+   * @returns {Promise<void>}
+   */
   const fetchAllData = async () => {
-    // Charger les données en parallèle
     await Promise.allSettled([fetchPopularAnimes(), fetchLatestUpdates()]);
   };
 
