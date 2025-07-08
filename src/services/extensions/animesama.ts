@@ -80,8 +80,10 @@ export class AnimeSamaService {
         const href = link.getAttribute('href');
         if (href) {
           const animeUrl = `${this.baseUrl}${href}`;
-          const seasons = await this.fetchAnimeSeasons(animeUrl);
-          animes.push(...seasons);
+          const animeInfo = await this.fetchAnimeInfo(animeUrl);
+          if (animeInfo) {
+            animes.push(animeInfo);
+          }
         }
       }
 
@@ -130,14 +132,15 @@ export class AnimeSamaService {
 
               if (!seenUrls.has(cleanUrl)) {
                 seenUrls.add(cleanUrl);
-                const seasons = await this.fetchAnimeSeasons(cleanUrl);
-                animes.push(...seasons);
+                const animeInfo = await this.fetchAnimeInfo(cleanUrl);
+                if (animeInfo) {
+                  animes.push(animeInfo);
+                }
               }
             }
           }
         }
       }
-
       return {
         data: animes,
         hasNextPage: false,
@@ -189,8 +192,10 @@ export class AnimeSamaService {
       for (const link of animeLinks) {
         const href = link.getAttribute('href');
         if (href) {
-          const seasons = await this.fetchAnimeSeasons(href);
-          animes.push(...seasons);
+          const animeInfo = await this.fetchAnimeInfo(href);
+          if (animeInfo) {
+            animes.push(animeInfo);
+          }
         }
       }
 
@@ -214,16 +219,17 @@ export class AnimeSamaService {
    * Récupère les détails d'un anime
    */
   async getAnimeDetails(url: string): Promise<AnimeSamaAnime | null> {
-    // Simulation basée sur l'URL
-    return {
-      title: 'Anime Test',
-      url,
-      thumbnailUrl: 'https://anime-sama.fr/images/test.jpg',
-      description: "Description détaillée de l'anime de test...",
-      genre: 'Action, Aventure',
-      status: 'completed',
-      initialized: true,
-    };
+    // Récupère les saisons/films pour cette URL
+    const seasons = await this.fetchAnimeSeasons(url);
+    // Retourne la première saison/film pour les détails de base
+    return seasons.length > 0 ? seasons[0] : null;
+  }
+
+  /**
+   * Récupère les saisons/films d'un anime
+   */
+  async getAnimeSeasons(url: string): Promise<AnimeSamaAnime[]> {
+    return this.fetchAnimeSeasons(url);
   }
 
   /**
@@ -304,6 +310,71 @@ export class AnimeSamaService {
     } catch (error) {
       console.error('Erreur lors de la récupération des liens vidéo:', error);
       return [];
+    }
+  }
+
+  /**
+   * Récupère les informations de base d'un anime (sans les saisons/films)
+   */
+  private async fetchAnimeInfo(
+    animeUrl: string
+  ): Promise<AnimeSamaAnime | null> {
+    try {
+      const htmlContent = await this.fetchWithCors(animeUrl);
+      const doc = this.parseHTML(htmlContent);
+
+      const animeName = doc.getElementById('titreOeuvre')?.textContent || '';
+      const thumbnailUrl =
+        doc.getElementById('coverOeuvre')?.getAttribute('src') || '';
+
+      // Rechercher le synopsis en parcourant les éléments h2
+      let description = '';
+      const h2Elements = doc.querySelectorAll('h2');
+      for (const h2 of h2Elements) {
+        if (h2.textContent?.toLowerCase().includes('synopsis')) {
+          const nextP = h2.nextElementSibling;
+          if (nextP && nextP.tagName === 'P') {
+            description = nextP.textContent || '';
+            break;
+          }
+        }
+      }
+
+      // Rechercher les genres en parcourant les éléments h2
+      let genre = '';
+      for (const h2 of h2Elements) {
+        if (h2.textContent?.toLowerCase().includes('genres')) {
+          const nextElement = h2.nextElementSibling;
+          if (nextElement && nextElement.tagName === 'A') {
+            genre = nextElement.textContent || '';
+          } else {
+            // Chercher tous les éléments a qui suivent ce h2
+            let sibling = h2.nextElementSibling;
+            const genreLinks: string[] = [];
+            while (sibling && sibling.tagName === 'A') {
+              if (sibling.textContent) {
+                genreLinks.push(sibling.textContent);
+              }
+              sibling = sibling.nextElementSibling;
+            }
+            genre = genreLinks.join(', ');
+          }
+          break;
+        }
+      }
+
+      return {
+        title: animeName,
+        url: animeUrl,
+        thumbnailUrl,
+        description,
+        genre,
+        status: 'unknown',
+        initialized: false, // Les saisons ne sont pas encore chargées
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération des infos anime:', error);
+      return null;
     }
   }
 

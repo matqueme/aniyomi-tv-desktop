@@ -7,7 +7,6 @@
     <NavigationBar
       v-if="shouldShowNavbar"
       v-model="searchQuery"
-      @search="handleSearch"
       @settings="handleSettings"
     />
 
@@ -39,11 +38,6 @@ const shouldShowNavbar = computed(() => {
   // Masquer la navbar sur la page de détail d'anime
   return route.name !== 'AnimeDetail' && route.name !== 'VideoWatch';
 });
-
-const handleSearch = (query: string) => {
-  console.log('Recherche:', query);
-  // Ici vous pouvez implémenter la logique de recherche
-};
 
 const handleSettings = () => {
   console.log('Ouvrir les paramètres');

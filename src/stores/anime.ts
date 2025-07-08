@@ -38,9 +38,7 @@ export const useAnimeStore = defineStore('anime', () => {
       id,
       title: animeSamaData.title,
       description: animeSamaData.description || 'Aucune description disponible',
-      posterUrl:
-        animeSamaData.thumbnailUrl ||
-        'https://via.placeholder.com/300x400/1f2937/f9fafb?text=Anime',
+      posterUrl: animeSamaData.thumbnailUrl || '',
       year: new Date().getFullYear(), // Par défaut l'année actuelle
       status:
         animeSamaData.status === 'ongoing'
@@ -58,24 +56,6 @@ export const useAnimeStore = defineStore('anime', () => {
     };
   };
 
-  // Actions
-  const fetchAnimes = async () => {
-    loading.value = true;
-    error.value = null;
-    try {
-      // Simulation d'un appel API avec des données de test
-      const { mockAnimes, mockEpisodes } = await import('../data/mockData');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulation du délai réseau
-      animes.value = mockAnimes;
-      episodes.value = mockEpisodes;
-    } catch (err) {
-      error.value = 'Erreur lors du chargement des animes';
-      console.error(err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
   // Nouvelle action pour charger les animes populaires depuis AnimeSama
   const fetchPopularAnimes = async () => {
     loadingPopular.value = true;
@@ -86,7 +66,6 @@ export const useAnimeStore = defineStore('anime', () => {
       console.log('Animes populaires chargés:', convertedAnimes.length);
     } catch (err) {
       console.error('Erreur fetchPopularAnimes:', err);
-      // On ne set pas l'erreur globale pour les extensions, on log juste
       popularAnimes.value = []; // Assurer qu'on a un tableau vide
     } finally {
       loadingPopular.value = false;
@@ -103,7 +82,6 @@ export const useAnimeStore = defineStore('anime', () => {
       console.log('Dernières mises à jour chargées:', convertedAnimes.length);
     } catch (err) {
       console.error('Erreur fetchLatestUpdates:', err);
-      // On ne set pas l'erreur globale pour les extensions, on log juste
       latestUpdates.value = []; // Assurer qu'on a un tableau vide
     } finally {
       loadingLatest.value = false;
@@ -113,14 +91,7 @@ export const useAnimeStore = defineStore('anime', () => {
   // Action pour charger toutes les données
   const fetchAllData = async () => {
     // Charger les données en parallèle
-    await Promise.allSettled([
-      fetchAnimes(),
-      fetchPopularAnimes(),
-      fetchLatestUpdates(),
-    ]);
-
-    // L'erreur sera seulement affichée si fetchAnimes échoue
-    // Les erreurs des extensions sont gérées silencieusement
+    await Promise.allSettled([fetchPopularAnimes(), fetchLatestUpdates()]);
   };
 
   const setFeaturedAnime = (anime: Anime) => {
@@ -177,7 +148,6 @@ export const useAnimeStore = defineStore('anime', () => {
     trendingAnimes,
 
     // Actions
-    fetchAnimes,
     fetchPopularAnimes,
     fetchLatestUpdates,
     fetchAllData,

@@ -159,15 +159,14 @@ const onClear = () => {
 };
 
 const handleAnimeSelect = (anime: Anime) => {
-  // Utiliser l'extension et la saison depuis l'anime, ou des valeurs par défaut
+  // Utiliser l'extension depuis l'anime, ou une valeur par défaut
   const extension = anime.extension || 'animesama';
-  const season = anime.season || '1';
   const animeName = anime.title
     .toLowerCase()
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '');
 
-  router.push(`/${extension}/${animeName}/${season}`);
+  router.push(`/${extension}/${animeName}`);
 };
 
 // Gestion du bouton retour de la télécommande
