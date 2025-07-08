@@ -18,6 +18,15 @@ export interface Anime {
   season?: string;
 }
 
+export interface AnimeCardInfo {
+  id: string;
+  title: string;
+  posterUrl: string;
+  year?: number;
+  numberOfEpisodes?: number;
+  extension?: string; // Extension d'où provient l'anime
+}
+
 export interface Episode {
   id: string;
   animeId: string;

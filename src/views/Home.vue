@@ -72,65 +72,15 @@
           @select="handleAnimeSelect"
         />
       </div>
-
-      <!-- Trending Animes -->
-      <div
-        v-if="animeStore.trendingAnimes.length > 0"
-        ref="trendingSectionRef"
-        class="anime-section"
-      >
-        <AnimeList
-          ref="trendingListRef"
-          :animes="animeStore.trendingAnimes"
-          :list-id="'trending'"
-          title="Tendances"
-          :leave-up-to="'latest'"
-          :leave-down-to="'all-animes'"
-          @select="handleAnimeSelect"
-        />
-      </div>
-
-      <!-- All Animes -->
-      <div
-        v-if="animeStore.animes.length > 0"
-        ref="allAnimesSectionRef"
-        class="anime-section"
-      >
-        <AnimeList
-          ref="allAnimesListRef"
-          :animes="animeStore.animes"
-          :list-id="'all-animes'"
-          title="Tous les animes"
-          :leave-up-to="'trending'"
-          :leave-down-to="'action'"
-          @select="handleAnimeSelect"
-        />
-      </div>
-
-      <!-- Action Animes -->
-      <div
-        v-if="actionAnimes.length > 0"
-        ref="actionSectionRef"
-        class="anime-section"
-      >
-        <AnimeList
-          ref="actionListRef"
-          :animes="actionAnimes"
-          :list-id="'action'"
-          title="Action"
-          :leave-up-to="'all-animes'"
-          @select="handleAnimeSelect"
-        />
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref, nextTick } from 'vue';
+import { onMounted, ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAnimeStore } from '@/stores/anime';
-import type { Anime } from '@/types/anime';
+import type { AnimeCardInfo } from '@/types/anime';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import AnimeList from '@/components/anime/AnimeList.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
@@ -142,26 +92,13 @@ const router = useRouter();
 // Références vers les composants AnimeList (maintenues pour compatibilité)
 const popularListRef = ref<InstanceType<typeof AnimeList>>();
 const latestListRef = ref<InstanceType<typeof AnimeList>>();
-const trendingListRef = ref<InstanceType<typeof AnimeList>>();
-const allAnimesListRef = ref<InstanceType<typeof AnimeList>>();
-const actionListRef = ref<InstanceType<typeof AnimeList>>();
 
 // Références vers les sections (maintenues pour compatibilité)
 const popularSectionRef = ref<HTMLElement>();
 const latestSectionRef = ref<HTMLElement>();
-const trendingSectionRef = ref<HTMLElement>();
-const allAnimesSectionRef = ref<HTMLElement>();
-const actionSectionRef = ref<HTMLElement>();
-
-// Computed properties pour filtrer les animes par genre
-const actionAnimes = computed(() =>
-  animeStore.animes.filter((anime) => anime.genres.includes('Action'))
-);
 
 // Gestion de la sélection d'anime
-const handleAnimeSelect = (anime: Anime) => {
-  animeStore.setFeaturedAnime(anime);
-
+const handleAnimeSelect = (anime: AnimeCardInfo) => {
   // Utiliser l'extension depuis l'anime, ou une valeur par défaut
   const extension = anime.extension || 'animesama';
   const animeName = anime.title
@@ -200,8 +137,6 @@ onMounted(async () => {
     SpatialNavigation.focus('popular');
   } else if (animeStore.latestUpdates.length > 0) {
     SpatialNavigation.focus('latest');
-  } else if (animeStore.trendingAnimes.length > 0) {
-    SpatialNavigation.focus('trending');
   }
 });
 </script>

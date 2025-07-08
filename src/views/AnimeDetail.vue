@@ -528,46 +528,9 @@ const loadFromExtension = async () => {
     animeName.value,
     season.value
   );
-
-  // Créer les informations de l'anime à partir des paramètres
-  anime.value = {
-    id: `${extensionName.value}-${animeName.value}`,
-    title: decodeURIComponent(animeName.value).replace(/[-_]/g, ' '),
-    originalTitle: decodeURIComponent(animeName.value),
-    description: `Anime ${decodeURIComponent(animeName.value).replace(/[-_]/g, ' ')} - Saison ${season.value}`,
-    posterUrl:
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop',
-    bannerUrl:
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=1080&fit=crop',
-    year: 2024,
-    status: 'ongoing' as const,
-    genres: ['Action', 'Animation'],
-    rating: 8.5,
-    episodeCount: episodes.value.length,
-    duration: '24 min',
-    studio: 'Studio Animation',
-    extension: extensionName.value,
-    season: season.value,
-  };
-
-  // Vérifier si l'anime est en favoris
-  isFavorite.value = animeStore.isFavorite(anime.value.id);
 };
 
 const loadFromStore = async () => {
-  const foundAnime = animeStore.getAnimeById(animeId.value);
-
-  if (!foundAnime) {
-    console.error('Anime non trouvé');
-    router.push('/');
-    return;
-  }
-
-  anime.value = foundAnime;
-
-  // Charger les épisodes
-  episodes.value = animeStore.getEpisodesByAnimeId(animeId.value);
-
   // Vérifier si l'anime est en favoris
   isFavorite.value = animeStore.isFavorite(animeId.value);
 };

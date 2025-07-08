@@ -31,7 +31,7 @@
           :anime="anime"
           :is-focused="index === focusedIndex"
           class="anime-card-focusable"
-          @select="(anime: Anime) => emit('select', anime)"
+          @select="(anime: AnimeCardInfo) => emit('select', anime)"
           @focus="() => handleFocus(index)"
           @blur="() => handleUnfocus(index)"
         />
@@ -42,12 +42,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { Anime } from '@/types/anime';
+import type { AnimeCardInfo } from '@/types/anime';
 import AnimeCard from '@/components/anime/AnimeCard.vue';
 import { normalizeKeyboardEvent } from '@/utils/keyboardUtils';
 
 interface Props {
-  animes: Anime[];
+  animes: AnimeCardInfo[];
   title: string;
   itemsPerRow?: number;
   listId?: string;
@@ -56,7 +56,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'select', anime: Anime): void;
+  (e: 'select', anime: AnimeCardInfo): void;
 }
 
 // Define Swiper Element interface

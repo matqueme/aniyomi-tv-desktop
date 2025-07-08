@@ -1,30 +1,23 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { Anime, Episode } from '@/types/anime';
+import { ref } from 'vue';
+import type { Anime, Episode, AnimeCardInfo } from '@/types/anime';
 import type { AnimeSamaAnime } from '@/types/animesama';
 import { animeSamaService } from '@/services/extensions/animesama';
 
 export const useAnimeStore = defineStore('anime', () => {
   // État
-  const animes = ref<Anime[]>([]);
   const episodes = ref<Episode[]>([]);
   const favorites = ref<string[]>([]);
-  const featuredAnime = ref<Anime | null>(null);
 
   // États pour l'extension AnimeSama
   const popularAnimes = ref<Anime[]>([]);
-  const latestUpdates = ref<Anime[]>([]);
+  const latestUpdates = ref<AnimeCardInfo[]>([]);
 
   // États de chargement
   const loading = ref(false);
   const loadingPopular = ref(false);
   const loadingLatest = ref(false);
   const error = ref<string | null>(null);
-
-  // Getters
-  const trendingAnimes = computed(() =>
-    animes.value.sort((a: Anime, b: Anime) => b.rating - a.rating).slice(0, 10)
-  );
 
   // Fonction utilitaire pour convertir AnimeSamaAnime vers Anime
   const convertAnimeSamaToAnime = (animeSamaData: AnimeSamaAnime): Anime => {
@@ -56,14 +49,25 @@ export const useAnimeStore = defineStore('anime', () => {
     };
   };
 
+  const mapAnimeDataCardInfo = (
+    animeSamaData: AnimeSamaAnime
+  ): AnimeCardInfo => {
+    return {
+      id: btoa(animeSamaData.url).replace(/[^a-zA-Z0-9]/g, ''),
+      title: animeSamaData.title,
+      posterUrl: animeSamaData.thumbnailUrl || '',
+      year: new Date().getFullYear(), // Par défaut l'année actuelle
+      numberOfEpisodes: Math.floor(Math.random() * 24) + 1, // Entre 1 et 24 épisodes
+    };
+  };
+
   // Nouvelle action pour charger les animes populaires depuis AnimeSama
   const fetchPopularAnimes = async () => {
     loadingPopular.value = true;
     try {
       const response = await animeSamaService.getPopularAnimes(1);
-      const convertedAnimes = response.data.map(convertAnimeSamaToAnime);
-      popularAnimes.value = convertedAnimes;
-      console.log('Animes populaires chargés:', convertedAnimes.length);
+      popularAnimes.value = response.data.map(convertAnimeSamaToAnime);
+      console.log('Animes populaires chargés:', popularAnimes.value.length);
     } catch (err) {
       console.error('Erreur fetchPopularAnimes:', err);
       popularAnimes.value = []; // Assurer qu'on a un tableau vide
@@ -77,9 +81,12 @@ export const useAnimeStore = defineStore('anime', () => {
     loadingLatest.value = true;
     try {
       const response = await animeSamaService.getLatestUpdates();
-      const convertedAnimes = response.data.map(convertAnimeSamaToAnime);
-      latestUpdates.value = convertedAnimes;
-      console.log('Dernières mises à jour chargées:', convertedAnimes.length);
+      // Supposons que response.data contient le tableau d'animes
+      latestUpdates.value = response.data.map(mapAnimeDataCardInfo);
+      console.log(
+        'Dernières mises à jour chargées:',
+        latestUpdates.value.length
+      );
     } catch (err) {
       console.error('Erreur fetchLatestUpdates:', err);
       latestUpdates.value = []; // Assurer qu'on a un tableau vide
@@ -92,26 +99,6 @@ export const useAnimeStore = defineStore('anime', () => {
   const fetchAllData = async () => {
     // Charger les données en parallèle
     await Promise.allSettled([fetchPopularAnimes(), fetchLatestUpdates()]);
-  };
-
-  const setFeaturedAnime = (anime: Anime) => {
-    featuredAnime.value = anime;
-  };
-
-  const getAnimeById = (id: string): Anime | undefined => {
-    return animes.value.find((anime: Anime) => anime.id === id);
-  };
-
-  const getAnimesByGenre = (genreId: string) => {
-    return animes.value.filter((anime: Anime) =>
-      anime.genres.some((genre: string) => genre === genreId)
-    );
-  };
-
-  const getEpisodesByAnimeId = (animeId: string): Episode[] => {
-    return episodes.value.filter(
-      (episode: Episode) => episode.animeId === animeId
-    );
   };
 
   const addToFavorites = (animeId: string) => {
@@ -133,10 +120,8 @@ export const useAnimeStore = defineStore('anime', () => {
 
   return {
     // État
-    animes,
     episodes,
     favorites,
-    featuredAnime,
     popularAnimes,
     latestUpdates,
     loading,
@@ -144,17 +129,10 @@ export const useAnimeStore = defineStore('anime', () => {
     loadingLatest,
     error,
 
-    // Getters
-    trendingAnimes,
-
     // Actions
     fetchPopularAnimes,
     fetchLatestUpdates,
     fetchAllData,
-    setFeaturedAnime,
-    getAnimeById,
-    getAnimesByGenre,
-    getEpisodesByAnimeId,
     addToFavorites,
     removeFromFavorites,
     isFavorite,

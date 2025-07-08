@@ -47,7 +47,7 @@
           isFocused ? 'border-indigo-400/70 bg-indigo-500/80 text-white' : '',
         ]"
       >
-        <span>{{ anime.episodeCount }} EP</span>
+        <span>{{ anime.numberOfEpisodes }} EP</span>
       </div>
     </div>
     <!-- Contenu textuel -->
@@ -85,16 +85,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Anime } from '@/types/anime';
+import type { AnimeCardInfo } from '@/types/anime';
 import { normalizeKeyboardEvent } from '@/utils/keyboardUtils';
 
 interface Props {
-  anime: Anime;
+  anime: AnimeCardInfo;
   isFocused?: boolean;
 }
 
 interface Emits {
-  (e: 'select', anime: Anime): void;
+  (e: 'select', anime: AnimeCardInfo): void;
   (e: 'focus'): void;
   (e: 'blur'): void;
 }
@@ -118,7 +118,7 @@ const handleBlur = () => {
 const handlekeydup = (event: KeyboardEvent) => {
   // Normaliser l'événement clavier pour la compatibilité TV
   const keyData = normalizeKeyboardEvent(event);
-  
+
   if (keyData.isEnterKey || keyData.isSpaceKey) {
     event.preventDefault();
     emit('select', props.anime);
