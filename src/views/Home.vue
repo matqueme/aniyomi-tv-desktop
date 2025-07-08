@@ -120,8 +120,6 @@ const handleKeyUp = (event: KeyboardEvent) => {
 
   if (isBackKey(keyData.code, keyData.keyCode)) {
     event.preventDefault();
-    // Sur la page d'accueil, on ne fait rien ou on peut sortir de l'app si souhaité
-    // Pour l'instant, on ne fait rien car c'est la page racine
     return;
   }
 };

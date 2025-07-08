@@ -1,11 +1,12 @@
-import type { Episode, Anime } from '@/types/anime';
+import type { Episode, AnimeDetails, AnimeCardInfo } from '@/types/anime';
 
 /**
  * Interface pour les services d'extension
  */
 interface ExtensionService {
   getEpisodes(animeName: string, season: string): Promise<Episode[]>;
-  searchAnime(query: string): Promise<Partial<Anime>[]>;
+  searchAnime(query: string): Promise<Partial<AnimeCardInfo>[]>;
+  getAnimeDetails(animeName: string): Promise<AnimeDetails>;
 }
 
 /**
@@ -15,13 +16,24 @@ export class ExtensionManager {
   private services: Map<string, ExtensionService> = new Map();
 
   constructor() {
-    // Enregistrer les services d'extension disponibles
-    // Note: AnimeSamaService devra implémenter l'interface ExtensionService
-    // Pour l'instant, on utilise un wrapper
     this.services.set('animesama', {
-      getEpisodes: async (animeName: string, season: string) =>
-        this.getMockEpisodes(animeName, season),
+      getEpisodes: async () => [],
       searchAnime: async () => [],
+      getAnimeDetails: async () => ({
+        id: '',
+        title: '',
+        description: '',
+        posterUrl: '',
+        genres: [],
+        year: 0,
+        rating: 0,
+        studio: '',
+        duration: '',
+        extension: '',
+        seasons: [],
+        totalEpisodes: 0,
+        status: 'ongoing',
+      }),
     });
   }
 
@@ -42,9 +54,7 @@ export class ExtensionManager {
       return await service.getEpisodes(animeName, season);
     } catch (error) {
       console.error(`Erreur lors de la récupération des épisodes:`, error);
-
-      // En cas d'erreur, retourner des épisodes mockés
-      return this.getMockEpisodes(animeName, season);
+      return [];
     }
   }
 
@@ -54,7 +64,7 @@ export class ExtensionManager {
   async searchAnime(
     extension: string,
     query: string
-  ): Promise<Partial<Anime>[]> {
+  ): Promise<Partial<AnimeCardInfo>[]> {
     const service = this.services.get(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
@@ -64,29 +74,49 @@ export class ExtensionManager {
   }
 
   /**
+   * Récupère les détails complets d'un anime depuis une extension9
+   */
+  async getAnimeDetails(
+    extension: string,
+    animeName: string
+  ): Promise<AnimeDetails> {
+    const service = this.services.get(extension);
+    if (!service) {
+      throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    try {
+      return await service.getAnimeDetails(animeName);
+    } catch (error) {
+      console.error(
+        `Erreur lors de la récupération des détails de l'anime:`,
+        error
+      );
+
+      // En cas d'erreur, retourner des détails mockés
+      return {
+        id: '',
+        title: '',
+        description: '',
+        posterUrl: '',
+        genres: [],
+        year: 0,
+        rating: 0,
+        studio: '',
+        duration: '',
+        extension: '',
+        seasons: [],
+        totalEpisodes: 0,
+        status: 'ongoing', // Ajout de la propriété requise 'status'
+      };
+    }
+  }
+
+  /**
    * Retourne la liste des extensions disponibles
    */
   getAvailableExtensions(): string[] {
     return Array.from(this.services.keys());
-  }
-
-  /**
-   * Génère des épisodes mockés pour les tests
-   */
-  private getMockEpisodes(animeName: string, season: string): Episode[] {
-    const episodeCount = parseInt(season) === 1 ? 25 : 20;
-
-    return Array.from({ length: episodeCount }, (_, i) => ({
-      id: `${animeName}-s${season}-e${i + 1}`,
-      animeId: animeName,
-      number: i + 1,
-      title: `Episode ${i + 1}`,
-      description: `Description de l'épisode ${i + 1} de ${decodeURIComponent(animeName).replace(/[-_]/g, ' ')}`,
-      thumbnailUrl: `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=225&fit=crop&crop=center&auto=format&q=80&seed=${i}`,
-      videoUrl: '#', // À remplacer par l'URL réelle
-      duration: '24:00',
-      airDate: new Date(2024, 0, i + 1),
-    }));
   }
 }
 

@@ -38,3 +38,34 @@ export interface Episode {
   duration: string;
   airDate: Date;
 }
+
+export interface AnimeDetails {
+  id: string;
+  title: string;
+  originalTitle?: string;
+  description: string;
+  posterUrl: string;
+  bannerUrl?: string;
+  year: number;
+  status: 'ongoing' | 'completed' | 'upcoming';
+  genres: string[];
+  rating: number;
+  duration: string;
+  studio: string;
+  trailer?: string;
+  extension: string;
+
+  // Informations sur les saisons
+  seasons: Season[];
+  totalEpisodes: number;
+}
+
+export interface Season {
+  number: number;
+  title: string;
+  episodeCount: number;
+  airDate?: Date;
+  status: 'ongoing' | 'completed' | 'upcoming';
+  posterUrl?: string;
+  description?: string;
+}

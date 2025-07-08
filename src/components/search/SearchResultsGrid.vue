@@ -14,7 +14,7 @@
           focused: () => setFocusedAnime(anime.id),
           unfocused: () => setFocusedAnime(null),
         }"
-        class="focus-none group cursor-pointer transition-all duration-300 ease-in-out"
+        class="group cursor-pointer transition-all duration-300 ease-in-out focus-none"
         :class="[
           focusedAnimeId === anime.id
             ? 'scale-[1.05] transform'
@@ -78,18 +78,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { PhFileX } from '@phosphor-icons/vue';
-import type { Anime } from '@/types/anime';
+import type { AnimeCardInfo } from '@/types/anime';
 
 // Props
 interface Props {
-  animes: Anime[];
+  animes: AnimeCardInfo[];
 }
 
 defineProps<Props>();
 
 // Émissions
 const emit = defineEmits<{
-  select: [anime: Anime];
+  select: [anime: AnimeCardInfo];
 }>();
 
 // Refs
@@ -112,7 +112,7 @@ const setFocusedAnime = (animeId: string | null) => {
   focusedAnimeId.value = animeId;
 };
 
-const handleSelect = (anime: Anime) => {
+const handleSelect = (anime: AnimeCardInfo) => {
   emit('select', anime);
 };
 </script>

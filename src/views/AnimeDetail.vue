@@ -49,19 +49,19 @@
     </div>
 
     <!-- Content -->
-    <div v-else-if="anime">
+    <div v-else-if="animeDetails">
       <!-- Banner avec image de fond -->
       <div class="relative h-96 overflow-hidden">
         <img
-          v-if="anime?.bannerUrl"
-          :src="anime.bannerUrl"
-          :alt="anime.title"
+          v-if="animeDetails?.bannerUrl"
+          :src="animeDetails.bannerUrl"
+          :alt="animeDetails.title"
           class="h-full w-full object-cover"
         />
         <img
           v-else
-          :src="anime?.posterUrl"
-          :alt="anime?.title"
+          :src="animeDetails?.posterUrl"
+          :alt="animeDetails?.title"
           class="h-full w-full object-cover blur-sm"
         />
 
@@ -77,8 +77,8 @@
               <!-- Poster -->
               <div class="flex-shrink-0">
                 <img
-                  :src="anime?.posterUrl"
-                  :alt="anime?.title"
+                  :src="animeDetails?.posterUrl"
+                  :alt="animeDetails?.title"
                   class="h-64 w-48 rounded-lg object-cover shadow-2xl"
                 />
               </div>
@@ -87,44 +87,71 @@
               <div class="flex-1 space-y-4">
                 <div>
                   <h1 class="text-4xl font-bold text-white">
-                    {{ anime?.title }}
+                    {{ animeDetails?.title }}
                   </h1>
-                  <p v-if="anime?.originalTitle" class="text-lg text-slate-300">
-                    {{ anime.originalTitle }}
+                  <p
+                    v-if="animeDetails?.originalTitle"
+                    class="text-lg text-slate-300"
+                  >
+                    {{ animeDetails.originalTitle }}
                   </p>
                 </div>
 
                 <div class="flex flex-wrap gap-4 text-sm text-slate-300">
                   <span
-                    v-if="anime?.year && anime.year !== 2024"
+                    v-if="animeDetails?.year && animeDetails.year !== 2024"
                     class="flex items-center gap-1"
                   >
-                    <span class="font-semibold">{{ anime.year }}</span>
+                    <span class="font-semibold">{{ animeDetails.year }}</span>
                   </span>
                   <span
-                    v-if="anime?.episodeCount && anime.episodeCount > 0"
+                    v-if="
+                      animeDetails?.totalEpisodes &&
+                      animeDetails.totalEpisodes > 0
+                    "
                     class="flex items-center gap-1"
                   >
                     <span class="font-semibold"
-                      >{{ anime.episodeCount }} épisode{{
-                        anime.episodeCount > 1 ? 's' : ''
+                      >{{ animeDetails.totalEpisodes }} épisode{{
+                        animeDetails.totalEpisodes > 1 ? 's' : ''
+                      }}
+                      au total</span
+                    >
+                  </span>
+                  <span
+                    v-if="
+                      animeDetails?.seasons && animeDetails.seasons.length > 0
+                    "
+                    class="flex items-center gap-1"
+                  >
+                    <span class="font-semibold"
+                      >{{ animeDetails.seasons.length }} saison{{
+                        animeDetails.seasons.length > 1 ? 's' : ''
                       }}</span
                     >
                   </span>
                   <span
-                    v-if="anime?.duration && anime.duration !== '24 min'"
+                    v-if="
+                      animeDetails?.duration &&
+                      animeDetails.duration !== '24 min'
+                    "
                     class="flex items-center gap-1"
                   >
-                    <span class="font-semibold">{{ anime.duration }}</span>
+                    <span class="font-semibold">{{
+                      animeDetails.duration
+                    }}</span>
                   </span>
                   <span
-                    v-if="anime?.studio && anime.studio !== 'Studio Animation'"
+                    v-if="
+                      animeDetails?.studio &&
+                      animeDetails.studio !== 'Studio Animation'
+                    "
                     class="flex items-center gap-1"
                   >
-                    <span class="font-semibold">{{ anime.studio }}</span>
+                    <span class="font-semibold">{{ animeDetails.studio }}</span>
                   </span>
                   <span
-                    v-if="anime?.status && statusText !== 'Inconnu'"
+                    v-if="animeDetails?.status && statusText !== 'Inconnu'"
                     class="flex items-center gap-1 rounded-full px-2 py-1"
                     :class="statusClass"
                   >
@@ -135,12 +162,14 @@
                 <!-- Genres -->
                 <div
                   v-if="
-                    anime?.genres && anime.genres.length > 0 && !isGenericGenres
+                    animeDetails?.genres &&
+                    animeDetails.genres.length > 0 &&
+                    !isGenericGenres
                   "
                   class="flex flex-wrap gap-2"
                 >
                   <span
-                    v-for="genre in anime.genres"
+                    v-for="genre in animeDetails.genres"
                     :key="genre"
                     class="rounded-full bg-indigo-500/20 px-3 py-1 text-sm text-indigo-200"
                   >
@@ -150,13 +179,13 @@
 
                 <!-- Note -->
                 <div
-                  v-if="anime?.rating && anime.rating !== 8.5"
+                  v-if="animeDetails?.rating && animeDetails.rating !== 8.5"
                   class="flex items-center gap-2"
                 >
                   <div class="flex items-center">
                     <span class="text-2xl font-bold text-yellow-400">★</span>
                     <span class="ml-1 text-xl font-semibold text-white">
-                      {{ anime.rating }}/10
+                      {{ animeDetails.rating }}/10
                     </span>
                   </div>
                 </div>
@@ -236,18 +265,76 @@
 
             <!-- Synopsis -->
             <div
-              v-if="anime?.description && !isGenericDescription"
+              v-if="animeDetails?.description && !isGenericDescription"
               class="space-y-4"
             >
               <h2 class="text-2xl font-bold text-white">Synopsis</h2>
               <p class="leading-relaxed text-slate-300">
-                {{ anime.description }}
+                {{ animeDetails.description }}
               </p>
+            </div>
+
+            <!-- Sélecteur de saison -->
+            <div v-if="availableSeasons.length > 1" class="space-y-4">
+              <h2 class="text-2xl font-bold text-white">Saisons</h2>
+              <div class="flex flex-wrap gap-3">
+                <button
+                  v-for="seasonData in availableSeasons"
+                  :key="seasonData.number"
+                  v-focus
+                  v-focus-events="{
+                    'enter-up': () => changeSeason(seasonData.number),
+                  }"
+                  class="flex items-center gap-3 rounded-lg border p-4 transition-all duration-300 focus-none"
+                  :class="[
+                    selectedSeason === seasonData.number
+                      ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-white shadow-lg'
+                      : 'border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-indigo-400/70 hover:bg-indigo-500/10',
+                  ]"
+                  @click="() => changeSeason(seasonData.number)"
+                >
+                  <img
+                    v-if="seasonData.posterUrl"
+                    :src="seasonData.posterUrl"
+                    :alt="`Saison ${seasonData.number}`"
+                    class="h-16 w-12 rounded object-cover"
+                  />
+                  <div class="text-left">
+                    <h3 class="font-semibold">{{ seasonData.title }}</h3>
+                    <p class="text-sm opacity-75">
+                      {{ seasonData.episodeCount }} épisodes
+                    </p>
+                    <span
+                      class="inline-block rounded-full px-2 py-1 text-xs"
+                      :class="[
+                        seasonData.status === 'completed'
+                          ? 'bg-green-500/20 text-green-200'
+                          : seasonData.status === 'ongoing'
+                            ? 'bg-blue-500/20 text-blue-200'
+                            : 'bg-orange-500/20 text-orange-200',
+                      ]"
+                    >
+                      {{
+                        seasonData.status === 'completed'
+                          ? 'Terminée'
+                          : seasonData.status === 'ongoing'
+                            ? 'En cours'
+                            : 'À venir'
+                      }}
+                    </span>
+                  </div>
+                </button>
+              </div>
             </div>
 
             <!-- Liste des épisodes -->
             <div v-focus-section:episodes="episodesConfig" class="space-y-4">
-              <h2 class="text-2xl font-bold text-white">Épisodes</h2>
+              <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-white">Épisodes</h2>
+                <span v-if="currentSeasonData" class="text-slate-400">
+                  {{ currentSeasonData.title }} - {{ episodes.length }} épisodes
+                </span>
+              </div>
               <div class="grid gap-3">
                 <div
                   v-for="episode in episodes"
@@ -319,53 +406,84 @@
               </h3>
               <div class="space-y-3 text-sm">
                 <div
-                  v-if="anime?.studio && anime.studio !== 'Studio Animation'"
+                  v-if="
+                    animeDetails?.studio &&
+                    animeDetails.studio !== 'Studio Animation'
+                  "
                   class="flex justify-between"
                 >
                   <span class="text-slate-400">Studio:</span>
-                  <span class="text-slate-200">{{ anime.studio }}</span>
+                  <span class="text-slate-200">{{ animeDetails.studio }}</span>
                 </div>
                 <div
-                  v-if="anime?.year && anime.year !== 2024"
+                  v-if="animeDetails?.year && animeDetails.year !== 2024"
                   class="flex justify-between"
                 >
                   <span class="text-slate-400">Année:</span>
-                  <span class="text-slate-200">{{ anime.year }}</span>
+                  <span class="text-slate-200">{{ animeDetails.year }}</span>
                 </div>
                 <div
-                  v-if="anime?.status && statusText !== 'Inconnu'"
+                  v-if="animeDetails?.status && statusText !== 'Inconnu'"
                   class="flex justify-between"
                 >
                   <span class="text-slate-400">Statut:</span>
                   <span class="text-slate-200">{{ statusText }}</span>
                 </div>
                 <div
-                  v-if="anime?.episodeCount && anime.episodeCount > 0"
+                  v-if="
+                    animeDetails?.totalEpisodes &&
+                    animeDetails.totalEpisodes > 0
+                  "
                   class="flex justify-between"
                 >
-                  <span class="text-slate-400">Épisodes:</span>
-                  <span class="text-slate-200">{{ anime.episodeCount }}</span>
+                  <span class="text-slate-400">Total épisodes:</span>
+                  <span class="text-slate-200">{{
+                    animeDetails.totalEpisodes
+                  }}</span>
                 </div>
                 <div
-                  v-if="anime?.duration && anime.duration !== '24 min'"
+                  v-if="
+                    animeDetails?.seasons && animeDetails.seasons.length > 0
+                  "
+                  class="flex justify-between"
+                >
+                  <span class="text-slate-400">Saisons:</span>
+                  <span class="text-slate-200">{{
+                    animeDetails.seasons.length
+                  }}</span>
+                </div>
+                <div v-if="currentSeasonData" class="flex justify-between">
+                  <span class="text-slate-400">Épisodes saison:</span>
+                  <span class="text-slate-200">{{
+                    currentSeasonData.episodeCount
+                  }}</span>
+                </div>
+                <div
+                  v-if="
+                    animeDetails?.duration && animeDetails.duration !== '24 min'
+                  "
                   class="flex justify-between"
                 >
                   <span class="text-slate-400">Durée:</span>
-                  <span class="text-slate-200">{{ anime.duration }}</span>
+                  <span class="text-slate-200">{{
+                    animeDetails.duration
+                  }}</span>
                 </div>
                 <div
-                  v-if="anime?.rating && anime.rating !== 8.5"
+                  v-if="animeDetails?.rating && animeDetails.rating !== 8.5"
                   class="flex justify-between"
                 >
                   <span class="text-slate-400">Note:</span>
-                  <span class="text-slate-200">{{ anime.rating }}/10</span>
+                  <span class="text-slate-200"
+                    >{{ animeDetails.rating }}/10</span
+                  >
                 </div>
                 <div v-if="isNewRoute" class="flex justify-between">
                   <span class="text-slate-400">Extension:</span>
                   <span class="text-slate-200">{{ extensionName }}</span>
                 </div>
                 <div v-if="isNewRoute" class="flex justify-between">
-                  <span class="text-slate-400">Saison:</span>
+                  <span class="text-slate-400">Saison actuelle:</span>
                   <span class="text-slate-200">{{ season }}</span>
                 </div>
               </div>
@@ -383,7 +501,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { PhPlay, PhHeart, PhArrowLeft } from '@phosphor-icons/vue';
 import { useAnimeStore } from '@/stores/anime';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
-import type { Anime, Episode } from '@/types/anime';
+import type { AnimeCardInfo, Episode, AnimeDetails } from '@/types/anime';
 import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
 import { extensionManager } from '@/services/extensions/manager';
 
@@ -392,8 +510,10 @@ const router = useRouter();
 const animeStore = useAnimeStore();
 
 // État local
-const anime = ref<Anime | null>(null);
+const animeDetails = ref<AnimeDetails | null>(null);
+const anime = ref<AnimeCardInfo | null>(null);
 const episodes = ref<Episode[]>([]);
+const selectedSeason = ref<number>(1);
 const isFavorite = ref(false);
 const focusedEpisodeId = ref<string | null>(null);
 const isLoading = ref(true);
@@ -406,7 +526,6 @@ const isNewRoute = computed(
 const extensionName = computed(() => route.params.extension as string);
 const animeName = computed(() => route.params.animeName as string);
 const season = computed(() => route.params.season as string);
-const animeId = computed(() => route.params.id as string);
 
 // États de focus
 const isPlayFocused = ref(false);
@@ -450,9 +569,21 @@ const sidebarConfig = computed(() => ({
   },
 }));
 
+// Computed pour accéder aux données de l'anime
+const currentSeasonData = computed(() => {
+  if (!animeDetails.value || !animeDetails.value.seasons) return null;
+  return animeDetails.value.seasons.find(
+    (s) => s.number === selectedSeason.value
+  );
+});
+
+const availableSeasons = computed(() => {
+  return animeDetails.value?.seasons || [];
+});
+
 // Computed pour le statut
 const statusText = computed(() => {
-  switch (anime.value?.status) {
+  switch (animeDetails.value?.status) {
     case 'ongoing':
       return 'En cours';
     case 'completed':
@@ -465,7 +596,7 @@ const statusText = computed(() => {
 });
 
 const statusClass = computed(() => {
-  switch (anime.value?.status) {
+  switch (animeDetails.value?.status) {
     case 'ongoing':
       return 'bg-green-500/20 text-green-200';
     case 'completed':
@@ -479,18 +610,19 @@ const statusClass = computed(() => {
 
 // Vérifier si les genres sont génériques (ceux qu'on ajoute par défaut)
 const isGenericGenres = computed(() => {
-  if (!anime.value?.genres || anime.value.genres.length === 0) return true;
+  if (!animeDetails.value?.genres || animeDetails.value.genres.length === 0)
+    return true;
   const genericGenres = ['Action', 'Animation'];
   return (
-    anime.value.genres.every((genre) => genericGenres.includes(genre)) &&
-    anime.value.genres.length === 2
+    animeDetails.value.genres.every((genre) => genericGenres.includes(genre)) &&
+    animeDetails.value.genres.length === 2
   );
 });
 
 // Vérifier si la description est générique
 const isGenericDescription = computed(() => {
-  if (!anime.value?.description) return true;
-  const description = anime.value.description;
+  if (!animeDetails.value?.description) return true;
+  const description = animeDetails.value.description;
   return description.startsWith('Anime ') && description.includes(' - Saison ');
 });
 
@@ -505,14 +637,7 @@ const loadAnimeDetails = async () => {
   try {
     isLoading.value = true;
     error.value = null;
-
-    if (isNewRoute.value) {
-      // Nouvelle route: /:extension/:animeName/:season
-      await loadFromExtension();
-    } else {
-      // Ancienne route: /anime/:id
-      await loadFromStore();
-    }
+    await loadFromExtension();
   } catch (err) {
     console.error("Erreur lors du chargement des détails de l'anime:", err);
     error.value = 'Erreur lors du chargement';
@@ -522,21 +647,40 @@ const loadAnimeDetails = async () => {
 };
 
 const loadFromExtension = async () => {
-  // Charger les épisodes depuis l'extension
+  // Charger les détails complets de l'anime depuis l'extension
+  animeDetails.value = await extensionManager.getAnimeDetails(
+    extensionName.value,
+    animeName.value
+  );
+
+  // Définir la saison sélectionnée à partir de la route (avec validation)
+  const seasonParam = season.value;
+  const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;
+  selectedSeason.value = isNaN(seasonNumber) ? 1 : seasonNumber;
+
+  console.log(
+    `Loading episodes for anime: ${animeName.value}, season: ${selectedSeason.value}`
+  );
+
+  // Charger les épisodes pour la saison sélectionnée
   episodes.value = await extensionManager.getEpisodes(
     extensionName.value,
     animeName.value,
-    season.value
+    selectedSeason.value.toString()
   );
-};
 
-const loadFromStore = async () => {
-  // Vérifier si l'anime est en favoris
-  isFavorite.value = animeStore.isFavorite(animeId.value);
+  // Créer un objet anime compatible pour les anciens composants
+  anime.value = {
+    id: animeDetails.value.id,
+    title: animeDetails.value.title,
+    posterUrl: animeDetails.value.posterUrl,
+    year: animeDetails.value.year,
+    extension: animeDetails.value.extension,
+  };
 };
 
 const playAnime = () => {
-  if (episodes.value.length > 0 && anime.value) {
+  if (episodes.value.length > 0 && animeDetails.value) {
     if (isNewRoute.value) {
       // Nouvelle route avec extension
       router.push({
@@ -552,13 +696,13 @@ const playAnime = () => {
       });
     } else {
       // Ancienne route
-      router.push(`/watch/${anime.value.id}/1`);
+      router.push(`/watch/${animeDetails.value.id}/1`);
     }
   }
 };
 
 const watchEpisode = (episode: Episode) => {
-  if (anime.value) {
+  if (animeDetails.value) {
     if (isNewRoute.value) {
       // Nouvelle route avec extension
       router.push({
@@ -574,18 +718,18 @@ const watchEpisode = (episode: Episode) => {
       });
     } else {
       // Ancienne route
-      router.push(`/watch/${anime.value.id}/${episode.number}`);
+      router.push(`/watch/${animeDetails.value.id}/${episode.number}`);
     }
   }
 };
 
 const toggleFavorite = () => {
-  if (!anime.value) return;
+  if (!animeDetails.value) return;
 
   if (isFavorite.value) {
-    animeStore.removeFromFavorites(anime.value.id);
+    animeStore.removeFromFavorites(animeDetails.value.id);
   } else {
-    animeStore.addToFavorites(anime.value.id);
+    animeStore.addToFavorites(animeDetails.value.id);
   }
   isFavorite.value = !isFavorite.value;
 };
@@ -594,12 +738,42 @@ const setFocusedEpisode = (episodeId: string | null) => {
   focusedEpisodeId.value = episodeId;
 };
 
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date));
+const formatDate = (date: Date | string) => {
+  try {
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Vérifier si la date est valide
+    if (isNaN(dateObj.getTime())) {
+      return 'Date inconnue';
+    }
+
+    return new Intl.DateTimeFormat('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(dateObj);
+  } catch (error) {
+    console.warn('Erreur lors du formatage de date:', error);
+    return 'Date inconnue';
+  }
+};
+
+const changeSeason = (seasonNumber: number) => {
+  if (seasonNumber === selectedSeason.value) return;
+
+  selectedSeason.value = seasonNumber;
+
+  // Recharger les épisodes pour la nouvelle saison
+  if (isNewRoute.value) {
+    router.push({
+      name: 'AnimeDetail',
+      params: {
+        extension: extensionName.value,
+        animeName: animeName.value,
+        season: seasonNumber.toString(),
+      },
+    });
+  }
 };
 
 // Gestion du bouton retour de la télécommande

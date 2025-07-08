@@ -24,7 +24,6 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VideoPlayer from '../components/video/VideoPlayer.vue';
 import { getVideoSource } from '@/data/mockVideoData';
-import { mockAnimes } from '@/data/mockData';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 // Types
@@ -68,7 +67,7 @@ const loadAnimeData = () => {
   const episodeNumber = parseInt(route.params.episode as string) || 1;
 
   // Récupérer les données de l'anime depuis le mock
-  const animeData = mockAnimes.find((anime) => anime.id === animeId);
+  const animeData = null as any; // Remplacer par une fonction de récupération réelle si nécessaire
   if (animeData) {
     animeInfo.value = {
       id: animeData.id,

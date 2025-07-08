@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { Anime, Episode, AnimeCardInfo } from '@/types/anime';
+import type { Episode, AnimeCardInfo } from '@/types/anime';
 import type { AnimeSamaAnime } from '@/types/animesama';
 import { animeSamaService } from '@/services/extensions/animesama';
 
@@ -10,7 +10,7 @@ export const useAnimeStore = defineStore('anime', () => {
   const favorites = ref<string[]>([]);
 
   // États pour l'extension AnimeSama
-  const popularAnimes = ref<Anime[]>([]);
+  const popularAnimes = ref<AnimeCardInfo[]>([]);
   const latestUpdates = ref<AnimeCardInfo[]>([]);
 
   // États de chargement
@@ -18,36 +18,6 @@ export const useAnimeStore = defineStore('anime', () => {
   const loadingPopular = ref(false);
   const loadingLatest = ref(false);
   const error = ref<string | null>(null);
-
-  // Fonction utilitaire pour convertir AnimeSamaAnime vers Anime
-  const convertAnimeSamaToAnime = (animeSamaData: AnimeSamaAnime): Anime => {
-    // Générer un ID unique basé sur l'URL
-    const id = btoa(animeSamaData.url).replace(/[^a-zA-Z0-9]/g, '');
-
-    // Générer une note aléatoire entre 6.0 et 9.5 pour rendre plus attractif
-    const rating = Math.floor((Math.random() * 3.5 + 6.0) * 10) / 10;
-
-    return {
-      id,
-      title: animeSamaData.title,
-      description: animeSamaData.description || 'Aucune description disponible',
-      posterUrl: animeSamaData.thumbnailUrl || '',
-      year: new Date().getFullYear(), // Par défaut l'année actuelle
-      status:
-        animeSamaData.status === 'ongoing'
-          ? 'ongoing'
-          : animeSamaData.status === 'completed'
-            ? 'completed'
-            : 'ongoing',
-      genres: animeSamaData.genre ? [animeSamaData.genre] : ['Anime'],
-      rating,
-      episodeCount: Math.floor(Math.random() * 24) + 1, // Entre 1 et 24 épisodes
-      duration: '24 min', // Durée standard
-      studio: 'AnimeSama',
-      // Ajouter l'URL source pour référence
-      originalTitle: animeSamaData.url,
-    };
-  };
 
   const mapAnimeDataCardInfo = (
     animeSamaData: AnimeSamaAnime
@@ -66,7 +36,7 @@ export const useAnimeStore = defineStore('anime', () => {
     loadingPopular.value = true;
     try {
       const response = await animeSamaService.getPopularAnimes(1);
-      popularAnimes.value = response.data.map(convertAnimeSamaToAnime);
+      popularAnimes.value = response.data.map(mapAnimeDataCardInfo);
       console.log('Animes populaires chargés:', popularAnimes.value.length);
     } catch (err) {
       console.error('Erreur fetchPopularAnimes:', err);
