@@ -11,12 +11,12 @@ export interface Episode {
   id: string;
   animeId: string;
   number: number;
-  title: string;
+  title?: string;
   description?: string;
   thumbnailUrl?: string;
   videoUrl: string;
-  duration: string;
-  airDate: Date;
+  duration?: string;
+  airDate?: Date;
 }
 
 export interface AnimeDetails {

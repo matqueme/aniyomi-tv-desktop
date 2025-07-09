@@ -29,7 +29,6 @@ export const mockVideoSources: VideoSource[] = [
     videoType: 'video/mp4',
     poster:
       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=450&fit=crop',
-    duration: 1440, // 24 minutes en secondes
     description: 'Premier épisode de la série.',
     subtitles: [
       {

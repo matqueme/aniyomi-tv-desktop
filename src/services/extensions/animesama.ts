@@ -22,8 +22,15 @@ const ANIMESAMA_CONFIG = {
     ANIME_COVER: '#coverOeuvre',
   },
   VOICES: ['vostfr', 'vf'] as const,
-  DEFAULT_EPISODE_DURATION: '24:00',
+  VOICE_PREFERENCE: 'vostfr',
+  QUALITY_PRIORITIES: ['1080', '720', '480', '360'] as const,
   ITEMS_PER_PAGE: 5,
+  PLAYER_TYPES: {
+    SIBNET: 'sibnet.ru',
+    VK: 'vk.com',
+    SENDVID: 'sendvid.com',
+    VIDMOLY: 'vidmoly.to',
+  },
   CACHE_TTL: {
     ANIME_INFO: 3600000, // 1 heure
     SEARCH: 1800000, // 30 minutes
@@ -1363,14 +1370,14 @@ export class AnimeSamaService {
 
     // Joindre tous les genres et normaliser les séparateurs
     const joinedGenres = genreLinks.join(', ');
-    
+
     // Remplacer les tirets par des virgules pour uniformiser
     const normalizedGenres = joinedGenres
       .replace(/\s*-\s*/g, ', ') // Remplacer " - " par ", "
       .replace(/\s*,\s*/g, ', ') // Normaliser les espaces autour des virgules
       .replace(/,+/g, ',') // Supprimer les virgules multiples
       .replace(/^,\s*|,\s*$/g, ''); // Supprimer les virgules en début/fin
-    
+
     return normalizedGenres;
   }
 }

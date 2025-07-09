@@ -81,8 +81,6 @@ function convertAnimeSamaEpisode(
     title: episode.name,
     description: `Langues disponibles: ${episode.scanlator || 'Non spécifié'}`,
     videoUrl: '', // Sera rempli lors de la lecture
-    duration: '24:00',
-    airDate: new Date(),
   };
 }
 
