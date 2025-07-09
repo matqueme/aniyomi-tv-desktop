@@ -430,7 +430,6 @@ export class AnimeSamaService {
 
       // Déterminer le statut de l'anime
       const normalizedUrl = url;
-      const status = this.determineAnimeStatus(doc, normalizedUrl);
 
       const animeDetails: AnimeSamaAnime = {
         title: animeName,
@@ -440,7 +439,6 @@ export class AnimeSamaService {
           : '',
         description: description || 'Aucune description disponible',
         genre: genre || '',
-        status: status,
         initialized: true,
       };
 
@@ -741,6 +739,9 @@ export class AnimeSamaService {
 
   /**
    * Extrait les métadonnées d'un anime (description, genres)
+   * @param doc Le document HTML de la page de l'anime
+   * @return Un objet contenant la description et les genres
+   * @private
    */
   private extractAnimeMetadata(doc: Document): {
     description: string;
@@ -794,7 +795,6 @@ export class AnimeSamaService {
 
   /**
    * Récupère les saisons d'un anime depuis sa page
-   * Basé sur fetchAnimeSeasons du code Kotlin
    */
   private async fetchAnimeSeasons(animeUrl: string): Promise<AnimeSamaAnime[]> {
     try {
@@ -921,6 +921,8 @@ export class AnimeSamaService {
 
   /**
    * Récupère les players depuis le fichier episodes.js avec cache
+   * @param url L'URL de l'anime
+   * @return Une liste de tableaux d'épisodes, chaque tableau contenant les URLs des sources
    */
   private async fetchPlayers(url: string): Promise<string[][]> {
     try {
@@ -969,6 +971,9 @@ export class AnimeSamaService {
 
   /**
    * Parse le contenu JavaScript du fichier episodes.js pour extraire les URLs
+   * @param content Le contenu du fichier episodes.js
+   * @return Un tableau de tableaux, chaque tableau contenant les URLs des sources pour un épisode
+   * @private
    */
   private parseEpisodesJS(content: string): string[][] {
     const allEpisodeArrays: string[][] = [];
@@ -1064,6 +1069,9 @@ export class AnimeSamaService {
 
   /**
    * Convertit les players en épisodes avec validation
+   * @param playersList Liste des players pour chaque voix
+   * @return Un tableau d'épisodes avec les URLs des sources
+   * @private
    */
   private playersToEpisodes(playersList: string[][][]): AnimeSamaEpisode[] {
     if (!playersList || playersList.length === 0) {
@@ -1147,9 +1155,11 @@ export class AnimeSamaService {
 
   /**
    * Trie les vidéos par préférence avec logique améliorée
+   * @param videos Liste des vidéos à trier
+   * @return La liste triée des vidéos
    */
   private sortVideos(videos: AnimeSamaVideo[]): AnimeSamaVideo[] {
-    const voicePreference = 'vostfr';
+    const voicePreference = ANIMESAMA_CONFIG.VOICE_PREFERENCE.toLowerCase();
     const qualityOrder = ['1080', '720', '480', '360'];
 
     return videos.sort((a, b) => {
@@ -1242,78 +1252,6 @@ export class AnimeSamaService {
       { quality: `${prefix}480p`, url: `${url}/480p.mp4` },
       { quality: `${prefix}360p`, url: `${url}/360p.mp4` },
     ];
-  }
-  /**
-   * Détermine le statut d'un anime basé sur le contenu de la page
-   * Basé sur la logique du code Kotlin
-   */
-  private determineAnimeStatus(
-    doc: Document,
-    url: string
-  ): 'ongoing' | 'completed' | 'unknown' | undefined {
-    // Si l'URL contient "film", c'est probablement terminé
-    if (url.toLowerCase().includes('film')) {
-      return 'completed';
-    }
-
-    // Rechercher des indices dans le texte de la page
-    const bodyText = doc.body.textContent?.toLowerCase() || '';
-
-    // Mots-clés indiquant que l'anime est terminé
-    const completedKeywords = [
-      'terminé',
-      'fini',
-      'complet',
-      'achevé',
-      'série terminée',
-      'fin de diffusion',
-    ];
-
-    // Mots-clés indiquant que l'anime est en cours
-    const ongoingKeywords = [
-      'en cours',
-      'diffusion en cours',
-      'série en cours',
-      'épisodes à venir',
-      'prochainement',
-    ];
-
-    for (const keyword of completedKeywords) {
-      if (bodyText.includes(keyword)) {
-        return 'completed';
-      }
-    }
-
-    for (const keyword of ongoingKeywords) {
-      if (bodyText.includes(keyword)) {
-        return 'ongoing';
-      }
-    }
-
-    // Rechercher dans les métadonnées spécifiques
-    const h2Elements = doc.querySelectorAll('h2');
-    for (const h2 of h2Elements) {
-      const h2Text = h2.textContent?.toLowerCase() || '';
-
-      if (h2Text.includes('statut') || h2Text.includes('état')) {
-        const nextElement = h2.nextElementSibling;
-        if (nextElement) {
-          const statusText = nextElement.textContent?.toLowerCase() || '';
-
-          if (statusText.includes('terminé') || statusText.includes('fini')) {
-            return 'completed';
-          }
-          if (
-            statusText.includes('en cours') ||
-            statusText.includes('diffusion')
-          ) {
-            return 'ongoing';
-          }
-        }
-      }
-    }
-
-    return undefined;
   }
 
   /**
