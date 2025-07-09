@@ -1,5 +1,4 @@
 import type { Episode, AnimeDetails, AnimeCardInfo } from '@/types/anime';
-import './animesama';
 
 /**
  * Interface pour les services d'extension
@@ -14,10 +13,8 @@ interface ExtensionService {
   searchAnime(query: string): Promise<AnimeCardInfo[]>;
   getAnimeDetails(url: string): Promise<AnimeDetails>;
   getEpisodes(animeUrl: string): Promise<Episode[]>;
-  getPopularAnimes(
-    page?: number
-  ): Promise<{ data: AnimeCardInfo[]; hasNextPage: boolean }>;
-  getLatestUpdates(): Promise<{ data: AnimeCardInfo[]; hasNextPage: boolean }>;
+  getPopularAnimes(page?: number): Promise<{ data: AnimeCardInfo[] }>;
+  getLatestUpdates(): Promise<{ data: AnimeCardInfo[] }>;
 }
 
 /**
@@ -25,6 +22,7 @@ interface ExtensionService {
  */
 export class ExtensionManager {
   private services: Map<string, ExtensionService> = new Map();
+  private initialized = false;
 
   constructor() {
     // Le manager est maintenant vide et les extensions sont enregistrées séparément
@@ -110,22 +108,21 @@ export class ExtensionManager {
    * Récupère les animes populaires d'une extension
    */
   async getPopularAnimes(
-    extension: string,
-    page: number = 1
-  ): Promise<{ data: AnimeCardInfo[]; hasNextPage: boolean }> {
+    extension: string
+  ): Promise<{ data: AnimeCardInfo[] }> {
     const service = this.services.get(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
     }
 
     try {
-      return await service.getPopularAnimes(page);
+      return await service.getPopularAnimes();
     } catch (error) {
       console.error(
         'Erreur lors de la récupération des animes populaires:',
         error
       );
-      return { data: [], hasNextPage: false };
+      return { data: [] };
     }
   }
 
@@ -134,7 +131,7 @@ export class ExtensionManager {
    */
   async getLatestUpdates(
     extension: string
-  ): Promise<{ data: AnimeCardInfo[]; hasNextPage: boolean }> {
+  ): Promise<{ data: AnimeCardInfo[] }> {
     const service = this.services.get(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
@@ -144,7 +141,7 @@ export class ExtensionManager {
       return await service.getLatestUpdates();
     } catch (error) {
       console.error('Erreur lors de la récupération des dernières MAJ:', error);
-      return { data: [], hasNextPage: false };
+      return { data: [] };
     }
   }
 
@@ -186,6 +183,21 @@ export class ExtensionManager {
   isExtensionEnabled(extensionKey: string): boolean {
     const service = this.services.get(extensionKey);
     return service ? service.isEnabled : false;
+  }
+
+  /**
+   * Initialise toutes les extensions
+   */
+  async initializeExtensions(): Promise<void> {
+    if (this.initialized) {
+      return; // Déjà initialisé
+    }
+
+    // Import et enregistrement des extensions
+    const { registerAnimeSamaExtension } = await import('./animesama');
+    await registerAnimeSamaExtension();
+
+    this.initialized = true;
   }
 }
 

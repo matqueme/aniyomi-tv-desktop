@@ -35,5 +35,4 @@ export interface AnimeSamaSearchParams {
 
 export interface AnimeSamaPage<T> {
   data: T[];
-  hasNextPage: boolean;
 }

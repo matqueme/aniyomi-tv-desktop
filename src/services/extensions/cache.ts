@@ -143,6 +143,7 @@ import type {
   AnimeSamaVideo,
   AnimeSamaPage,
 } from '@/types/animesama';
+import type { AnimeCardInfo } from '@/types/anime';
 
 /**
  * Gestionnaire de cache pour les extensions
@@ -238,7 +239,7 @@ export class ExtensionCache {
    */
   cachePopularAnimes(
     page: number,
-    data: AnimeSamaPage<AnimeSamaAnime>,
+    data: { data: AnimeCardInfo[] },
     ttl?: number
   ): void {
     const key = this.generateKey(
@@ -251,18 +252,18 @@ export class ExtensionCache {
   /**
    * Récupère les animes populaires depuis le cache
    */
-  getPopularAnimes(page: number): AnimeSamaPage<AnimeSamaAnime> | null {
+  getPopularAnimes(page: number): { data: AnimeCardInfo[] } | null {
     const key = this.generateKey(
       this.CACHE_KEYS.POPULAR_ANIMES,
       page.toString()
     );
-    return this.cache.get<AnimeSamaPage<AnimeSamaAnime>>(key);
+    return this.cache.get<{ data: AnimeCardInfo[] }>(key);
   }
 
   /**
    * Cache les dernières mises à jour
    */
-  cacheLatestUpdates(data: AnimeSamaPage<AnimeSamaAnime>, ttl?: number): void {
+  cacheLatestUpdates(data: { data: AnimeCardInfo[] }, ttl?: number): void {
     const key = this.generateKey(this.CACHE_KEYS.LATEST_UPDATES);
     this.cache.set(key, data, ttl);
   }
@@ -270,9 +271,9 @@ export class ExtensionCache {
   /**
    * Récupère les dernières mises à jour depuis le cache
    */
-  getLatestUpdates(): AnimeSamaPage<AnimeSamaAnime> | null {
+  getLatestUpdates(): { data: AnimeCardInfo[] } | null {
     const key = this.generateKey(this.CACHE_KEYS.LATEST_UPDATES);
-    return this.cache.get<AnimeSamaPage<AnimeSamaAnime>>(key);
+    return this.cache.get<{ data: AnimeCardInfo[] }>(key);
   }
 
   /**

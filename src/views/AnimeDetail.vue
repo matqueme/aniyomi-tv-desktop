@@ -671,6 +671,9 @@ const loadAnimeDetails = async () => {
 };
 
 const loadFromExtension = async () => {
+  // S'assurer que les extensions sont initialisées
+  await extensionManager.initializeExtensions();
+
   // Charger les détails complets de l'anime depuis l'extension
   animeDetails.value = await extensionManager.getAnimeDetails(
     extensionName.value,

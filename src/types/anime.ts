@@ -3,8 +3,32 @@ export interface AnimeCardInfo {
   title: string;
   posterUrl: string;
   year?: number;
-  numberOfEpisodes?: number;
+  totalEpisodes?: number;
   extension?: string;
+}
+
+export interface AnimeDetails extends AnimeCardInfo {
+  originalTitle?: string;
+  description?: string;
+  bannerUrl?: string;
+  status?: 'ongoing' | 'completed' | 'upcoming';
+  genres?: string[];
+  rating?: number;
+  duration?: string;
+  studio?: string;
+  trailer?: string;
+  extension: string;
+  seasons?: Season[];
+}
+
+export interface Season {
+  number: number;
+  title: string;
+  episodeCount: number;
+  airDate?: Date;
+  status?: 'ongoing' | 'completed' | 'upcoming' | undefined;
+  posterUrl?: string;
+  description?: string;
 }
 
 export interface Episode {
@@ -17,34 +41,4 @@ export interface Episode {
   videoUrl: string;
   duration?: string;
   airDate?: Date;
-}
-
-export interface AnimeDetails {
-  id: string;
-  title: string;
-  originalTitle?: string;
-  description?: string;
-  posterUrl: string;
-  bannerUrl?: string;
-  year?: number;
-  status?: 'ongoing' | 'completed' | 'upcoming';
-  genres?: string[];
-  rating?: number;
-  duration?: string;
-  studio?: string;
-  trailer?: string;
-  extension: string;
-
-  seasons?: Season[];
-  totalEpisodes?: number;
-}
-
-export interface Season {
-  number: number;
-  title: string;
-  episodeCount: number;
-  airDate?: Date;
-  status?: 'ongoing' | 'completed' | 'upcoming' | undefined;
-  posterUrl?: string;
-  description?: string;
 }

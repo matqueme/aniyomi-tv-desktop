@@ -25,7 +25,7 @@ const ANIMESAMA_CONFIG = {
   VOICES: ['vostfr', 'vf'] as const,
   VOICE_PREFERENCE: 'vostfr',
   QUALITY_PRIORITIES: ['1080', '720', '480', '360'] as const,
-  ITEMS_PER_PAGE: 5,
+  ITEMS_PER_PAGE: 6,
   PLAYER_TYPES: {
     SIBNET: 'sibnet.ru',
     VK: 'vk.com',
@@ -156,9 +156,7 @@ export class AnimeSamaService {
   /**
    * Récupère les animes populaires depuis la page d'accueil
    */
-  async getPopularAnimes(
-    page: number = 1
-  ): Promise<AnimeSamaPage<AnimeSamaAnime>> {
+  async getPopularAnimes(page: number = 1): Promise<{ data: AnimeCardInfo[] }> {
     try {
       // Vérifier le cache
       const cached = extensionCache.getPopularAnimes(page);
@@ -179,17 +177,25 @@ export class AnimeSamaService {
       const currentChunk = chunks[page - 1];
 
       if (!currentChunk) {
-        return { data: [], hasNextPage: false };
+        return { data: [] };
       }
 
-      const animes: AnimeSamaAnime[] = [];
+      const animes: AnimeCardInfo[] = [];
       const promises = currentChunk.map(async (link) => {
         const href = link.getAttribute('href');
         if (href) {
           const cleanUrl = this.validateAndCleanUrl(href);
           if (cleanUrl) {
             const animeInfo = await this.fetchAnimeInfo(cleanUrl);
-            return animeInfo;
+            if (animeInfo) {
+              console.log(animeInfo);
+              return {
+                id: animeInfo.url,
+                title: animeInfo.title,
+                posterUrl: animeInfo.thumbnailUrl || '',
+                extension: 'animesama',
+              } as AnimeCardInfo;
+            }
           }
         }
         return null;
@@ -204,7 +210,6 @@ export class AnimeSamaService {
 
       const result = {
         data: animes,
-        hasNextPage: page < chunks.length,
       };
 
       // Mettre en cache
@@ -220,14 +225,16 @@ export class AnimeSamaService {
         'Erreur lors de la récupération des animes populaires:',
         error
       );
-      return { data: [], hasNextPage: false };
+      return { data: [] };
     }
   }
 
   /**
    * Récupère les dernières mises à jour
    */
-  async getLatestUpdates(): Promise<AnimeSamaPage<AnimeSamaAnime>> {
+  async getLatestUpdates(): Promise<{
+    data: AnimeCardInfo[];
+  }> {
     try {
       // Vérifier le cache
       const cached = extensionCache.getLatestUpdates();
@@ -241,7 +248,7 @@ export class AnimeSamaService {
       const updateElements = doc.querySelectorAll(
         ANIMESAMA_CONFIG.SELECTORS.LATEST_UPDATES
       );
-      const animes: AnimeSamaAnime[] = [];
+      const animes: AnimeCardInfo[] = [];
       const seenUrls = new Set<string>();
 
       const promises = Array.from(updateElements).map(async (element) => {
@@ -267,7 +274,15 @@ export class AnimeSamaService {
 
               if (!seenUrls.has(cleanedUrl)) {
                 seenUrls.add(cleanedUrl);
-                return await this.fetchAnimeInfo(cleanedUrl);
+                const animeInfo = await this.fetchAnimeInfo(cleanedUrl);
+                if (animeInfo) {
+                  return {
+                    id: animeInfo.url,
+                    title: animeInfo.title,
+                    posterUrl: animeInfo.thumbnailUrl || '',
+                    extension: 'animesama',
+                  } as AnimeCardInfo;
+                }
               }
             }
           } catch (error) {
@@ -287,7 +302,6 @@ export class AnimeSamaService {
 
       const result = {
         data: animes,
-        hasNextPage: false,
       };
 
       // Mettre en cache
@@ -299,7 +313,7 @@ export class AnimeSamaService {
       return result;
     } catch (error) {
       console.error('Erreur lors de la récupération des dernières MAJ:', error);
-      return { data: [], hasNextPage: false };
+      return { data: [] };
     }
   }
 
@@ -371,16 +385,8 @@ export class AnimeSamaService {
         }
       });
 
-      // Vérifier s'il y a une page suivante
-      const paginationLinks = doc.querySelectorAll(
-        ANIMESAMA_CONFIG.SELECTORS.PAGINATION
-      );
-      const lastPageLink = paginationLinks[paginationLinks.length - 1];
-      const hasNextPage = lastPageLink?.textContent !== page.toString();
-
       const result = {
         data: animes,
-        hasNextPage,
       };
 
       // Mettre en cache
@@ -394,7 +400,7 @@ export class AnimeSamaService {
       return result;
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
-      return { data: [], hasNextPage: false };
+      return { data: [] };
     }
   }
   /**
@@ -715,7 +721,6 @@ export class AnimeSamaService {
           : '',
         description,
         genre,
-        status: 'unknown' as const,
         initialized: false,
       };
 
@@ -1278,9 +1283,8 @@ export class AnimeSamaService {
 
 export const animeSamaService = new AnimeSamaService();
 
-// Import des types et du manager pour l'enregistrement
+// Import des types pour l'enregistrement
 import type { Episode, AnimeDetails, AnimeCardInfo } from '@/types/anime';
-import { extensionManager } from './manager';
 
 /**
  * Convertit un anime AnimeSama en AnimeCardInfo
@@ -1345,101 +1349,109 @@ function convertAnimeSamaEpisode(
   };
 }
 
-// Enregistrer l'extension AnimeSama
-extensionManager.registerExtension('animesama', {
-  name: 'AnimeSama',
-  version: '1.0.0',
-  baseUrl: 'https://anime-sama.fr',
-  isEnabled: true,
+/**
+ * Enregistre l'extension AnimeSama
+ */
+export async function registerAnimeSamaExtension(): Promise<void> {
+  // Import dynamique pour éviter les dépendances circulaires
+  const { extensionManager } = await import('./manager');
 
-  async searchAnime(query: string): Promise<AnimeCardInfo[]> {
-    try {
-      const results = await animeSamaService.searchAnimes({
-        query,
-        page: 1,
-      });
-      return results.data.map(convertAnimeSamaToCardInfo);
-    } catch (error) {
-      console.error('Erreur lors de la recherche AnimeSama:', error);
-      return [];
-    }
-  },
+  extensionManager.registerExtension('animesama', {
+    name: 'AnimeSama',
+    version: '1.0.0',
+    baseUrl: 'https://anime-sama.fr',
+    isEnabled: true,
 
-  async getAnimeDetails(url: string): Promise<AnimeDetails> {
-    try {
-      const animeInfo = await animeSamaService.getAnimeDetails(url);
-      if (!animeInfo) {
-        throw new Error('Anime non trouvé');
+    async searchAnime(query: string): Promise<AnimeCardInfo[]> {
+      try {
+        const results = await animeSamaService.searchAnimes({
+          query,
+          page: 1,
+        });
+        return results.data.map(convertAnimeSamaToCardInfo);
+      } catch (error) {
+        console.error('Erreur lors de la recherche AnimeSama:', error);
+        return [];
       }
+    },
 
-      // Récupérer le nombre d'épisodes pour des informations plus complètes
-      let episodeCount = animeInfo.totalEpisodes;
-      if (!episodeCount) {
-        try {
-          const episodes = await animeSamaService.getEpisodeList(url);
-          episodeCount = episodes.length;
-        } catch (error) {
-          console.warn("Impossible de récupérer le nombre d'épisodes:", error);
-          episodeCount = 0;
+    async getAnimeDetails(url: string): Promise<AnimeDetails> {
+      try {
+        const animeInfo = await animeSamaService.getAnimeDetails(url);
+        if (!animeInfo) {
+          throw new Error('Anime non trouvé');
         }
+
+        // Récupérer le nombre d'épisodes pour des informations plus complètes
+        let episodeCount = animeInfo.totalEpisodes;
+        if (!episodeCount) {
+          try {
+            const episodes = await animeSamaService.getEpisodeList(url);
+            episodeCount = episodes.length;
+          } catch (error) {
+            console.warn(
+              "Impossible de récupérer le nombre d'épisodes:",
+              error
+            );
+            episodeCount = 0;
+          }
+        }
+
+        const details = convertAnimeSamaToDetails(animeInfo, url);
+
+        // Mettre à jour le nombre d'épisodes si on l'a récupéré
+        if (episodeCount > 0) {
+          details.totalEpisodes = episodeCount;
+          if (details.seasons) details.seasons[0].episodeCount = episodeCount;
+        }
+
+        return details;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des détails:', error);
+        throw error;
       }
+    },
 
-      const details = convertAnimeSamaToDetails(animeInfo, url);
-
-      // Mettre à jour le nombre d'épisodes si on l'a récupéré
-      if (episodeCount > 0) {
-        details.totalEpisodes = episodeCount;
-        if (details.seasons) details.seasons[0].episodeCount = episodeCount;
+    async getEpisodes(animeUrl: string): Promise<Episode[]> {
+      try {
+        const episodes = await animeSamaService.getEpisodeList(animeUrl);
+        return episodes.map((ep) => convertAnimeSamaEpisode(ep, animeUrl));
+      } catch (error) {
+        console.error('Erreur lors de la récupération des épisodes:', error);
+        return [];
       }
+    },
 
-      return details;
-    } catch (error) {
-      console.error('Erreur lors de la récupération des détails:', error);
-      throw error;
-    }
-  },
+    async getPopularAnimes(
+      page: number = 1
+    ): Promise<{ data: AnimeCardInfo[] }> {
+      try {
+        const results = await animeSamaService.getPopularAnimes(page);
+        return results;
+      } catch (error) {
+        console.error(
+          'Erreur lors de la récupération des animes populaires:',
+          error
+        );
+        return { data: [] };
+      }
+    },
 
-  async getEpisodes(animeUrl: string): Promise<Episode[]> {
-    try {
-      const episodes = await animeSamaService.getEpisodeList(animeUrl);
-      return episodes.map((ep) => convertAnimeSamaEpisode(ep, animeUrl));
-    } catch (error) {
-      console.error('Erreur lors de la récupération des épisodes:', error);
-      return [];
-    }
-  },
+    async getLatestUpdates(): Promise<{
+      data: AnimeCardInfo[];
+    }> {
+      try {
+        const results = await animeSamaService.getLatestUpdates();
+        return results;
+      } catch (error) {
+        console.error(
+          'Erreur lors de la récupération des dernières MAJ:',
+          error
+        );
+        return { data: [] };
+      }
+    },
+  });
+}
 
-  async getPopularAnimes(
-    page: number = 1
-  ): Promise<{ data: AnimeCardInfo[]; hasNextPage: boolean }> {
-    try {
-      const results = await animeSamaService.getPopularAnimes(page);
-      return {
-        data: results.data.map(convertAnimeSamaToCardInfo),
-        hasNextPage: results.hasNextPage,
-      };
-    } catch (error) {
-      console.error(
-        'Erreur lors de la récupération des animes populaires:',
-        error
-      );
-      return { data: [], hasNextPage: false };
-    }
-  },
-
-  async getLatestUpdates(): Promise<{
-    data: AnimeCardInfo[];
-    hasNextPage: boolean;
-  }> {
-    try {
-      const results = await animeSamaService.getLatestUpdates();
-      return {
-        data: results.data.map(convertAnimeSamaToCardInfo),
-        hasNextPage: results.hasNextPage,
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des dernières MAJ:', error);
-      return { data: [], hasNextPage: false };
-    }
-  },
-});
+// The extension is registered through the ExtensionManager.initializeExtensions() method
