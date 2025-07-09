@@ -385,7 +385,10 @@
                     >
                       {{ episode.description }}
                     </p>
-                    <div class="flex items-center justify-between">
+                    <div
+                      v-if="episode.airDate"
+                      class="flex items-center justify-between"
+                    >
                       <span class="text-xs text-slate-500">
                         {{ formatDate(episode.airDate) }}
                       </span>
