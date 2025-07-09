@@ -1,47 +1,53 @@
 import type { Episode, AnimeDetails, AnimeCardInfo } from '@/types/anime';
-
-/**
- * Interface pour les services d'extension
- */
-interface ExtensionService {
-  name: string;
-  version: string;
-  baseUrl: string;
-  isEnabled: boolean;
-
-  // Méthodes principales
-  searchAnime(query: string): Promise<AnimeCardInfo[]>;
-  getAnimeDetails(url: string): Promise<AnimeDetails>;
-  getEpisodes(animeUrl: string): Promise<Episode[]>;
-  getPopularAnimes(page?: number): Promise<{ data: AnimeCardInfo[] }>;
-  getLatestUpdates(): Promise<{ data: AnimeCardInfo[] }>;
-}
+import type { ExtensionService, ExtensionMetadata } from '@/stores/extensions';
 
 /**
  * Service de gestion des extensions d'anime
+ * Utilise le store Pinia pour la gestion d'état
  */
 export class ExtensionManager {
-  private services: Map<string, ExtensionService> = new Map();
-  private initialized = false;
+  private _store: ReturnType<
+    typeof import('@/stores/extensions').useExtensionsStore
+  > | null = null;
 
   constructor() {
-    // Le manager est maintenant vide et les extensions sont enregistrées séparément
+    // Le store sera initialisé lors de la première utilisation
+  }
+
+  /**
+   * Obtient l'instance du store (lazy initialization)
+   */
+  private async getStore() {
+    if (!this._store) {
+      const { useExtensionsStore } = await import('@/stores/extensions');
+      this._store = useExtensionsStore();
+    }
+    return this._store;
   }
 
   /**
    * Enregistre une extension
    */
-  registerExtension(key: string, service: ExtensionService): void {
-    this.services.set(key, service);
+  async registerExtension(
+    key: string,
+    service: ExtensionService
+  ): Promise<void> {
+    const store = await this.getStore();
+    store.registerExtension(key, service);
   }
 
   /**
    * Récupère les épisodes d'un anime depuis une extension
    */
   async getEpisodes(extension: string, animeUrl: string): Promise<Episode[]> {
-    const service = this.services.get(extension);
+    const store = await this.getStore();
+    const service = store.getExtension(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    if (!service.isEnabled) {
+      throw new Error(`Extension '${extension}' est désactivée`);
     }
 
     try {
@@ -59,9 +65,15 @@ export class ExtensionManager {
     extension: string,
     query: string
   ): Promise<AnimeCardInfo[]> {
-    const service = this.services.get(extension);
+    const store = await this.getStore();
+    const service = store.getExtension(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    if (!service.isEnabled) {
+      console.warn(`Extension '${extension}' est désactivée`);
+      return [];
     }
 
     try {
@@ -79,9 +91,14 @@ export class ExtensionManager {
     extension: string,
     animeName: string
   ): Promise<AnimeDetails> {
-    const service = this.services.get(extension);
+    const store = await this.getStore();
+    const service = store.getExtension(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    if (!service.isEnabled) {
+      throw new Error(`Extension '${extension}' est désactivée`);
     }
 
     try {
@@ -110,9 +127,15 @@ export class ExtensionManager {
   async getPopularAnimes(
     extension: string
   ): Promise<{ data: AnimeCardInfo[] }> {
-    const service = this.services.get(extension);
+    const store = await this.getStore();
+    const service = store.getExtension(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    if (!service.isEnabled) {
+      console.warn(`Extension '${extension}' est désactivée`);
+      return { data: [] };
     }
 
     try {
@@ -132,9 +155,15 @@ export class ExtensionManager {
   async getLatestUpdates(
     extension: string
   ): Promise<{ data: AnimeCardInfo[] }> {
-    const service = this.services.get(extension);
+    const store = await this.getStore();
+    const service = store.getExtension(extension);
     if (!service) {
       throw new Error(`Extension '${extension}' non trouvée`);
+    }
+
+    if (!service.isEnabled) {
+      console.warn(`Extension '${extension}' est désactivée`);
+      return { data: [] };
     }
 
     try {
@@ -146,58 +175,87 @@ export class ExtensionManager {
   }
 
   /**
+   * Recherche dans toutes les extensions activées
+   */
+  async searchInAllExtensions(query: string): Promise<{
+    [extensionKey: string]: AnimeCardInfo[];
+  }> {
+    const store = await this.getStore();
+    const results: { [extensionKey: string]: AnimeCardInfo[] } = {};
+    const enabledExtensions = store.enabledExtensions;
+
+    const searchPromises = enabledExtensions.map(
+      async (ext: ExtensionMetadata) => {
+        try {
+          const animes = await this.searchAnime(ext.key, query);
+          results[ext.key] = animes;
+        } catch (error) {
+          console.error(`Erreur lors de la recherche dans ${ext.name}:`, error);
+          results[ext.key] = [];
+        }
+      }
+    );
+
+    await Promise.allSettled(searchPromises);
+    return results;
+  }
+
+  /**
    * Retourne la liste des extensions disponibles
    */
-  getAvailableExtensions(): Array<{
-    key: string;
-    name: string;
-    version: string;
-    baseUrl: string;
-    isEnabled: boolean;
-  }> {
-    return Array.from(this.services.entries()).map(([key, service]) => ({
-      key,
-      name: service.name,
-      version: service.version,
-      baseUrl: service.baseUrl,
-      isEnabled: service.isEnabled,
-    }));
+  async getAvailableExtensions() {
+    const store = await this.getStore();
+    return store.availableExtensions;
   }
 
   /**
    * Active ou désactive une extension
    */
-  toggleExtension(extensionKey: string, enabled: boolean): boolean {
-    const service = this.services.get(extensionKey);
-    if (!service) {
-      return false;
-    }
-
-    service.isEnabled = enabled;
-    return true;
+  async toggleExtension(
+    extensionKey: string,
+    enabled: boolean
+  ): Promise<boolean> {
+    const store = await this.getStore();
+    return store.toggleExtension(extensionKey, enabled);
   }
 
   /**
    * Vérifie si une extension est disponible et activée
    */
-  isExtensionEnabled(extensionKey: string): boolean {
-    const service = this.services.get(extensionKey);
-    return service ? service.isEnabled : false;
+  async isExtensionEnabled(extensionKey: string): Promise<boolean> {
+    const store = await this.getStore();
+    return store.isExtensionEnabled(extensionKey);
   }
 
   /**
    * Initialise toutes les extensions
    */
   async initializeExtensions(): Promise<void> {
-    if (this.initialized) {
-      return; // Déjà initialisé
-    }
+    const store = await this.getStore();
+    await store.initializeExtensions();
+  }
 
-    // Import et enregistrement des extensions
-    const { registerAnimeSamaExtension } = await import('./animesama');
-    await registerAnimeSamaExtension();
+  /**
+   * Méthodes pour accéder facilement aux données du store
+   */
+  async getIsLoading(): Promise<boolean> {
+    const store = await this.getStore();
+    return store.isLoading;
+  }
 
-    this.initialized = true;
+  async getError(): Promise<string | null> {
+    const store = await this.getStore();
+    return store.error;
+  }
+
+  async getIsInitialized(): Promise<boolean> {
+    const store = await this.getStore();
+    return store.initialized;
+  }
+
+  async getExtensionCount(): Promise<number> {
+    const store = await this.getStore();
+    return store.extensionCount;
   }
 }
 

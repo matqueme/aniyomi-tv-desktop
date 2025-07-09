@@ -42,4 +42,16 @@ app.use(pinia);
 app.use(i18n);
 app.use(router);
 app.use(vueSpatialNavigation, spatialNavConfig);
+
+// Initialiser les extensions au démarrage
+(async () => {
+  try {
+    const { useExtensionsStore } = await import('@/stores/extensions');
+    const extensionsStore = useExtensionsStore();
+    await extensionsStore.initializeExtensions();
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation des extensions:", error);
+  }
+})();
+
 app.mount('#app');

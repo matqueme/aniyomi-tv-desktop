@@ -1354,9 +1354,10 @@ function convertAnimeSamaEpisode(
  */
 export async function registerAnimeSamaExtension(): Promise<void> {
   // Import dynamique pour éviter les dépendances circulaires
-  const { extensionManager } = await import('./manager');
+  const { useExtensionsStore } = await import('@/stores/extensions');
+  const store = useExtensionsStore();
 
-  extensionManager.registerExtension('animesama', {
+  store.registerExtension('animesama', {
     name: 'AnimeSama',
     version: '1.0.0',
     baseUrl: 'https://anime-sama.fr',
@@ -1453,5 +1454,3 @@ export async function registerAnimeSamaExtension(): Promise<void> {
     },
   });
 }
-
-// The extension is registered through the ExtensionManager.initializeExtensions() method
