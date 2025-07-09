@@ -51,6 +51,8 @@ export class AnimeSamaService {
 
   /**
    * Helper pour faire des requêtes avec gestion CORS et retry
+   * @param url L'URL à récupérer
+   * @return Le contenu de la page HTML
    */
   private async fetchWithCors(url: string): Promise<string> {
     console.log(`Tentative de récupération: ${url}`);
@@ -118,6 +120,8 @@ export class AnimeSamaService {
 
   /**
    * Utilitaire pour attendre
+   * @param ms Durée en millisecondes
+   * @return Une promesse qui se résout après le délai
    */
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -125,6 +129,9 @@ export class AnimeSamaService {
 
   /**
    * Divise un tableau en chunks de taille donnée
+   * @param array Le tableau à diviser
+   * @param size La taille de chaque chunk
+   * @return Un tableau de chunks
    */
   private chunkArray<T>(array: T[], size: number): T[][] {
     const chunks: T[][] = [];
@@ -136,23 +143,14 @@ export class AnimeSamaService {
 
   /**
    * Nettoie et valide une URL
+   * @param href L'URL à valider
+   * @param baseUrl URL de base pour les chemins relatifs
+   * @return L'URL nettoyée ou null si invalide
    */
   private validateAndCleanUrl(href: string, baseUrl?: string): string | null {
-    try {
-      if (!href) return null;
-
-      if (href.startsWith('http')) {
-        return href;
-      }
-
-      if (href.startsWith('/')) {
-        return (baseUrl || this.baseUrl) + href;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
+    if (href.startsWith('http')) return href;
+    if (href.startsWith('/')) return (baseUrl || this.baseUrl) + href;
+    return null;
   }
 
   /**
@@ -466,12 +464,12 @@ export class AnimeSamaService {
   async getAnimeSeasons(url: string): Promise<AnimeSamaAnime[]> {
     return this.fetchAnimeSeasons(url);
   }
+
   /**
-   * Récupère la liste des épisodes pour un anime avec gestion des erreurs améliorée
+   * Récupère la liste des épisodes pour un anime
    */
   async getEpisodeList(animeName: string): Promise<AnimeSamaEpisode[]> {
     try {
-      // Normaliser l'URL pour AnimeSama
       const url = this.baseUrl + '/catalogue/' + animeName;
 
       // Vérifier le cache
@@ -1200,9 +1198,6 @@ export class AnimeSamaService {
     url: string,
     prefix: string
   ): Promise<AnimeSamaVideo[]> {
-    // Simulation de l'extraction Sibnet - Dans la vraie impl, parser la page
-    await this.delay(100); // Simulation de latence réseau
-
     return [
       { quality: `${prefix}720p HD`, url: `${url}/720p.mp4` },
       { quality: `${prefix}480p`, url: `${url}/480p.mp4` },

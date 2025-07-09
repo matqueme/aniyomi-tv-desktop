@@ -54,27 +54,6 @@
 
       <!-- Icône paramètres à droite -->
       <div class="flex flex-shrink-0 items-center gap-2">
-        <!-- Bouton test extensions (en développement) -->
-        <button
-          ref="extensionTestButtonRef"
-          v-focus
-          v-focus-events="{
-            'enter-up': onExtensionTestClick,
-            focused: () => (isExtensionTestFocused = true),
-            unfocused: () => (isExtensionTestFocused = false),
-          }"
-          class="flex cursor-pointer items-center justify-center rounded-lg border p-2 text-slate-400 transition-all duration-300 ease-in-out focus-none hover:text-slate-200"
-          :class="[
-            isExtensionTestFocused
-              ? 'scale-[1.01] border-purple-500 bg-purple-500/20 text-purple-200 shadow-lg shadow-purple-500/20'
-              : 'border-transparent hover:border-purple-500/40 hover:bg-purple-500/10',
-          ]"
-          title="Test des extensions"
-          @click="onExtensionTestClick"
-        >
-          <ph-wrench :size="24" />
-        </button>
-
         <button
           ref="settingsButtonRef"
           v-focus
@@ -100,7 +79,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { PhMagnifyingGlass, PhGear, PhWrench } from '@phosphor-icons/vue';
+import { PhMagnifyingGlass, PhGear } from '@phosphor-icons/vue';
 import { useRouter, useRoute } from 'vue-router';
 
 interface Emits {
@@ -113,7 +92,6 @@ const emit = defineEmits<Emits>();
 
 // Références pour les éléments focusables
 const searchButtonRef = ref<HTMLButtonElement>();
-const extensionTestButtonRef = ref<HTMLButtonElement>();
 const settingsButtonRef = ref<HTMLButtonElement>();
 
 // États des éléments focusés
@@ -147,12 +125,6 @@ const disableFocus = () => {
 const onSearchClick = () => {
   disableFocus();
   router.push('/search');
-};
-
-// Fonction pour gérer le clic sur le bouton de test des extensions
-const onExtensionTestClick = () => {
-  disableFocus();
-  router.push('/extension-test');
 };
 
 // Fonction pour gérer le clic sur le bouton de paramètres
