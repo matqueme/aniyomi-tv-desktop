@@ -6,6 +6,7 @@ import type {
   AnimeSamaPage,
 } from '@/types/animesama';
 import { extensionCache } from './cache';
+import { parseHTML } from '@/utils/htmlUtils';
 
 /**
  * Configuration du service AnimeSama
@@ -43,7 +44,6 @@ const ANIMESAMA_CONFIG = {
 
 /**
  * Service pour scraper AnimeSama.fr
- * Basé sur l'extension Kotlin officielle avec améliorations
  */
 export class AnimeSamaService {
   private readonly baseUrl = ANIMESAMA_CONFIG.BASE_URL;
@@ -117,45 +117,6 @@ export class AnimeSamaService {
   }
 
   /**
-   * Parse un document HTML depuis une string avec validation
-   */
-  private parseHTML(htmlString: string): Document {
-    if (!htmlString || htmlString.trim().length === 0) {
-      throw new Error('Contenu HTML vide ou invalide');
-    }
-
-    // Vérifier que le contenu ressemble à du HTML
-    const trimmedContent = htmlString.trim();
-    if (!trimmedContent.includes('<') || !trimmedContent.includes('>')) {
-      console.warn(
-        'Contenu reçu ne ressemble pas à du HTML:',
-        trimmedContent.substring(0, 200)
-      );
-      throw new Error('Le contenu reçu ne semble pas être du HTML valide');
-    }
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
-
-    // Vérifier que le parsing s'est bien passé
-    const parserError = doc.querySelector('parsererror');
-    if (parserError) {
-      throw new Error(
-        'Erreur lors du parsing HTML: ' + parserError.textContent
-      );
-    }
-
-    // Vérifier que le document a du contenu utile
-    const body = doc.body;
-    if (!body || body.children.length === 0) {
-      console.warn('Document HTML parsé mais sans contenu dans le body');
-      throw new Error('Document HTML sans contenu utile');
-    }
-
-    return doc;
-  }
-
-  /**
    * Utilitaire pour attendre
    */
   private delay(ms: number): Promise<void> {
@@ -208,7 +169,7 @@ export class AnimeSamaService {
       }
 
       const htmlContent = await this.fetchWithCors(this.baseUrl);
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       const pepitesLinks = doc.querySelectorAll(
         ANIMESAMA_CONFIG.SELECTORS.POPULAR_ANIMES
@@ -277,7 +238,7 @@ export class AnimeSamaService {
       }
 
       const htmlContent = await this.fetchWithCors(this.baseUrl);
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       const updateElements = doc.querySelectorAll(
         ANIMESAMA_CONFIG.SELECTORS.LATEST_UPDATES
@@ -384,7 +345,7 @@ export class AnimeSamaService {
       searchUrl.searchParams.append('page', page.toString());
 
       const htmlContent = await this.fetchWithCors(searchUrl.toString());
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       // Récupérer les liens des animes
       const animeLinks = doc.querySelectorAll(
@@ -453,7 +414,7 @@ export class AnimeSamaService {
       }
 
       const htmlContent = await this.fetchWithCors(url);
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       const titleElement = doc.getElementById('titreOeuvre');
       const coverElement = doc.getElementById('coverOeuvre');
@@ -729,7 +690,7 @@ export class AnimeSamaService {
       }
 
       const htmlContent = await this.fetchWithCors(animeUrl);
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       // Extraire les informations de base
       const titleElement = doc.querySelector(
@@ -840,7 +801,7 @@ export class AnimeSamaService {
   private async fetchAnimeSeasons(animeUrl: string): Promise<AnimeSamaAnime[]> {
     try {
       const htmlContent = await this.fetchWithCors(animeUrl);
-      const doc = this.parseHTML(htmlContent);
+      const doc = parseHTML(htmlContent);
 
       const animeName = doc.getElementById('titreOeuvre')?.textContent || '';
       const thumbnailUrl =
