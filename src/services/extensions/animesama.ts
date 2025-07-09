@@ -1160,7 +1160,7 @@ export class AnimeSamaService {
    */
   private sortVideos(videos: AnimeSamaVideo[]): AnimeSamaVideo[] {
     const voicePreference = ANIMESAMA_CONFIG.VOICE_PREFERENCE.toLowerCase();
-    const qualityOrder = ['1080', '720', '480', '360'];
+    const qualityPriority = ANIMESAMA_CONFIG.QUALITY_PRIORITIES;
 
     return videos.sort((a, b) => {
       const aLower = a.quality.toLowerCase();
@@ -1175,18 +1175,18 @@ export class AnimeSamaService {
       }
 
       // 2. Trier par qualité (ordre de préférence)
-      let aQualityIndex = qualityOrder.length;
-      let bQualityIndex = qualityOrder.length;
+      let aQualityIndex: number = qualityPriority.length;
+      let bQualityIndex: number = qualityPriority.length;
 
-      for (let i = 0; i < qualityOrder.length; i++) {
-        if (a.quality.includes(qualityOrder[i])) {
+      for (let i = 0; i < qualityPriority.length; i++) {
+        if (a.quality.includes(qualityPriority[i])) {
           aQualityIndex = i;
           break;
         }
       }
 
-      for (let i = 0; i < qualityOrder.length; i++) {
-        if (b.quality.includes(qualityOrder[i])) {
+      for (let i = 0; i < qualityPriority.length; i++) {
+        if (b.quality.includes(qualityPriority[i])) {
           bQualityIndex = i;
           break;
         }
