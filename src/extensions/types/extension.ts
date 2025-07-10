@@ -1,9 +1,5 @@
 import type { AnimeCardInfo, AnimeDetails, Episode } from '../../types/anime';
 
-/**
- * Types de base pour le système d'extensions
- */
-
 export interface ExtensionInfo {
   id: string;
   name: string;

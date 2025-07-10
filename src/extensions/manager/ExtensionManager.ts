@@ -2,10 +2,10 @@ import type {
   AnimeExtension,
   ExtensionInfo,
   SearchResult,
-  AnimeSourceDetails,
-  AnimeEpisode,
   VideoSource,
 } from '../types/extension';
+
+import type { Episode, AnimeDetails } from '../../types/anime';
 
 /**
  * Gestionnaire central des extensions
@@ -101,7 +101,7 @@ export class ExtensionManager {
   async getAnimeDetails(
     extensionId: string,
     animeId: string
-  ): Promise<AnimeSourceDetails> {
+  ): Promise<AnimeDetails> {
     const extension = this.getExtension(extensionId);
     if (!extension) {
       throw new Error(`Extension ${extensionId} not found`);
@@ -112,10 +112,7 @@ export class ExtensionManager {
     return extension.getAnimeDetails(animeId);
   }
 
-  async getEpisodes(
-    extensionId: string,
-    animeId: string
-  ): Promise<AnimeEpisode[]> {
+  async getEpisodes(extensionId: string, animeId: string): Promise<Episode[]> {
     const extension = this.getExtension(extensionId);
     if (!extension) {
       throw new Error(`Extension ${extensionId} not found`);
