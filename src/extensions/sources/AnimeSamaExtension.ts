@@ -22,18 +22,16 @@ export class AnimeSamaExtension extends AnimeExtension {
     isEnabled: true,
   };
 
-  async getPopularAnime(page: number = 1): Promise<SearchResult> {
+  async getPopularAnime(): Promise<SearchResult> {
     // Simulation d'un délai réseau
     await new Promise((resolve) => setTimeout(resolve, 500));
     const mockAnimes: AnimeCardInfo[] = [];
     return {
       items: mockAnimes,
-      hasNextPage: page < 3,
-      currentPage: page,
     };
   }
 
-  async getLatestUpdates(page: number = 1): Promise<SearchResult> {
+  async getLatestUpdates(): Promise<SearchResult> {
     // Simulation d'un délai réseau
     await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -42,12 +40,10 @@ export class AnimeSamaExtension extends AnimeExtension {
 
     return {
       items: mockAnimes,
-      hasNextPage: page < 2,
-      currentPage: page,
     };
   }
 
-  async searchAnime(_query: string, page: number = 1): Promise<SearchResult> {
+  async searchAnime(): Promise<SearchResult> {
     // Simulation d'un délai réseau
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -56,8 +52,6 @@ export class AnimeSamaExtension extends AnimeExtension {
 
     return {
       items: mockResults,
-      hasNextPage: false,
-      currentPage: page,
     };
   }
 

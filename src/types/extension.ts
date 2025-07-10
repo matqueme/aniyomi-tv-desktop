@@ -12,8 +12,6 @@ export interface ExtensionInfo {
 
 export interface SearchResult {
   items: AnimeCardInfo[];
-  hasNextPage: boolean;
-  currentPage: number;
 }
 
 export interface VideoSource {
@@ -31,17 +29,17 @@ export abstract class AnimeExtension {
   /**
    * Récupère les animes populaires
    */
-  abstract getPopularAnime(page: number): Promise<SearchResult>;
+  abstract getPopularAnime(): Promise<SearchResult>;
 
   /**
    * Récupère les dernières mises à jour
    */
-  abstract getLatestUpdates(page: number): Promise<SearchResult>;
+  abstract getLatestUpdates(): Promise<SearchResult>;
 
   /**
    * Recherche des animes
    */
-  abstract searchAnime(query: string, page: number): Promise<SearchResult>;
+  abstract searchAnime(query: string): Promise<SearchResult>;
 
   /**
    * Récupère les détails d'un anime

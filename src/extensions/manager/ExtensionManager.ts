@@ -55,10 +55,7 @@ export class ExtensionManager {
   /**
    * Méthodes de convenance pour accéder aux fonctionnalités des extensions
    */
-  async getPopularAnime(
-    extensionId: string,
-    page: number = 1
-  ): Promise<SearchResult> {
+  async getPopularAnime(extensionId: string): Promise<SearchResult> {
     const extension = this.getExtension(extensionId);
     if (!extension) {
       throw new Error(`Extension ${extensionId} not found`);
@@ -66,13 +63,10 @@ export class ExtensionManager {
     if (!extension.info.isEnabled) {
       throw new Error(`Extension ${extensionId} is disabled`);
     }
-    return extension.getPopularAnime(page);
+    return extension.getPopularAnime();
   }
 
-  async getLatestUpdates(
-    extensionId: string,
-    page: number = 1
-  ): Promise<SearchResult> {
+  async getLatestUpdates(extensionId: string): Promise<SearchResult> {
     const extension = this.getExtension(extensionId);
     if (!extension) {
       throw new Error(`Extension ${extensionId} not found`);
@@ -80,14 +74,10 @@ export class ExtensionManager {
     if (!extension.info.isEnabled) {
       throw new Error(`Extension ${extensionId} is disabled`);
     }
-    return extension.getLatestUpdates(page);
+    return extension.getLatestUpdates();
   }
 
-  async searchAnime(
-    extensionId: string,
-    query: string,
-    page: number = 1
-  ): Promise<SearchResult> {
+  async searchAnime(extensionId: string, query: string): Promise<SearchResult> {
     const extension = this.getExtension(extensionId);
     if (!extension) {
       throw new Error(`Extension ${extensionId} not found`);
@@ -95,7 +85,7 @@ export class ExtensionManager {
     if (!extension.info.isEnabled) {
       throw new Error(`Extension ${extensionId} is disabled`);
     }
-    return extension.searchAnime(query, page);
+    return extension.searchAnime(query);
   }
 
   async getAnimeDetails(
