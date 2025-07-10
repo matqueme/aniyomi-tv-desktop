@@ -23,24 +23,65 @@ export class AnimeSamaExtension extends AnimeExtension {
   };
 
   async getPopularAnime(): Promise<SearchResult> {
-    // Simulation d'un délai réseau
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const mockAnimes: AnimeCardInfo[] = [];
-    return {
-      items: mockAnimes,
-    };
+    // Utilisation d'un proxy CORS public pour le dev
+    const url = `${this.info.baseUrl}/`;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const animes: AnimeCardInfo[] = [];
+    const links = doc.querySelectorAll('#containerPepites > div a');
+    links.forEach((el) => {
+      const href = el.getAttribute('href') || '';
+      const title =
+        el.querySelector('.titreAnime')?.textContent?.trim() ||
+        el.textContent?.trim() ||
+        '';
+      const posterUrl = el.querySelector('img')?.getAttribute('src') || '';
+      if (href && title) {
+        animes.push({
+          id: href,
+          title,
+          posterUrl: posterUrl.startsWith('http')
+            ? posterUrl
+            : `${this.info.baseUrl}${posterUrl}`,
+          extension: this.info.id,
+        });
+      }
+    });
+    return { items: animes };
   }
 
   async getLatestUpdates(): Promise<SearchResult> {
-    // Simulation d'un délai réseau
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Données mockées pour les dernières mises à jour
-    const mockAnimes: AnimeCardInfo[] = [];
-
-    return {
-      items: mockAnimes,
-    };
+    // Utilisation d'un proxy CORS public pour le dev
+    const url = `${this.info.baseUrl}/`;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const animes: AnimeCardInfo[] = [];
+    const items = doc.querySelectorAll('#containerAjoutsAnimes > div');
+    items.forEach((el) => {
+      const a = el.querySelector('a');
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      const title =
+        a.querySelector('.titreAnime')?.textContent?.trim() ||
+        a.textContent?.trim() ||
+        '';
+      const posterUrl = a.querySelector('img')?.getAttribute('src') || '';
+      if (href && title) {
+        animes.push({
+          id: href,
+          title,
+          posterUrl: posterUrl.startsWith('http')
+            ? posterUrl
+            : `${this.info.baseUrl}${posterUrl}`,
+          extension: this.info.id,
+        });
+      }
+    });
+    return { items: animes };
   }
 
   async searchAnime(): Promise<SearchResult> {
