@@ -1,85 +1,29 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { AnimeCardInfo, AnimeDetails, Episode } from '@/types/anime';
-
-/**
- * Interface pour les services d'extension
- */
-export interface ExtensionService {
-  name: string;
-  version: string;
-  baseUrl: string;
-  isEnabled: boolean;
-
-  // Méthodes principales
-  searchAnime(query: string): Promise<AnimeCardInfo[]>;
-  getAnimeDetails(url: string): Promise<AnimeDetails>;
-  getEpisodes(animeUrl: string): Promise<Episode[]>;
-  getPopularAnimes(page?: number): Promise<{ data: AnimeCardInfo[] }>;
-  getLatestUpdates(): Promise<{ data: AnimeCardInfo[] }>;
-}
-
-/**
- * Interface pour les métadonnées d'extension
- */
-export interface ExtensionMetadata {
-  key: string;
-  name: string;
-  version: string;
-  baseUrl: string;
-  isEnabled: boolean;
-}
+import { extensionManager } from '@/extensions/manager/ExtensionManager';
+import { initializeExtensions as initExtensions } from '@/extensions/index';
+import type { ExtensionMetadata } from '@/extensions/base/BaseExtension';
 
 export const useExtensionsStore = defineStore('extensions', () => {
   // État
-  const services = ref<Map<string, ExtensionService>>(new Map());
   const initialized = ref(false);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
   // Getters computed
   const availableExtensions = computed((): ExtensionMetadata[] => {
-    return Array.from(services.value.entries()).map(([key, service]) => ({
-      key,
-      name: service.name,
-      version: service.version,
-      baseUrl: service.baseUrl,
-      isEnabled: service.isEnabled,
-    }));
+    return extensionManager.getExtensionMetadata();
   });
 
   const enabledExtensions = computed((): ExtensionMetadata[] => {
-    return availableExtensions.value.filter((ext) => ext.isEnabled);
+    return availableExtensions.value; // Toutes les extensions sont activées par défaut
   });
 
   const extensionCount = computed((): number => {
-    return services.value.size;
+    return availableExtensions.value.length;
   });
 
   // Actions
-  const registerExtension = (key: string, service: ExtensionService): void => {
-    services.value.set(key, service);
-  };
-
-  const getExtension = (key: string): ExtensionService | undefined => {
-    return services.value.get(key);
-  };
-
-  const toggleExtension = (extensionKey: string, enabled: boolean): boolean => {
-    const service = services.value.get(extensionKey);
-    if (!service) {
-      return false;
-    }
-
-    service.isEnabled = enabled;
-    return true;
-  };
-
-  const isExtensionEnabled = (extensionKey: string): boolean => {
-    const service = services.value.get(extensionKey);
-    return service ? service.isEnabled : false;
-  };
-
   const setLoading = (loading: boolean): void => {
     isLoading.value = loading;
   };
@@ -97,12 +41,7 @@ export const useExtensionsStore = defineStore('extensions', () => {
     setError(null);
 
     try {
-      // Import et enregistrement des extensions
-      const { registerAnimeSamaExtension } = await import(
-        '../services/extensions/animesama'
-      );
-      await registerAnimeSamaExtension();
-
+      await initExtensions();
       initialized.value = true;
     } catch (err) {
       const errorMessage =
@@ -118,7 +57,6 @@ export const useExtensionsStore = defineStore('extensions', () => {
 
   return {
     // État
-    services: computed(() => services.value),
     initialized: computed(() => initialized.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
@@ -129,10 +67,6 @@ export const useExtensionsStore = defineStore('extensions', () => {
     extensionCount,
 
     // Actions
-    registerExtension,
-    getExtension,
-    toggleExtension,
-    isExtensionEnabled,
     setLoading,
     setError,
     initializeExtensions,

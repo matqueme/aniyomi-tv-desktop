@@ -23,12 +23,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import NavigationBar from './components/ui/NavigationBar.vue';
 import NavigationDebug from './components/debug/NavigationDebug.vue';
+import { useExtensionsStore } from '@/stores/extensions';
 
 const route = useRoute();
+const extensionsStore = useExtensionsStore();
 const isDev = import.meta.env.DEV; // Vérifie si l'application est en mode développement
 
 const searchQuery = ref('');
@@ -43,6 +45,11 @@ const handleSettings = () => {
   console.log('Ouvrir les paramètres');
   // Ici vous pouvez implémenter l'ouverture des paramètres
 };
+
+// Initialisation des extensions au démarrage
+onMounted(async () => {
+  await extensionsStore.initializeExtensions();
+});
 </script>
 
 <style>

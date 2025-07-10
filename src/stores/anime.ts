@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Episode, AnimeCardInfo } from '@/types/anime';
-import { extensionManager } from '@/services/extensions/manager';
+import { extensionManager } from '@/extensions/manager/ExtensionManager';
 
 export const useAnimeStore = defineStore('anime', () => {
   // État
@@ -22,10 +22,8 @@ export const useAnimeStore = defineStore('anime', () => {
   const fetchPopularAnimes = async () => {
     loadingPopular.value = true;
     try {
-      // S'assurer que les extensions sont initialisées
-      await extensionManager.initializeExtensions();
-      const response = await extensionManager.getPopularAnimes('animesama');
-      popularAnimes.value = response.data;
+      const response = await extensionManager.getPopularAnime('animesama');
+      popularAnimes.value = response.items;
     } catch (err) {
       console.error('Erreur fetchPopularAnimes:', err);
       popularAnimes.value = []; // Assurer qu'on a un tableau vide
@@ -38,10 +36,8 @@ export const useAnimeStore = defineStore('anime', () => {
   const fetchLatestUpdates = async () => {
     loadingLatest.value = true;
     try {
-      // S'assurer que les extensions sont initialisées
-      await extensionManager.initializeExtensions();
       const response = await extensionManager.getLatestUpdates('animesama');
-      latestUpdates.value = response.data;
+      latestUpdates.value = response.items;
     } catch (err) {
       console.error('Erreur fetchLatestUpdates:', err);
       latestUpdates.value = []; // Assurer qu'on a un tableau vide
