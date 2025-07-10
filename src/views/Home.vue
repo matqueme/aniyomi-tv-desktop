@@ -91,6 +91,16 @@ const latestListRef = ref<InstanceType<typeof AnimeList>>();
 const popularSectionRef = ref<HTMLElement>();
 const latestSectionRef = ref<HTMLElement>();
 
+// Chargement des animes populaires et derniers animes
+const loadAnimes = async () => {
+  try {
+    await animeStore.fetchPopularAnimes('animesama');
+    await animeStore.fetchLatestAnimes('animesama');
+  } catch (error) {
+    console.error('Erreur lors du chargement des animes:', error);
+  }
+};
+
 // Gestion de la sélection d'anime
 const handleAnimeSelect = (anime: AnimeCardInfo) => {
   // Utiliser l'extension depuis l'anime, ou une valeur par défaut
@@ -102,8 +112,6 @@ const handleAnimeSelect = (anime: AnimeCardInfo) => {
 
   router.push(`/${extension}/${animeName}`);
 };
-
-// Fonction pour réessayer le chargement
 
 // Gestion du bouton retour de la télécommande
 const handleKeyUp = (event: KeyboardEvent) => {
@@ -124,6 +132,8 @@ onMounted(async () => {
   } else if (animeStore.latestAnimes.length > 0) {
     SpatialNavigation.focus('latest');
   }
+  // Charger les animes
+  await loadAnimes();
 });
 </script>
 
