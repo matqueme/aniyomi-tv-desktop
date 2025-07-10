@@ -9,7 +9,7 @@ import type { Episode, AnimeDetails, AnimeCardInfo } from '../../types/anime';
 
 /**
  * Extension pour AnimeSama
- * Exemple d'implémentation d'une extension
+ * Cette extension permet de scraper les données d'AnimeSama.fr
  */
 export class AnimeSamaExtension extends AnimeExtension {
   readonly info: ExtensionInfo = {
@@ -29,18 +29,24 @@ export class AnimeSamaExtension extends AnimeExtension {
     const res = await fetch(proxyUrl);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const animes: AnimeCardInfo[] = [];
+    const animesMap = new Map<string, AnimeCardInfo>();
     const links = doc.querySelectorAll('#containerPepites > div a');
     links.forEach((el) => {
       const href = el.getAttribute('href') || '';
-      const title =
+      // Extraction de l'id d'anime depuis l'URL (ex: /catalogue/akudama-drive/)
+      const match = href.match(/\/catalogue\/([^/]+)/);
+      const animeId = match ? match[1] : href;
+      // Extraction du titre principal (avant les catégories, etc.)
+      let title =
         el.querySelector('.titreAnime')?.textContent?.trim() ||
         el.textContent?.trim() ||
         '';
+      // Nettoyage du titre (supprimer les catégories et autres infos)
+      title = title.replace(/\n.*/s, '').replace(/\s+$/, '');
       const posterUrl = el.querySelector('img')?.getAttribute('src') || '';
-      if (href && title) {
-        animes.push({
-          id: href,
+      if (animeId && title && !animesMap.has(animeId)) {
+        animesMap.set(animeId, {
+          id: animeId,
           title,
           posterUrl: posterUrl.startsWith('http')
             ? posterUrl
@@ -49,7 +55,7 @@ export class AnimeSamaExtension extends AnimeExtension {
         });
       }
     });
-    return { items: animes };
+    return { items: Array.from(animesMap.values()) };
   }
 
   async getLatestUpdates(): Promise<SearchResult> {
@@ -59,20 +65,26 @@ export class AnimeSamaExtension extends AnimeExtension {
     const res = await fetch(proxyUrl);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const animes: AnimeCardInfo[] = [];
+    const animesMap = new Map<string, AnimeCardInfo>();
     const items = doc.querySelectorAll('#containerAjoutsAnimes > div');
     items.forEach((el) => {
       const a = el.querySelector('a');
       if (!a) return;
       const href = a.getAttribute('href') || '';
-      const title =
+      // Extraction de l'id d'anime depuis l'URL (ex: /catalogue/the-water-magician/saison1/vostfr/)
+      const match = href.match(/\/catalogue\/([^/]+)/);
+      const animeId = match ? match[1] : href;
+      // Extraction du titre principal (avant les infos d'épisode/saison)
+      let title =
         a.querySelector('.titreAnime')?.textContent?.trim() ||
         a.textContent?.trim() ||
         '';
+      // Nettoyage du titre (supprimer les infos d'épisode/saison)
+      title = title.replace(/\n.*/s, '').replace(/\s+$/, '');
       const posterUrl = a.querySelector('img')?.getAttribute('src') || '';
-      if (href && title) {
-        animes.push({
-          id: href,
+      if (animeId && title && !animesMap.has(animeId)) {
+        animesMap.set(animeId, {
+          id: animeId,
           title,
           posterUrl: posterUrl.startsWith('http')
             ? posterUrl
@@ -81,7 +93,7 @@ export class AnimeSamaExtension extends AnimeExtension {
         });
       }
     });
-    return { items: animes };
+    return { items: Array.from(animesMap.values()) };
   }
 
   async searchAnime(): Promise<SearchResult> {
