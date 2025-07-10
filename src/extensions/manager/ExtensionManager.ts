@@ -3,7 +3,7 @@ import type {
   ExtensionInfo,
   SearchResult,
   VideoSource,
-} from '../types/extension';
+} from '../../types/extension';
 
 import type { Episode, AnimeDetails } from '../../types/anime';
 

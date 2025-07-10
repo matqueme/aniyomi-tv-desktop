@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { extensionManager } from '@/extensions';
-import type { ExtensionInfo } from '@/extensions/types/extension';
+import type { ExtensionInfo } from '@/types/extension';
 
 /**
  * Store pour gérer les extensions

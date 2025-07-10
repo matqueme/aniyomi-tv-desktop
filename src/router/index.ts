@@ -33,17 +33,6 @@ const router = createRouter({
       name: 'VideoWatch',
       component: VideoWatch,
     },
-    // À ajouter plus tard :
-    // {
-    //   path: '/watch/:id',
-    //   name: 'Watch',
-    //   component: () => import('../views/Watch.vue')
-    // },
-    // {
-    //   path: '/category/:category',
-    //   name: 'Category',
-    //   component: () => import('../views/Category.vue')
-    // }
   ],
 });
 

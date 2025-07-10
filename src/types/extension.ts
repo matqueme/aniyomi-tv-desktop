@@ -1,4 +1,4 @@
-import type { AnimeCardInfo, AnimeDetails, Episode } from '../../types/anime';
+import type { AnimeCardInfo, AnimeDetails, Episode } from './anime';
 
 export interface ExtensionInfo {
   id: string;

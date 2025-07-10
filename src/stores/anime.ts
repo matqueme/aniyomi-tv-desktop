@@ -1,22 +1,18 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { extensionManager } from '@/extensions';
-import type {
-  AnimeSource,
-  AnimeSourceDetails,
-  AnimeEpisode,
-} from '@/extensions/types/extension';
+import type { Episode, AnimeCardInfo, AnimeDetails } from '@/types/anime';
 
 /**
  * Store pour gérer les animes
  */
 export const useAnimeStore = defineStore('anime', () => {
   // État
-  const popularAnimes = ref<AnimeSource[]>([]);
-  const latestAnimes = ref<AnimeSource[]>([]);
-  const searchResults = ref<AnimeSource[]>([]);
-  const animeDetails = ref<AnimeSourceDetails | null>(null);
-  const episodes = ref<AnimeEpisode[]>([]);
+  const popularAnimes = ref<AnimeCardInfo[]>([]);
+  const latestAnimes = ref<AnimeCardInfo[]>([]);
+  const searchResults = ref<AnimeCardInfo[]>([]);
+  const animeDetails = ref<AnimeDetails | null>(null);
+  const episodes = ref<Episode[]>([]);
   const favorites = ref<string[]>([]);
 
   // États de chargement
