@@ -97,7 +97,6 @@ const settingsButtonRef = ref<HTMLButtonElement>();
 // États des éléments focusés
 const isNavbarActive = ref(false);
 const isSearchFocused = ref(false);
-const isExtensionTestFocused = ref(false);
 const isSettingsFocused = ref(false);
 
 // Configuration de la section spatiale
@@ -117,7 +116,6 @@ const navbarConfig = computed(() => ({
 const disableFocus = () => {
   isNavbarActive.value = false;
   isSearchFocused.value = false;
-  isExtensionTestFocused.value = false;
   isSettingsFocused.value = false;
 };
 
