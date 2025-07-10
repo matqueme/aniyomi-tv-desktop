@@ -39,6 +39,7 @@
       ></div>
       <!-- Badge épisodes -->
       <div
+        v-if="anime.totalEpisodes"
         :class="[
           'absolute right-3 top-3 rounded-lg border backdrop-blur-md',
           'px-2.5 py-1 text-xs font-semibold transition-all duration-300',
@@ -47,7 +48,7 @@
           isFocused ? 'border-indigo-400/70 bg-indigo-500/80 text-white' : '',
         ]"
       >
-        <span>{{ anime.numberOfEpisodes }} EP</span>
+        <span>{{ anime.totalEpisodes }} EP</span>
       </div>
     </div>
     <!-- Contenu textuel -->

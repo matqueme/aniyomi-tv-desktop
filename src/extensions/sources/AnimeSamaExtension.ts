@@ -36,13 +36,9 @@ export class AnimeSamaExtension extends AnimeExtension {
       // Extraction de l'id d'anime depuis l'URL (ex: /catalogue/akudama-drive/)
       const match = href.match(/\/catalogue\/([^/]+)/);
       const animeId = match ? match[1] : href;
-      // Extraction du titre principal (avant les catégories, etc.)
-      let title =
-        el.querySelector('.titreAnime')?.textContent?.trim() ||
-        el.textContent?.trim() ||
-        '';
-      // Nettoyage du titre (supprimer les catégories et autres infos)
-      title = title.replace(/\n.*/s, '').replace(/\s+$/, '');
+      // Extraction du titre directement depuis le h1
+      const title = el.querySelector('h1')?.textContent || '';
+      // Extraction directe de l'image
       const posterUrl = el.querySelector('img')?.getAttribute('src') || '';
       if (animeId && title && !animesMap.has(animeId)) {
         animesMap.set(animeId, {
@@ -66,21 +62,15 @@ export class AnimeSamaExtension extends AnimeExtension {
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const animesMap = new Map<string, AnimeCardInfo>();
-    const items = doc.querySelectorAll('#containerAjoutsAnimes > div');
-    items.forEach((el) => {
-      const a = el.querySelector('a');
-      if (!a) return;
+    const items = doc.querySelectorAll('#containerAjoutsAnimes > div a');
+    items.forEach((a) => {
       const href = a.getAttribute('href') || '';
       // Extraction de l'id d'anime depuis l'URL (ex: /catalogue/the-water-magician/saison1/vostfr/)
       const match = href.match(/\/catalogue\/([^/]+)/);
       const animeId = match ? match[1] : href;
-      // Extraction du titre principal (avant les infos d'épisode/saison)
-      let title =
-        a.querySelector('.titreAnime')?.textContent?.trim() ||
-        a.textContent?.trim() ||
-        '';
-      // Nettoyage du titre (supprimer les infos d'épisode/saison)
-      title = title.replace(/\n.*/s, '').replace(/\s+$/, '');
+      // Extraction du titre directement depuis le h1
+      const title = a.querySelector('h1')?.textContent || '';
+      // Extraction directe de l'image
       const posterUrl = a.querySelector('img')?.getAttribute('src') || '';
       if (animeId && title && !animesMap.has(animeId)) {
         animesMap.set(animeId, {
