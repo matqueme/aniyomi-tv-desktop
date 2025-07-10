@@ -1,265 +1,145 @@
-import { extensionRegistry } from '../index';
-import { extensionCache } from '../cache/CacheManager';
-import type { AnimeCardInfo, AnimeDetails, Episode } from '@/types/anime';
 import type {
-  PaginatedResult,
-  SearchParams,
-  BaseExtension,
-} from '../base/BaseExtension';
+  AnimeExtension,
+  ExtensionInfo,
+  SearchResult,
+  AnimeSourceDetails,
+  AnimeEpisode,
+  VideoSource,
+} from '../types/extension';
 
 /**
- * Gestionnaire principal des extensions
- * Point d'entrée unique pour toutes les opérations sur les extensions
+ * Gestionnaire central des extensions
  */
 export class ExtensionManager {
-  private static instance: ExtensionManager;
-
-  private constructor() {}
+  private extensions = new Map<string, AnimeExtension>();
 
   /**
-   * Obtient l'instance singleton
+   * Enregistre une extension
    */
-  public static getInstance(): ExtensionManager {
-    if (!ExtensionManager.instance) {
-      ExtensionManager.instance = new ExtensionManager();
-    }
-    return ExtensionManager.instance;
+  registerExtension(extension: AnimeExtension): void {
+    this.extensions.set(extension.info.id, extension);
+    console.log(`Extension registered: ${extension.info.name}`);
   }
 
   /**
-   * Recherche des animes
+   * Récupère une extension par son ID
    */
-  async searchAnime(
-    query: string,
-    extensionId?: string,
-    page: number = 1
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    const params: SearchParams = { query, page };
-
-    if (extensionId) {
-      const extension = extensionRegistry.getExtension(extensionId);
-      if (!extension) {
-        throw new Error(`Extension ${extensionId} non trouvée`);
-      }
-      return this.searchWithCache(extension, params);
-    }
-
-    // Recherche sur toutes les extensions
-    const extensions = extensionRegistry.getSearchableExtensions();
-    const results = await Promise.allSettled(
-      extensions.map((ext) => this.searchWithCache(ext, params))
-    );
-
-    const combinedResults: AnimeCardInfo[] = [];
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        combinedResults.push(...result.value.items);
-      }
-    }
-
-    return {
-      items: combinedResults,
-      currentPage: page,
-      totalPages: 1,
-      hasNextPage: combinedResults.length >= 20,
-      hasPreviousPage: page > 1,
-    };
+  getExtension(id: string): AnimeExtension | undefined {
+    return this.extensions.get(id);
   }
 
   /**
-   * Récupère les détails d'un anime
+   * Récupère toutes les extensions
    */
-  async getAnimeDetails(
-    animeId: string,
-    extensionId: string
-  ): Promise<AnimeDetails> {
-    const extension = extensionRegistry.getExtension(extensionId);
-    if (!extension) {
-      throw new Error(`Extension ${extensionId} non trouvée`);
-    }
-
-    const cacheKey = extensionCache.generateKey(
-      extensionId,
-      'getAnimeDetails',
-      { animeId }
-    );
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.getAnimeDetails(animeId),
-      15 * 60 * 1000 // 15 minutes
-    );
+  getAllExtensions(): ExtensionInfo[] {
+    return Array.from(this.extensions.values()).map((ext) => ext.info);
   }
 
   /**
-   * Récupère les épisodes d'un anime
+   * Récupère les extensions actives
    */
-  async getEpisodes(animeId: string, extensionId: string): Promise<Episode[]> {
-    const extension = extensionRegistry.getExtension(extensionId);
-    if (!extension) {
-      throw new Error(`Extension ${extensionId} non trouvée`);
-    }
-
-    const cacheKey = extensionCache.generateKey(extensionId, 'getEpisodes', {
-      animeId,
-    });
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.getEpisodes(animeId),
-      10 * 60 * 1000 // 10 minutes
-    );
+  getEnabledExtensions(): ExtensionInfo[] {
+    return this.getAllExtensions().filter((ext) => ext.isEnabled);
   }
 
   /**
-   * Récupère l'URL vidéo d'un épisode
+   * Active/désactive une extension
    */
-  async getVideoUrl(episodeId: string, extensionId: string): Promise<string> {
-    const extension = extensionRegistry.getExtension(extensionId);
-    if (!extension) {
-      throw new Error(`Extension ${extensionId} non trouvée`);
+  toggleExtension(id: string): void {
+    const extension = this.extensions.get(id);
+    if (extension) {
+      extension.info.isEnabled = !extension.info.isEnabled;
     }
-
-    const cacheKey = extensionCache.generateKey(extensionId, 'getVideoUrl', {
-      episodeId,
-    });
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.getVideoUrl(episodeId),
-      5 * 60 * 1000 // 5 minutes
-    );
   }
 
   /**
-   * Récupère les animes populaires
+   * Méthodes de convenance pour accéder aux fonctionnalités des extensions
    */
   async getPopularAnime(
-    extensionId?: string,
+    extensionId: string,
     page: number = 1
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    if (extensionId) {
-      const extension = extensionRegistry.getExtension(extensionId);
-      if (!extension) {
-        throw new Error(`Extension ${extensionId} non trouvée`);
-      }
-      return this.getPopularWithCache(extension, page);
+  ): Promise<SearchResult> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
     }
-
-    // Récupère depuis toutes les extensions
-    const extensions = extensionRegistry.getPopularExtensions();
-    const results = await Promise.allSettled(
-      extensions.map((ext) => this.getPopularWithCache(ext, page))
-    );
-
-    const combinedResults: AnimeCardInfo[] = [];
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        combinedResults.push(...result.value.items);
-      }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
     }
-
-    return {
-      items: combinedResults,
-      currentPage: page,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    };
+    return extension.getPopularAnime(page);
   }
 
-  /**
-   * Récupère les dernières mises à jour
-   */
   async getLatestUpdates(
-    extensionId?: string,
+    extensionId: string,
     page: number = 1
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    if (extensionId) {
-      const extension = extensionRegistry.getExtension(extensionId);
-      if (!extension) {
-        throw new Error(`Extension ${extensionId} non trouvée`);
-      }
-      return this.getLatestWithCache(extension, page);
+  ): Promise<SearchResult> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
     }
-
-    // Récupère depuis toutes les extensions
-    const extensions = extensionRegistry.getLatestExtensions();
-    const results = await Promise.allSettled(
-      extensions.map((ext) => this.getLatestWithCache(ext, page))
-    );
-
-    const combinedResults: AnimeCardInfo[] = [];
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        combinedResults.push(...result.value.items);
-      }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
     }
-
-    return {
-      items: combinedResults,
-      currentPage: page,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    };
+    return extension.getLatestUpdates(page);
   }
 
-  /**
-   * Récupère les métadonnées des extensions
-   */
-  getExtensionMetadata() {
-    return extensionRegistry.getExtensionMetadata();
+  async searchAnime(
+    extensionId: string,
+    query: string,
+    page: number = 1
+  ): Promise<SearchResult> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
+    }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
+    }
+    return extension.searchAnime(query, page);
   }
 
-  /**
-   * Méthodes privées avec cache
-   */
-  private async searchWithCache(
-    extension: BaseExtension,
-    params: SearchParams
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    const cacheKey = extensionCache.generateKey(
-      extension.metadata.id,
-      'searchAnime',
-      params as unknown as Record<string, unknown>
-    );
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.searchAnime(params),
-      2 * 60 * 1000 // 2 minutes
-    );
+  async getAnimeDetails(
+    extensionId: string,
+    animeId: string
+  ): Promise<AnimeSourceDetails> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
+    }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
+    }
+    return extension.getAnimeDetails(animeId);
   }
 
-  private async getPopularWithCache(
-    extension: BaseExtension,
-    page: number
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    const cacheKey = extensionCache.generateKey(
-      extension.metadata.id,
-      'getPopularAnime',
-      { page }
-    );
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.getPopularAnime(page),
-      10 * 60 * 1000 // 10 minutes
-    );
+  async getEpisodes(
+    extensionId: string,
+    animeId: string
+  ): Promise<AnimeEpisode[]> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
+    }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
+    }
+    return extension.getEpisodes(animeId);
   }
 
-  private async getLatestWithCache(
-    extension: BaseExtension,
-    page: number
-  ): Promise<PaginatedResult<AnimeCardInfo>> {
-    const cacheKey = extensionCache.generateKey(
-      extension.metadata.id,
-      'getLatestUpdates',
-      { page }
-    );
-    return extensionCache.getOrFetch(
-      cacheKey,
-      () => extension.getLatestUpdates(page),
-      5 * 60 * 1000 // 5 minutes
-    );
+  async getVideoSources(
+    extensionId: string,
+    episodeId: string
+  ): Promise<VideoSource[]> {
+    const extension = this.getExtension(extensionId);
+    if (!extension) {
+      throw new Error(`Extension ${extensionId} not found`);
+    }
+    if (!extension.info.isEnabled) {
+      throw new Error(`Extension ${extensionId} is disabled`);
+    }
+    return extension.getVideoSources(episodeId);
   }
 }
 
-// Instance singleton
-export const extensionManager = ExtensionManager.getInstance();
+// Instance globale du gestionnaire
+export const extensionManager = new ExtensionManager();

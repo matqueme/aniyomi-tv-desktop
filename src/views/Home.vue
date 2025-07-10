@@ -2,11 +2,7 @@
   <div class="min-h-screen w-full bg-transparent pt-16" @keyup="handleKeyUp">
     <!-- Simple Loading State - Overlay sur tout -->
     <LoadingSpinner
-      v-if="
-        animeStore.loading ||
-        animeStore.loadingPopular ||
-        animeStore.loadingLatest
-      "
+      v-if="animeStore.loadingPopular || animeStore.loadingLatest"
       title="Chargement des anime..."
     />
 
@@ -14,7 +10,6 @@
     <div
       v-if="
         animeStore.error &&
-        !animeStore.loading &&
         !animeStore.loadingPopular &&
         !animeStore.loadingLatest
       "
@@ -29,7 +24,6 @@
         <p class="mb-4 text-red-300">{{ animeStore.error }}</p>
         <button
           class="rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
-          @click="retryLoad"
         >
           Réessayer
         </button>
@@ -58,13 +52,13 @@
 
       <!-- Dernières Mises à Jour (AnimeSama) -->
       <div
-        v-if="animeStore.latestUpdates.length > 0"
+        v-if="animeStore.latestAnimes.length > 0"
         ref="latestSectionRef"
         class="anime-section"
       >
         <AnimeList
           ref="latestListRef"
-          :animes="animeStore.latestUpdates"
+          :animes="animeStore.latestAnimes"
           :list-id="'latest'"
           title="AnimeSama - Dernières Mises à Jour "
           :leave-up-to="'popular'"
@@ -110,9 +104,6 @@ const handleAnimeSelect = (anime: AnimeCardInfo) => {
 };
 
 // Fonction pour réessayer le chargement
-const retryLoad = async () => {
-  await animeStore.fetchAllData();
-};
 
 // Gestion du bouton retour de la télécommande
 const handleKeyUp = (event: KeyboardEvent) => {
@@ -126,14 +117,11 @@ const handleKeyUp = (event: KeyboardEvent) => {
 
 // Lifecycle
 onMounted(async () => {
-  // Charger toutes les données (mock + AnimeSama)
-  await animeStore.fetchAllData();
-
   // Focus sur la première section après le chargement
   await nextTick();
   if (animeStore.popularAnimes.length > 0) {
     SpatialNavigation.focus('popular');
-  } else if (animeStore.latestUpdates.length > 0) {
+  } else if (animeStore.latestAnimes.length > 0) {
     SpatialNavigation.focus('latest');
   }
 });

@@ -1,57 +1,133 @@
-import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { Episode, AnimeCardInfo } from '@/types/anime';
-import { extensionManager } from '@/extensions/manager/ExtensionManager';
+import { defineStore } from 'pinia';
+import { extensionManager } from '@/extensions';
+import type {
+  AnimeSource,
+  AnimeSourceDetails,
+  AnimeEpisode,
+} from '@/extensions/types/extension';
 
+/**
+ * Store pour gérer les animes
+ */
 export const useAnimeStore = defineStore('anime', () => {
   // État
-  const episodes = ref<Episode[]>([]);
+  const popularAnimes = ref<AnimeSource[]>([]);
+  const latestAnimes = ref<AnimeSource[]>([]);
+  const searchResults = ref<AnimeSource[]>([]);
+  const animeDetails = ref<AnimeSourceDetails | null>(null);
+  const episodes = ref<AnimeEpisode[]>([]);
   const favorites = ref<string[]>([]);
 
-  // États pour l'extension AnimeSama
-  const popularAnimes = ref<AnimeCardInfo[]>([]);
-  const latestUpdates = ref<AnimeCardInfo[]>([]);
-
   // États de chargement
-  const loading = ref(false);
   const loadingPopular = ref(false);
   const loadingLatest = ref(false);
+  const loadingSearch = ref(false);
+  const loadingDetails = ref(false);
+  const loadingEpisodes = ref(false);
   const error = ref<string | null>(null);
 
-  // Nouvelle action pour charger les animes populaires depuis AnimeSama
-  const fetchPopularAnimes = async () => {
+  // Actions
+  const fetchPopularAnimes = async (extensionId: string, page: number = 1) => {
     loadingPopular.value = true;
+    error.value = null;
+
     try {
-      const response = await extensionManager.getPopularAnime('animesama');
-      popularAnimes.value = response.items;
+      const result = await extensionManager.getPopularAnime(extensionId, page);
+      popularAnimes.value = result.items;
     } catch (err) {
-      console.error('Erreur fetchPopularAnimes:', err);
-      popularAnimes.value = []; // Assurer qu'on a un tableau vide
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Erreur lors du chargement des animes populaires';
+      console.error('Error fetching popular animes:', err);
     } finally {
       loadingPopular.value = false;
     }
   };
 
-  // Nouvelle action pour charger les dernières mises à jour depuis AnimeSama
-  const fetchLatestUpdates = async () => {
+  const fetchLatestAnimes = async (extensionId: string, page: number = 1) => {
     loadingLatest.value = true;
+    error.value = null;
+
     try {
-      const response = await extensionManager.getLatestUpdates('animesama');
-      latestUpdates.value = response.items;
+      const result = await extensionManager.getLatestUpdates(extensionId, page);
+      latestAnimes.value = result.items;
     } catch (err) {
-      console.error('Erreur fetchLatestUpdates:', err);
-      latestUpdates.value = []; // Assurer qu'on a un tableau vide
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Erreur lors du chargement des dernières mises à jour';
+      console.error('Error fetching latest animes:', err);
     } finally {
       loadingLatest.value = false;
     }
   };
 
-  /**
-   * Action pour charger toutes les données des animes
-   * @returns {Promise<void>}
-   */
-  const fetchAllData = async () => {
-    await Promise.allSettled([fetchPopularAnimes(), fetchLatestUpdates()]);
+  const searchAnimes = async (
+    extensionId: string,
+    query: string,
+    page: number = 1
+  ) => {
+    loadingSearch.value = true;
+    error.value = null;
+
+    try {
+      const result = await extensionManager.searchAnime(
+        extensionId,
+        query,
+        page
+      );
+      searchResults.value = result.items;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : 'Erreur lors de la recherche';
+      console.error('Error searching animes:', err);
+    } finally {
+      loadingSearch.value = false;
+    }
+  };
+
+  const fetchAnimeDetails = async (extensionId: string, animeId: string) => {
+    loadingDetails.value = true;
+    error.value = null;
+
+    try {
+      const details = await extensionManager.getAnimeDetails(
+        extensionId,
+        animeId
+      );
+      animeDetails.value = details;
+    } catch (err) {
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Erreur lors du chargement des détails';
+      console.error('Error fetching anime details:', err);
+    } finally {
+      loadingDetails.value = false;
+    }
+  };
+
+  const fetchEpisodes = async (extensionId: string, animeId: string) => {
+    loadingEpisodes.value = true;
+    error.value = null;
+
+    try {
+      const episodeList = await extensionManager.getEpisodes(
+        extensionId,
+        animeId
+      );
+      episodes.value = episodeList;
+    } catch (err) {
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Erreur lors du chargement des épisodes';
+      console.error('Error fetching episodes:', err);
+    } finally {
+      loadingEpisodes.value = false;
+    }
   };
 
   const addToFavorites = (animeId: string) => {
@@ -71,23 +147,42 @@ export const useAnimeStore = defineStore('anime', () => {
     return favorites.value.includes(animeId);
   };
 
+  const clearSearch = () => {
+    searchResults.value = [];
+  };
+
+  const clearDetails = () => {
+    animeDetails.value = null;
+    episodes.value = [];
+  };
+
   return {
     // État
+    popularAnimes,
+    latestAnimes,
+    searchResults,
+    animeDetails,
     episodes,
     favorites,
-    popularAnimes,
-    latestUpdates,
-    loading,
+
+    // États de chargement
     loadingPopular,
     loadingLatest,
+    loadingSearch,
+    loadingDetails,
+    loadingEpisodes,
     error,
 
     // Actions
     fetchPopularAnimes,
-    fetchLatestUpdates,
-    fetchAllData,
+    fetchLatestAnimes,
+    searchAnimes,
+    fetchAnimeDetails,
+    fetchEpisodes,
     addToFavorites,
     removeFromFavorites,
     isFavorite,
+    clearSearch,
+    clearDetails,
   };
 });

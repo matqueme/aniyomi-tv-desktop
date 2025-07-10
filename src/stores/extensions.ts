@@ -1,74 +1,58 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { extensionManager } from '@/extensions/manager/ExtensionManager';
-import { initializeExtensions as initExtensions } from '@/extensions/index';
-import type { ExtensionMetadata } from '@/extensions/base/BaseExtension';
+import { extensionManager } from '@/extensions';
+import type { ExtensionInfo } from '@/extensions/types/extension';
 
-export const useExtensionsStore = defineStore('extensions', () => {
+/**
+ * Store pour gérer les extensions
+ */
+export const useExtensionStore = defineStore('extension', () => {
   // État
-  const initialized = ref(false);
-  const isLoading = ref(false);
+  const extensions = ref<ExtensionInfo[]>([]);
+  const currentExtensionId = ref<string>('animesama');
+  const loading = ref(false);
   const error = ref<string | null>(null);
 
-  // Getters computed
-  const availableExtensions = computed((): ExtensionMetadata[] => {
-    return extensionManager.getExtensionMetadata();
-  });
+  // Getters
+  const currentExtension = computed(() =>
+    extensions.value.find((ext) => ext.id === currentExtensionId.value)
+  );
 
-  const enabledExtensions = computed((): ExtensionMetadata[] => {
-    return availableExtensions.value; // Toutes les extensions sont activées par défaut
-  });
-
-  const extensionCount = computed((): number => {
-    return availableExtensions.value.length;
-  });
+  const enabledExtensions = computed(() =>
+    extensions.value.filter((ext) => ext.isEnabled)
+  );
 
   // Actions
-  const setLoading = (loading: boolean): void => {
-    isLoading.value = loading;
+  const loadExtensions = () => {
+    extensions.value = extensionManager.getAllExtensions();
   };
 
-  const setError = (errorMessage: string | null): void => {
-    error.value = errorMessage;
+  const toggleExtension = (id: string) => {
+    extensionManager.toggleExtension(id);
+    loadExtensions(); // Recharger pour mettre à jour l'état
   };
 
-  const initializeExtensions = async (): Promise<void> => {
-    if (initialized.value) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await initExtensions();
-      initialized.value = true;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Erreur lors de l'initialisation des extensions";
-      setError(errorMessage);
-      console.error("Erreur lors de l'initialisation des extensions:", err);
-    } finally {
-      setLoading(false);
+  const setCurrentExtension = (id: string) => {
+    const extension = extensions.value.find((ext) => ext.id === id);
+    if (extension && extension.isEnabled) {
+      currentExtensionId.value = id;
     }
   };
 
   return {
     // État
-    initialized: computed(() => initialized.value),
-    isLoading: computed(() => isLoading.value),
-    error: computed(() => error.value),
+    extensions,
+    currentExtensionId,
+    loading,
+    error,
 
     // Getters
-    availableExtensions,
+    currentExtension,
     enabledExtensions,
-    extensionCount,
 
     // Actions
-    setLoading,
-    setError,
-    initializeExtensions,
+    loadExtensions,
+    toggleExtension,
+    setCurrentExtension,
   };
 });

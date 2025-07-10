@@ -4,6 +4,7 @@ import { createI18n } from 'vue-i18n';
 import vueSpatialNavigation from 'vue-spatial-nav';
 import { register } from 'swiper/element/bundle';
 import router from '@/router';
+import { initializeExtensions } from '@/extensions';
 
 // Register Swiper custom elements
 register();
@@ -44,14 +45,6 @@ app.use(router);
 app.use(vueSpatialNavigation, spatialNavConfig);
 
 // Initialiser les extensions au démarrage
-(async () => {
-  try {
-    const { useExtensionsStore } = await import('@/stores/extensions');
-    const extensionsStore = useExtensionsStore();
-    await extensionsStore.initializeExtensions();
-  } catch (error) {
-    console.error("Erreur lors de l'initialisation des extensions:", error);
-  }
-})();
+initializeExtensions();
 
 app.mount('#app');

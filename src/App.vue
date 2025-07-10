@@ -10,46 +10,29 @@
       @settings="handleSettings"
     />
 
-    <!-- Contenu principal avec padding pour la navbar -->
     <main>
       <router-view />
     </main>
-    <!-- Debug Navigation (seulement en développement) -->
-    <NavigationDebug v-if="isDev && false" />
-
-    <!-- Footer (optionnel, pour plus tard) -->
-    <!-- <AppFooter /> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import NavigationBar from './components/ui/NavigationBar.vue';
-import NavigationDebug from './components/debug/NavigationDebug.vue';
-import { useExtensionsStore } from '@/stores/extensions';
 
 const route = useRoute();
-const extensionsStore = useExtensionsStore();
-const isDev = import.meta.env.DEV; // Vérifie si l'application est en mode développement
 
 const searchQuery = ref('');
 
 // Computed pour déterminer si la navbar doit être affichée
 const shouldShowNavbar = computed(() => {
-  // Masquer la navbar sur la page de détail d'anime
   return route.name !== 'AnimeDetail' && route.name !== 'VideoWatch';
 });
 
 const handleSettings = () => {
   console.log('Ouvrir les paramètres');
-  // Ici vous pouvez implémenter l'ouverture des paramètres
 };
-
-// Initialisation des extensions au démarrage
-onMounted(async () => {
-  await extensionsStore.initializeExtensions();
-});
 </script>
 
 <style>

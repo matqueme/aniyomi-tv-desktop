@@ -3,7 +3,6 @@ import HomePage from '@/views/Home.vue';
 import Search from '@/views/Search.vue';
 import AnimeDetail from '@/views/AnimeDetail.vue';
 import VideoWatch from '@/views/VideoWatch.vue';
-import Extensions from '@/views/Extensions.vue';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 
 const router = createRouter({
@@ -18,11 +17,6 @@ const router = createRouter({
       path: '/search',
       name: 'Search',
       component: Search,
-    },
-    {
-      path: '/extensions',
-      name: 'Extensions',
-      component: () => Extensions,
     },
     {
       path: '/:extension/:animeName',
