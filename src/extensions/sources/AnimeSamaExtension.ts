@@ -42,7 +42,7 @@ export class AnimeSamaExtension extends AnimeExtension {
       const match = href.match(/\/catalogue\/([^/]+)/);
       const animeId = match ? match[1] : href;
       // Extraction du titre directement depuis le h1
-      const title = el.querySelector('h1')?.textContent || '';
+      const title = el.querySelector('h1')?.textContent?.trim() || '';
       // Extraction directe de l'image
       const posterUrl = el.querySelector('img')?.getAttribute('src') || '';
       if (animeId && title && !animesMap.has(animeId)) {
@@ -74,7 +74,7 @@ export class AnimeSamaExtension extends AnimeExtension {
       const match = href.match(/\/catalogue\/([^/]+)/);
       const animeId = match ? match[1] : href;
       // Extraction du titre directement depuis le h1
-      const title = a.querySelector('h1')?.textContent || '';
+      const title = a.querySelector('h1')?.textContent?.trim() || '';
       // Extraction directe de l'image
       const posterUrl = a.querySelector('img')?.getAttribute('src') || '';
       if (animeId && title && !animesMap.has(animeId)) {
@@ -132,28 +132,26 @@ export class AnimeSamaExtension extends AnimeExtension {
       doc.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
       posterUrl;
 
-    // Description
-    let description =
-      doc.querySelector('meta[name="description"]')?.getAttribute('content') ||
-      '';
-    if (!description) {
-      // Fallback to synopsis paragraph
-      description =
-        doc.querySelector('h2:contains("Synopsis") + p')?.textContent?.trim() ||
-        '';
-      if (!description) {
-        // Try to find the first <p> after "Synopsis"
-        const synopsisHeader = Array.from(doc.querySelectorAll('h2')).find(
-          (h2) => h2.textContent?.toLowerCase().includes('synopsis')
-        );
-        if (synopsisHeader) {
-          const nextP =
-            synopsisHeader.nextElementSibling as HTMLParagraphElement;
-          if (nextP && nextP.tagName === 'P') {
-            description = nextP.textContent?.trim() || '';
-          }
-        }
+    // Description - prioritize synopsis paragraph over broken meta description
+    let description = '';
+
+    // First try to get synopsis from the actual synopsis section
+    const synopsisHeader = Array.from(doc.querySelectorAll('h2')).find((h2) =>
+      h2.textContent?.toLowerCase().includes('synopsis')
+    );
+    if (synopsisHeader) {
+      const nextP = synopsisHeader.nextElementSibling as HTMLParagraphElement;
+      if (nextP && nextP.tagName === 'P') {
+        description = nextP.textContent?.trim() || '';
       }
+    }
+
+    // Fallback to meta description only if synopsis not found
+    if (!description) {
+      description =
+        doc
+          .querySelector('meta[name="description"]')
+          ?.getAttribute('content') || '';
     }
 
     // Genres
