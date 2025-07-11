@@ -273,57 +273,74 @@
               </p>
             </div>
 
-            <!-- Sélecteur de saison -->
+            <!-- Sélecteur de saison avec Swiper -->
             <div v-if="availableSeasons.length > 1" class="space-y-4">
               <h2 class="text-2xl font-bold text-white">Saisons</h2>
-              <div class="flex flex-wrap gap-3">
-                <button
+              <swiper-container
+                ref="seasonSwiperRef"
+                :slides-per-view="'auto'"
+                :space-between="24"
+                :free-mode="true"
+                :grab-cursor="false"
+                :mouse-wheel="false"
+                :keyboard="false"
+                class="season-swiper-element pb-2"
+                tabindex="0"
+              >
+                <swiper-slide
                   v-for="seasonData in availableSeasons"
                   :key="seasonData.number"
-                  v-focus
-                  v-focus-events="{
-                    'enter-up': () => changeSeason(seasonData.number),
-                  }"
-                  class="flex items-center gap-3 rounded-lg border p-4 transition-all duration-300 focus-none"
-                  :class="[
-                    selectedSeason === seasonData.number
-                      ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-white shadow-lg'
-                      : 'border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-indigo-400/70 hover:bg-indigo-500/10',
-                  ]"
-                  @click="() => changeSeason(seasonData.number)"
+                  class="season-slide-element"
                 >
-                  <img
-                    v-if="seasonData.posterUrl"
-                    :src="seasonData.posterUrl"
-                    :alt="`Saison ${seasonData.number}`"
-                    class="h-16 w-12 rounded object-cover"
-                  />
-                  <div class="text-left">
-                    <h3 class="font-semibold">{{ seasonData.title }}</h3>
-                    <p class="text-sm opacity-75">
-                      {{ seasonData.episodeCount }} épisodes
-                    </p>
-                    <span
-                      class="inline-block rounded-full px-2 py-1 text-xs"
-                      :class="[
-                        seasonData.status === 'completed'
-                          ? 'bg-green-500/20 text-green-200'
-                          : seasonData.status === 'ongoing'
-                            ? 'bg-blue-500/20 text-blue-200'
-                            : 'bg-orange-500/20 text-orange-200',
-                      ]"
-                    >
-                      {{
-                        seasonData.status === 'completed'
-                          ? 'Terminée'
-                          : seasonData.status === 'ongoing'
-                            ? 'En cours'
-                            : 'À venir'
-                      }}
-                    </span>
-                  </div>
-                </button>
-              </div>
+                  <button
+                    v-focus
+                    v-focus-events="{
+                      'enter-up': () => changeSeason(seasonData.number),
+                    }"
+                    class="flex w-[180px] min-w-[180px] flex-col items-center justify-center gap-2 rounded-lg border p-4 focus-none"
+                    :class="[
+                      selectedSeason === seasonData.number
+                        ? 'border-indigo-400 bg-indigo-500/20 text-white shadow-lg'
+                        : 'border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-indigo-400/70 hover:bg-indigo-500/10',
+                    ]"
+                    @click="() => changeSeason(seasonData.number)"
+                  >
+                    <img
+                      v-if="seasonData.posterUrl"
+                      :src="seasonData.posterUrl"
+                      :alt="`Saison ${seasonData.number}`"
+                      class="mb-1 h-16 w-12 rounded object-cover"
+                    />
+                    <div class="w-full text-center">
+                      <h3 class="truncate font-semibold">
+                        {{ seasonData.title }}
+                      </h3>
+                      <p class="text-sm opacity-75">
+                        {{ seasonData.episodeCount }} épisodes
+                      </p>
+                      <span
+                        v-if="seasonData.status"
+                        class="mt-1 inline-block rounded-full px-2 py-1 text-xs"
+                        :class="[
+                          seasonData.status === 'completed'
+                            ? 'bg-green-500/20 text-green-200'
+                            : seasonData.status === 'ongoing'
+                              ? 'bg-blue-500/20 text-blue-200'
+                              : 'bg-orange-500/20 text-orange-200',
+                        ]"
+                      >
+                        {{
+                          seasonData.status === 'completed'
+                            ? 'Terminée'
+                            : seasonData.status === 'ongoing'
+                              ? 'En cours'
+                              : 'À venir'
+                        }}
+                      </span>
+                    </div>
+                  </button>
+                </swiper-slide>
+              </swiper-container>
             </div>
 
             <!-- Liste des épisodes -->
@@ -498,6 +515,7 @@ import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import type { AnimeCardInfo, Episode, AnimeDetails } from '@/types/anime';
 import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
 import { extensionManager } from '@/extensions/manager/ExtensionManager';
+import 'swiper/swiper-bundle.css';
 
 const route = useRoute();
 const router = useRouter();
@@ -677,14 +695,11 @@ const loadFromExtension = async () => {
     animeName.value
   );
 
+  console.log(animeDetails.value);
   // Définir la saison sélectionnée à partir de la route (avec validation)
   const seasonParam = season.value;
   const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;
   selectedSeason.value = isNaN(seasonNumber) ? 1 : seasonNumber;
-
-  console.log(
-    `Loading episodes for anime: ${animeName.value}, season: ${selectedSeason.value}`
-  );
 
   // Charger les épisodes pour la saison sélectionnée
   episodes.value = await extensionManager.getEpisodes(
@@ -840,5 +855,24 @@ onMounted(async () => {
 
 .episode-card:hover {
   transform: translateY(-2px);
+}
+
+/* Styles spécifiques pour le carousel Swiper */
+.season-swiper-element {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  outline: none;
+  gap: 24px;
+}
+
+.season-slide-element {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
 }
 </style>
