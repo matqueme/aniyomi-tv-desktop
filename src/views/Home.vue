@@ -125,15 +125,16 @@ const handleKeyUp = (event: KeyboardEvent) => {
 
 // Lifecycle
 onMounted(async () => {
-  // Focus sur la première section après le chargement
+  // Charger les animes d'abord
+  await loadAnimes();
+
+  // Focus sur la première section après le chargement des données
   await nextTick();
   if (animeStore.popularAnimes.length > 0) {
     SpatialNavigation.focus('popular');
   } else if (animeStore.latestAnimes.length > 0) {
     SpatialNavigation.focus('latest');
   }
-  // Charger les animes
-  await loadAnimes();
 });
 </script>
 

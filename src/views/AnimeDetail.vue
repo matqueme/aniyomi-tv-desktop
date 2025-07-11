@@ -276,71 +276,84 @@
             <!-- Sélecteur de saison avec Swiper -->
             <div v-if="availableSeasons.length > 1" class="space-y-4">
               <h2 class="text-2xl font-bold text-white">Saisons</h2>
-              <swiper-container
-                ref="seasonSwiperRef"
-                :slides-per-view="'auto'"
-                :space-between="24"
-                :free-mode="true"
-                :grab-cursor="false"
-                :mouse-wheel="false"
-                :keyboard="false"
-                class="season-swiper-element pb-2"
-                tabindex="0"
+              <div
+                v-focus-section:seasons="seasonsConfig"
+                class="max-w-screen mb-8 box-border"
               >
-                <swiper-slide
-                  v-for="seasonData in availableSeasons"
-                  :key="seasonData.number"
-                  class="season-slide-element"
+                <swiper-container
+                  ref="seasonSwiperRef"
+                  v-focus
+                  :slides-per-view="'auto'"
+                  :space-between="24"
+                  :free-mode="true"
+                  :grab-cursor="false"
+                  :mouse-wheel="false"
+                  :keyboard="{
+                    enabled: false,
+                    onlyInViewport: true,
+                    pageUpDown: false,
+                  }"
+                  class="season-swiper-element"
+                  tabindex="0"
+                  @focus="handleSeasonSwiperFocus"
+                  @blur="handleSeasonSwiperBlur"
+                  @keydown="handleSeasonSwiperKeydown"
+                  @slidechange="handleSeasonSlideChange"
                 >
-                  <button
-                    v-focus
-                    v-focus-events="{
-                      'enter-up': () => changeSeason(seasonData.number),
-                    }"
-                    class="flex w-[180px] min-w-[180px] flex-col items-center justify-center gap-2 rounded-lg border p-4 focus-none"
+                  <swiper-slide
+                    v-for="(seasonData, index) in availableSeasons"
+                    :key="seasonData.number"
                     :class="[
-                      selectedSeason === seasonData.number
-                        ? 'border-indigo-400 bg-indigo-500/20 text-white shadow-lg'
-                        : 'border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-indigo-400/70 hover:bg-indigo-500/10',
+                      'season-slide-element',
+                      {
+                        focused:
+                          index === currentSeasonSlideIndex &&
+                          seasonSwiperHasFocus,
+                      },
                     ]"
-                    @click="() => changeSeason(seasonData.number)"
                   >
-                    <img
-                      v-if="seasonData.posterUrl"
-                      :src="seasonData.posterUrl"
-                      :alt="`Saison ${seasonData.number}`"
-                      class="mb-1 h-16 w-12 rounded object-cover"
-                    />
-                    <div class="w-full text-center">
-                      <h3 class="truncate font-semibold">
-                        {{ seasonData.title }}
-                      </h3>
-                      <p class="text-sm opacity-75">
-                        {{ seasonData.episodeCount }} épisodes
-                      </p>
-                      <span
-                        v-if="seasonData.status"
-                        class="mt-1 inline-block rounded-full px-2 py-1 text-xs"
-                        :class="[
-                          seasonData.status === 'completed'
-                            ? 'bg-green-500/20 text-green-200'
-                            : seasonData.status === 'ongoing'
-                              ? 'bg-blue-500/20 text-blue-200'
-                              : 'bg-orange-500/20 text-orange-200',
-                        ]"
-                      >
-                        {{
-                          seasonData.status === 'completed'
-                            ? 'Terminée'
-                            : seasonData.status === 'ongoing'
-                              ? 'En cours'
-                              : 'À venir'
-                        }}
-                      </span>
+                    <div
+                      class="flex w-[180px] min-w-[180px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border p-4 transition-all duration-300"
+                      :class="getSeasonCardClasses(seasonData.number, index)"
+                      @click="() => changeSeason(seasonData.number)"
+                    >
+                      <img
+                        v-if="seasonData.posterUrl"
+                        :src="seasonData.posterUrl"
+                        :alt="`Saison ${seasonData.number}`"
+                        class="mb-1 h-16 w-12 rounded object-cover"
+                      />
+                      <div class="w-full text-center">
+                        <h3 class="truncate font-semibold">
+                          {{ seasonData.title }}
+                        </h3>
+                        <p class="text-sm opacity-75">
+                          {{ seasonData.episodeCount }} épisodes
+                        </p>
+                        <span
+                          v-if="seasonData.status"
+                          class="mt-1 inline-block rounded-full px-2 py-1 text-xs"
+                          :class="[
+                            seasonData.status === 'completed'
+                              ? 'bg-green-500/20 text-green-200'
+                              : seasonData.status === 'ongoing'
+                                ? 'bg-blue-500/20 text-blue-200'
+                                : 'bg-orange-500/20 text-orange-200',
+                          ]"
+                        >
+                          {{
+                            seasonData.status === 'completed'
+                              ? 'Terminée'
+                              : seasonData.status === 'ongoing'
+                                ? 'En cours'
+                                : 'À venir'
+                          }}
+                        </span>
+                      </div>
                     </div>
-                  </button>
-                </swiper-slide>
-              </swiper-container>
+                  </swiper-slide>
+                </swiper-container>
+              </div>
             </div>
 
             <!-- Liste des épisodes -->
@@ -545,10 +558,20 @@ const isPlayHovered = ref(false);
 const isFavoriteFocused = ref(false);
 const isBackFocused = ref(false);
 
+// États de focus pour les saisons
+const focusedSeasonIndex = ref(-1);
+const currentSeasonSlideIndex = ref(0);
+const seasonSwiperHasFocus = ref(false);
+
+// Throttle pour limiter la fréquence des navigations de saisons
+const lastSeasonNavigationTime = ref(0);
+const seasonNavigationDelay = 150; // 150ms entre chaque navigation
+
 // Références pour la navigation spatiale
 const playButtonRef = ref<HTMLButtonElement>();
 const favoriteButtonRef = ref<HTMLButtonElement>();
 const episodeRefs = ref<HTMLElement[]>([]);
+const seasonSwiperRef = ref<HTMLElement | null>(null);
 
 // Configuration de la navigation spatiale
 const backConfig = computed(() => ({
@@ -562,6 +585,14 @@ const actionsConfig = computed(() => ({
   enterTo: 'default-element',
   leaveFor: {
     up: '@back',
+    down: availableSeasons.value.length > 1 ? '@seasons' : '@episodes',
+  },
+}));
+
+const seasonsConfig = computed(() => ({
+  enterTo: 'default-element',
+  leaveFor: {
+    up: '@actions',
     down: '@episodes',
   },
 }));
@@ -569,7 +600,7 @@ const actionsConfig = computed(() => ({
 const episodesConfig = computed(() => ({
   enterTo: 'default-element',
   leaveFor: {
-    up: '@actions',
+    up: availableSeasons.value.length > 1 ? '@seasons' : '@actions',
     right: '@sidebar',
   },
 }));
@@ -667,6 +698,15 @@ const hasInformationContent = computed(() => {
     hasExtensionInfo
   );
 });
+
+// Fonction pour déterminer les classes des cartes de saison
+const getSeasonCardClasses = (seasonNumber: number, index: number) => {
+  if (selectedSeason.value === seasonNumber)
+    return 'border-indigo-400 bg-indigo-500/20 text-white shadow-lg shadow-indigo-500/20';
+  if (index === focusedSeasonIndex.value && seasonSwiperHasFocus.value)
+    return 'border-indigo-400 bg-slate-800/50 text-white shadow-lg';
+  return 'border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-indigo-400/70 hover:bg-indigo-500/10';
+};
 
 // Fonctions
 const goBack = () => {
@@ -814,6 +854,104 @@ const changeSeason = (seasonNumber: number) => {
   }
 };
 
+// Fonctions de gestion pour la navigation des saisons
+const handleSeasonSwiperKeydown = (event: KeyboardEvent) => {
+  // Gérer la navigation uniquement si le swiper a le focus
+  if (!seasonSwiperHasFocus.value) return;
+
+  // Throttle pour éviter une navigation trop rapide
+  const now = Date.now();
+  if (now - lastSeasonNavigationTime.value < seasonNavigationDelay) {
+    return;
+  }
+
+  // Normaliser l'événement clavier pour la compatibilité TV
+  const keyData = normalizeKeyboardEvent(event);
+
+  if (keyData.code === 'ArrowLeft' || keyData.keyCode === 37) {
+    event.preventDefault();
+    lastSeasonNavigationTime.value = now;
+    navigateToPreviousSeason();
+  } else if (keyData.code === 'ArrowRight' || keyData.keyCode === 39) {
+    event.preventDefault();
+    lastSeasonNavigationTime.value = now;
+    navigateToNextSeason();
+  } else if (keyData.isEnterKey || keyData.isSpaceKey) {
+    event.preventDefault();
+    if (currentSeasonSlideIndex.value < availableSeasons.value.length) {
+      changeSeason(
+        availableSeasons.value[currentSeasonSlideIndex.value].number
+      );
+    }
+  }
+};
+
+const navigateToPreviousSeason = () => {
+  if (currentSeasonSlideIndex.value > 0) {
+    currentSeasonSlideIndex.value--;
+    scrollToSeasonSlide(currentSeasonSlideIndex.value);
+    focusedSeasonIndex.value = currentSeasonSlideIndex.value;
+  }
+};
+
+const navigateToNextSeason = () => {
+  if (currentSeasonSlideIndex.value < availableSeasons.value.length - 1) {
+    currentSeasonSlideIndex.value++;
+    scrollToSeasonSlide(currentSeasonSlideIndex.value);
+    focusedSeasonIndex.value = currentSeasonSlideIndex.value;
+  }
+};
+
+const handleSeasonSlideChange = (swiper: { realIndex?: number }) => {
+  // Mettre à jour l'index actuel quand Swiper change de slide
+  // Seulement si le swiper a le focus pour éviter les conflits
+  if (
+    swiper &&
+    typeof swiper.realIndex === 'number' &&
+    seasonSwiperHasFocus.value
+  ) {
+    currentSeasonSlideIndex.value = swiper.realIndex;
+    focusedSeasonIndex.value = swiper.realIndex;
+  }
+};
+
+const scrollToSeasonSlide = (index: number) => {
+  // Interface pour le swiper element
+  interface SwiperElement extends HTMLElement {
+    swiper?: {
+      slideTo: (index: number, speed?: number) => void;
+    };
+  }
+
+  const swiperElement = seasonSwiperRef.value as SwiperElement;
+  if (!swiperElement?.swiper) return;
+
+  // Utiliser l'API native de Swiper pour naviguer vers le slide
+  swiperElement.swiper.slideTo(index, 300);
+};
+
+const handleSeasonSwiperFocus = () => {
+  // Quand le swiper reçoit le focus, s'assurer qu'un slide est sélectionné
+  seasonSwiperHasFocus.value = true;
+  if (focusedSeasonIndex.value === -1 && availableSeasons.value.length > 0) {
+    // Trouver l'index de la saison actuellement sélectionnée
+    const selectedIndex = availableSeasons.value.findIndex(
+      (season) => season.number === selectedSeason.value
+    );
+    const initialIndex = selectedIndex !== -1 ? selectedIndex : 0;
+
+    currentSeasonSlideIndex.value = initialIndex;
+    focusedSeasonIndex.value = initialIndex;
+    scrollToSeasonSlide(initialIndex);
+  }
+};
+
+const handleSeasonSwiperBlur = () => {
+  // Quand le swiper perd le focus, réinitialiser l'état de focus
+  seasonSwiperHasFocus.value = false;
+  focusedSeasonIndex.value = -1;
+};
+
 // Gestion du bouton retour de la télécommande
 const handleKeyUp = (event: KeyboardEvent) => {
   const keyData = normalizeKeyboardEvent(event);
@@ -831,6 +969,16 @@ onMounted(async () => {
   await nextTick();
   // Focus automatiquement sur le bouton play
   SpatialNavigation.focus('actions');
+
+  // Si des saisons sont disponibles, initialiser l'index de la saison sélectionnée
+  if (availableSeasons.value.length > 1) {
+    const selectedIndex = availableSeasons.value.findIndex(
+      (season) => season.number === selectedSeason.value
+    );
+    if (selectedIndex !== -1) {
+      currentSeasonSlideIndex.value = selectedIndex;
+    }
+  }
 });
 </script>
 
@@ -859,20 +1007,13 @@ onMounted(async () => {
 
 /* Styles spécifiques pour le carousel Swiper */
 .season-swiper-element {
-  display: flex;
-  align-items: center;
-  overflow-x: auto;
+  overflow: visible;
   outline: none;
-  gap: 24px;
 }
 
 .season-slide-element {
-  width: 180px;
-  min-width: 180px;
-  max-width: 180px;
+  width: auto;
   flex-shrink: 0;
-  display: flex;
-  align-items: stretch;
-  padding: 0;
+  padding: 2px; /* Ajustement pour l'espacement */
 }
 </style>

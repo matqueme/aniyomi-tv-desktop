@@ -15,7 +15,7 @@
       :keyboard="false"
       class="anime-swiper-element"
       tabindex="0"
-      @keyup="handleSwiperkeydup"
+      @keydown="handleSwiperKeydown"
       @focus="handleSwiperFocus"
       @blur="handleSwiperBlur"
     >
@@ -29,7 +29,7 @@
       >
         <AnimeCard
           :anime="anime"
-          :is-focused="index === focusedIndex"
+          :is-focused="index === focusedIndex && swiperHasFocus"
           class="anime-card-focusable"
           @select="(anime: AnimeCardInfo) => emit('select', anime)"
           @focus="() => handleFocus(index)"
@@ -77,6 +77,10 @@ const swiperRef = ref<SwiperElement | null>(null);
 const currentSlideIndex = ref(0);
 const swiperHasFocus = ref(false);
 
+// Throttle pour limiter la fréquence des navigations
+const lastNavigationTime = ref(0);
+const navigationDelay = 150; // 150ms entre chaque navigation
+
 // Configuration de la section spatiale
 const sectionConfig = ref<Record<string, unknown>>({});
 
@@ -90,18 +94,27 @@ const handleUnfocus = (index: number) => {
   }
 };
 
-const handleSwiperkeydup = (event: KeyboardEvent) => {
-  // Gérer la navigation uniquement pour ce swiper s'il a le focus
-  if (document.activeElement !== swiperRef.value) return;
+const handleSwiperKeydown = (event: KeyboardEvent) => {
+  // Gérer la navigation uniquement si le swiper a le focus
+  if (!swiperHasFocus.value) return;
+
+  // Throttle pour éviter une navigation trop rapide
+  const now = Date.now();
+  if (now - lastNavigationTime.value < navigationDelay) {
+    return;
+  }
 
   // Normaliser l'événement clavier pour la compatibilité TV
   const keyData = normalizeKeyboardEvent(event);
 
+  // Gérer la navigation
   if (keyData.code === 'ArrowLeft' || keyData.keyCode === 37) {
     event.preventDefault();
+    lastNavigationTime.value = now;
     navigateToPreviousSlide();
   } else if (keyData.code === 'ArrowRight' || keyData.keyCode === 39) {
     event.preventDefault();
+    lastNavigationTime.value = now;
     navigateToNextSlide();
   } else if (keyData.isEnterKey || keyData.isSpaceKey) {
     event.preventDefault();
@@ -130,45 +143,8 @@ const navigateToNextSlide = () => {
 const scrollToSlide = (index: number) => {
   if (!swiperRef.value?.swiper) return;
 
-  const slideWidth = 320 + 30; // Card width + spacing
-  const containerWidth = window.innerWidth;
-  const containerPadding = 48; // 24px de chaque côté
-  const cardWidth = 320;
-
-  // Pour les premières cartes, essayer de centrer
-  // Pour les dernières cartes, s'assurer qu'elles sont complètement visibles
-  let targetPosition: number;
-
-  const totalContentWidth = props.animes.length * slideWidth;
-  const availableWidth = containerWidth - containerPadding;
-
-  if (totalContentWidth <= availableWidth) {
-    // Si tout le contenu tient dans le container, pas de scroll nécessaire
-    targetPosition = 0;
-  } else {
-    const centerOffset = containerWidth / 2 - cardWidth / 2;
-    const centeredPosition = index * slideWidth - centerOffset;
-
-    // Position pour que la dernière carte soit complètement visible
-    const maxScrollForLastCard = totalContentWidth - availableWidth;
-
-    if (index >= props.animes.length - 2) {
-      // Pour les 2 dernières cartes, s'assurer qu'elles sont visibles
-      targetPosition = maxScrollForLastCard;
-    } else {
-      targetPosition = centeredPosition;
-    }
-  }
-
-  // Ensure we don't scroll past the beginning or end
-  const maxTranslate = 0;
-  const minTranslate = -(totalContentWidth - availableWidth);
-  const clampedPosition = Math.max(
-    minTranslate,
-    Math.min(maxTranslate, -targetPosition)
-  );
-
-  swiperRef.value.swiper.setTranslate(clampedPosition);
+  // Utiliser l'API native de Swiper pour naviguer vers le slide
+  swiperRef.value.swiper.slideTo(index, 300);
 };
 
 const handleSwiperFocus = () => {
@@ -182,14 +158,10 @@ const handleSwiperFocus = () => {
 };
 
 const handleSwiperBlur = () => {
-  // Quand le swiper perd le focus, désélectionner tous les slides
+  // Quand le swiper perd le focus, réinitialiser l'état de focus
   swiperHasFocus.value = false;
   focusedIndex.value = -1;
-  currentSlideIndex.value = 0;
 };
-
-// Watch for focused index changes to handle smooth scrolling
-// Swiper gère maintenant automatiquement le scroll avec keyboard: true
 
 onMounted(() => {
   if (props.listId) {
