@@ -9,11 +9,11 @@
           focused: () => (isBackFocused = true),
           unfocused: () => (isBackFocused = false),
         }"
-        class="flex items-center gap-2 rounded-lg px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300 focus-none"
+        class="flex items-center gap-2 rounded-lg border px-4 py-2 font-semibold backdrop-blur-md transition-all duration-300 focus-none"
         :class="[
           isBackFocused
-            ? 'scale-105 bg-slate-800/90 text-white shadow-lg shadow-slate-500/30'
-            : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800/80',
+            ? 'scale-105 border-indigo-400 bg-indigo-500/20 text-indigo-200 shadow-lg'
+            : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-indigo-400 hover:bg-indigo-500/10',
         ]"
         @click="goBack"
       >
@@ -417,7 +417,7 @@
                     focused: () => setFocusedEpisode(episode.id),
                     unfocused: () => setFocusedEpisode(null),
                   }"
-                  class="flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300 focus-none"
+                  class="group flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-all duration-300 focus-none"
                   :class="[
                     focusedEpisodeId === episode.id
                       ? 'scale-[1.02] border-indigo-400 bg-indigo-500/10 shadow-lg'
@@ -435,9 +435,32 @@
                     />
                     <div
                       v-else
-                      class="flex h-full w-full items-center justify-center bg-slate-700"
+                      class="relative flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
                     >
-                      <PhPlay :size="24" class="text-slate-400" />
+                      <!-- Effet de texture subtile -->
+                      <div
+                        class="absolute inset-0 bg-gradient-to-tr from-transparent via-slate-600/10 to-slate-500/20"
+                      ></div>
+
+                      <!-- Numéro d'épisode en arrière-plan -->
+                      <div
+                        class="absolute inset-0 flex items-center justify-center"
+                      >
+                        <span class="text-4xl font-bold text-slate-800/50">{{
+                          episode.number
+                        }}</span>
+                      </div>
+
+                      <!-- Icône play au premier plan -->
+                      <div
+                        class="relative z-10 rounded-full bg-slate-600/80 p-2 backdrop-blur-sm transition-all duration-300 group-hover:bg-indigo-500/80"
+                      >
+                        <PhPlay
+                          :size="16"
+                          class="text-slate-200 transition-colors duration-300 group-hover:text-white"
+                          weight="fill"
+                        />
+                      </div>
                     </div>
                   </div>
 
