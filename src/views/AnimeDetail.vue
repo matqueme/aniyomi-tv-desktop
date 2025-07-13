@@ -711,7 +711,6 @@ const episodes = computed(() => {
 
 // Computed pour le statut
 const statusText = computed(() => {
-  console.log(`Anime status: ${animeDetails.value?.status}`);
   switch (animeDetails.value?.status) {
     case 'ongoing':
       return 'En cours';
@@ -820,7 +819,6 @@ const loadFromExtension = async () => {
     animeName.value
   );
 
-  console.log(animeDetails.value.seasons);
   // Définir la saison sélectionnée à partir de la route (avec validation)
   const seasonParam = season.value;
   const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;

@@ -204,7 +204,6 @@ export class AnimeSamaExtension extends AnimeExtension {
     const seasons: Season[] = [];
     let match;
     while ((match = seasonRegex.exec(cleanedScripts)) !== null) {
-      console.log(match);
       const seasonName = match[1];
       const seasonStem = match[2].split('/')[0]; // Ex: "saison1/vostfr" -> "saison1"
       const episodesResult = await this.getEpisodes(seasonStem, animeId);
@@ -230,7 +229,6 @@ export class AnimeSamaExtension extends AnimeExtension {
 
     for (const voice of voices) {
       const jsUrl = `${this.info.baseUrl}/catalogue/${animeId}/${seasonStem}/${voice}/episodes.js`;
-      console.log(`Fetching episodes from: ${jsUrl}`);
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(jsUrl)}`;
       try {
         const res = await fetch(proxyUrl);

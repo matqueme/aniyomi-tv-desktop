@@ -17,7 +17,6 @@ export class ExtensionManager {
    */
   registerExtension(extension: AnimeExtension): void {
     this.extensions.set(extension.info.id, extension);
-    console.log(`Extension registered: ${extension.info.name}`);
   }
 
   /**
