@@ -8,6 +8,7 @@ export interface ExtensionInfo {
   baseUrl: string;
   language: string;
   isEnabled: boolean;
+  voices?: string[]; // ex: ['VOSTFR', 'VF']
 }
 
 export interface SearchResult {

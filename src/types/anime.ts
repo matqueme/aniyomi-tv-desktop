@@ -24,7 +24,7 @@ export interface AnimeDetails extends AnimeCardInfo {
 export interface Season {
   number: number;
   title?: string;
-  episodeCount: number;
+  episodeCount?: number;
   airDate?: Date;
   status?: 'ongoing' | 'completed' | 'upcoming' | undefined;
   posterUrl?: string;
@@ -40,7 +40,6 @@ export interface Episode {
   title?: string;
   description?: string;
   thumbnailUrl?: string;
-  videoUrl: string;
   duration?: string;
   airDate?: Date;
   voices?: string[]; // exemple: ['vostfr', 'vf']

@@ -325,11 +325,32 @@
                       />
                       <div class="w-full text-center">
                         <h3 class="truncate font-semibold">
-                          {{ seasonData.title }}
+                          {{
+                            seasonData.title || `Saison ${seasonData.number}`
+                          }}
                         </h3>
                         <p class="text-sm opacity-75">
-                          {{ seasonData.episodeCount }} épisodes
+                          {{
+                            seasonData.episodes?.length ||
+                            seasonData.episodeCount ||
+                            0
+                          }}
+                          épisodes
                         </p>
+                        <div
+                          v-if="
+                            seasonData.voices && seasonData.voices.length > 0
+                          "
+                          class="mt-1 flex justify-center gap-1"
+                        >
+                          <span
+                            v-for="voice in seasonData.voices"
+                            :key="voice"
+                            class="inline-block rounded bg-slate-700/50 px-1 py-0.5 text-xs text-slate-300"
+                          >
+                            {{ voice.toUpperCase() }}
+                          </span>
+                        </div>
                         <span
                           v-if="seasonData.status"
                           class="mt-1 inline-block rounded-full px-2 py-1 text-xs"
@@ -360,9 +381,30 @@
             <div v-focus-section:episodes="episodesConfig" class="space-y-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-2xl font-bold text-white">Épisodes</h2>
-                <span v-if="currentSeasonData" class="text-slate-400">
-                  {{ currentSeasonData.title }} - {{ episodes.length }} épisodes
-                </span>
+                <div v-if="currentSeasonData" class="text-right">
+                  <div class="text-slate-400">
+                    {{
+                      currentSeasonData.title ||
+                      `Saison ${currentSeasonData.number}`
+                    }}
+                    - {{ episodes.length }} épisodes
+                  </div>
+                  <div
+                    v-if="
+                      currentSeasonData.voices &&
+                      currentSeasonData.voices.length > 0
+                    "
+                    class="mt-1 flex justify-end gap-2"
+                  >
+                    <span
+                      v-for="voice in currentSeasonData.voices"
+                      :key="voice"
+                      class="inline-block rounded-full bg-indigo-500/20 px-2 py-1 text-xs text-indigo-200"
+                    >
+                      {{ voice.toUpperCase() }}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div class="grid gap-3">
                 <div
@@ -403,11 +445,14 @@
                   <div class="flex-1 space-y-1">
                     <div class="flex items-center justify-between">
                       <h3 class="font-semibold text-white">
-                        Épisode {{ episode.number }} - {{ episode.title }}
+                        Épisode {{ episode.number
+                        }}{{ episode.title ? ` - ${episode.title}` : '' }}
                       </h3>
-                      <span class="text-sm text-slate-400">{{
-                        episode.duration
-                      }}</span>
+                      <span
+                        v-if="episode.duration"
+                        class="text-sm text-slate-400"
+                        >{{ episode.duration }}</span
+                      >
                     </div>
                     <p
                       v-if="episode.description"
@@ -415,11 +460,23 @@
                     >
                       {{ episode.description }}
                     </p>
-                    <div
-                      v-if="episode.airDate"
-                      class="flex items-center justify-between"
-                    >
-                      <span class="text-xs text-slate-500">
+                    <div class="flex items-center justify-between">
+                      <div
+                        v-if="episode.voices && episode.voices.length > 0"
+                        class="flex gap-2"
+                      >
+                        <span
+                          v-for="voice in episode.voices"
+                          :key="voice"
+                          class="inline-block rounded-full bg-indigo-500/20 px-2 py-1 text-xs text-indigo-200"
+                        >
+                          {{ voice.toUpperCase() }}
+                        </span>
+                      </div>
+                      <span
+                        v-if="episode.airDate"
+                        class="text-xs text-slate-500"
+                      >
                         {{ formatDate(episode.airDate) }}
                       </span>
                     </div>
@@ -455,7 +512,7 @@
                 <div v-if="currentSeasonData" class="flex justify-between">
                   <span class="text-slate-400">Épisodes de la saison :</span>
                   <span class="text-slate-200">{{
-                    currentSeasonData.episodeCount
+                    currentSeasonData.episodes?.length
                   }}</span>
                 </div>
                 <div
@@ -473,7 +530,7 @@
                   v-if="
                     animeDetails?.totalEpisodes &&
                     animeDetails.totalEpisodes !==
-                      currentSeasonData?.episodeCount
+                      currentSeasonData?.episodes?.length
                   "
                   class="flex justify-between"
                 >
@@ -537,7 +594,6 @@ const animeStore = useAnimeStore();
 // État local
 const animeDetails = ref<AnimeDetails | null>(null);
 const anime = ref<AnimeCardInfo | null>(null);
-const episodes = ref<Episode[]>([]);
 const selectedSeason = ref<number>(1);
 const isFavorite = ref(false);
 const focusedEpisodeId = ref<string | null>(null);
@@ -622,6 +678,12 @@ const currentSeasonData = computed(() => {
 
 const availableSeasons = computed(() => {
   return animeDetails.value?.seasons || [];
+});
+
+// Computed pour récupérer les épisodes de la saison sélectionnée
+const episodes = computed(() => {
+  if (!currentSeasonData.value?.episodes) return [];
+  return currentSeasonData.value.episodes;
 });
 
 // Computed pour le statut
@@ -735,7 +797,7 @@ const loadFromExtension = async () => {
     animeName.value
   );
 
-  console.log(animeDetails.value);
+  console.log(animeDetails.value.seasons);
   // Définir la saison sélectionnée à partir de la route (avec validation)
   const seasonParam = season.value;
   const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;

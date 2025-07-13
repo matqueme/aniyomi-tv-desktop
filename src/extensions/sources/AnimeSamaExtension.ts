@@ -9,6 +9,7 @@ import type {
   AnimeDetails,
   AnimeCardInfo,
   Season,
+  Player,
 } from '../../types/anime';
 
 /**
@@ -24,6 +25,7 @@ export class AnimeSamaExtension extends AnimeExtension {
     baseUrl: 'https://anime-sama.fr',
     language: 'fr',
     isEnabled: true,
+    voices: ['VOSTFR', 'VF'],
   };
 
   async getPopularAnime(): Promise<SearchResult> {
@@ -173,7 +175,7 @@ export class AnimeSamaExtension extends AnimeExtension {
       }
     }
 
-    const seasons: Season[] = await getSeasons(doc);
+    const seasons: Season[] = await this.getSeasons(doc, id);
 
     return {
       id,
@@ -186,129 +188,119 @@ export class AnimeSamaExtension extends AnimeExtension {
       extension: this.info.id,
     };
   }
-}
-
-/**
- * Extrait les saisons d'un anime à partir du script JS de la page détail.
- * Inspiré de la fonction Kotlin fetchAnimeSeasons.
- * @param doc Document HTML parsé (DOMParser)
- * @param animeId id de l'anime
- * @param baseUrl url racine de l'extension
- * @param posterUrl url de l'image principale
- * @return Promise<Season[]>
- */
-async function getSeasons(doc: Document): Promise<Season[]> {
-  // Récupère le script JS qui contient les panneaux de saisons
-  const scripts = Array.from(
-    doc.querySelectorAll('h2 + p + div > script, h2 + div > script')
-  )
-    .map((s) => s.textContent || '')
-    .join('\n');
-  const cleanedScripts = scripts
-    .replace(/\/\*[\s\S]*?\*\//g, '') // retire les blocs /* ... */
-    .split('\n')
-    .filter((line) => !line.trim().startsWith('//'))
-    .join('\n');
-
-  // Regex pour panneauAnime("Saison 1", "saison1/vostfr")
-  const seasonRegex = /panneauAnime\(["']([^"']+)["'],\s*["']([^"']+)["']\)/g;
-  const seasons: Season[] = [];
-  let match;
-  while ((match = seasonRegex.exec(cleanedScripts)) !== null) {
-    const seasonName = match[1];
-    const voice = await extractLanguages(doc);
-    const episodes = await getEpisodes(
-      doc,
-      match[2],
-      doc.baseURI,
-      doc.querySelector('#coverOeuvre')?.getAttribute('src') || ''
-    );
-
-    seasons.push({
-      number: seasons.length + 1,
-      title: seasonName,
-      episodeCount: 0,
-      voices: voice,
-      episodes: episodes,
-    });
-  }
-
-  return seasons;
-}
-
-async function getEpisodes(
-  doc: Document,
-  animeId: string,
-  baseUrl: string,
-  posterUrl: string
-): Promise<Episode[]> {
-  const episodes: Episode[] = [];
-  const episodeElements = doc.querySelectorAll('#containerEpisodes > div > a');
-  episodeElements.forEach((el) => {
-    const href = el.getAttribute('href') || '';
-    const match = href.match(/\/catalogue\/([^/]+)\/saison(\d+)\/episode(\d+)/);
-    if (match) {
-      const [, animeSlug, seasonNumber, episodeNumber] = match;
-      const episodeId = `${animeSlug}-saison${seasonNumber}-episode${episodeNumber}`;
-      const title = el.querySelector('h1')?.textContent?.trim() || '';
-      const thumbnailUrl =
-        el.querySelector('img')?.getAttribute('src') || posterUrl;
-      episodes.push({
-        id: episodeId,
-        animeId,
-        number: parseInt(episodeNumber, 10),
-        title,
-        thumbnailUrl: thumbnailUrl.startsWith('http')
-          ? thumbnailUrl
-          : `${baseUrl}${thumbnailUrl}`,
-        videoUrl: '', // À remplir plus tard
-        voices: [],
-      });
-    }
-  });
-  return episodes;
-}
-
-/**
- * Extrait les langues disponibles pour un anime à partir du DOM.
- * Cherche dans les headers "Langue" ou "Voix", puis dans le script JS si rien trouvé.
- * @param doc Document HTML parsé (DOMParser)
- * @return Promise<string[]>
- */
-async function extractLanguages(doc: Document): Promise<string[]> {
-  // Cherche le header "Langue" ou "Voix"
-  const langHeader = Array.from(doc.querySelectorAll('h2')).find(
-    (h2) =>
-      h2.textContent?.toLowerCase().includes('langue') ||
-      h2.textContent?.toLowerCase().includes('voix')
-  );
-  let languages: string[] = [];
-  if (langHeader) {
-    let nextEl = langHeader.nextElementSibling;
-    while (nextEl && (nextEl.tagName === 'A' || nextEl.tagName === 'SPAN')) {
-      const text = nextEl.textContent?.trim();
-      if (text) languages.push(text);
-      nextEl = nextEl.nextElementSibling;
-    }
-    if (languages.length === 0 && nextEl && nextEl.textContent) {
-      languages = nextEl.textContent.split(',').map((l) => l.trim());
-    }
-  }
-  // Fallback: cherche dans le JS si rien trouvé
-  if (languages.length === 0) {
-    const scripts = Array.from(doc.querySelectorAll('script'))
+  private async getSeasons(doc: Document, animeId: string): Promise<Season[]> {
+    const scripts = Array.from(
+      doc.querySelectorAll('h2 + p + div > script, h2 + div > script')
+    )
       .map((s) => s.textContent || '')
       .join('\n');
-    const voiceRegex = /panneauAnime\(["'][^"']+["'],\s*["']([^"']+)["']\)/g;
+    const cleanedScripts = scripts
+      .replace(/\/\*[\s\S]*?\*\//g, '') // retire les blocs /* ... */
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('//'))
+      .join('\n');
+
+    const seasonRegex = /panneauAnime\(["']([^"']+)["'],\s*["']([^"']+)["']\)/g;
+    const seasons: Season[] = [];
     let match;
-    const found: Set<string> = new Set();
-    while ((match = voiceRegex.exec(scripts)) !== null) {
-      const stem = match[1];
-      if (stem.toLowerCase().includes('vostfr')) found.add('VOSTFR');
-      if (stem.toLowerCase().includes('vf')) found.add('VF');
+    while ((match = seasonRegex.exec(cleanedScripts)) !== null) {
+      console.log(match);
+      const seasonName = match[1];
+      const seasonStem = match[2].split('/')[0]; // Ex: "saison1/vostfr" -> "saison1"
+      const episodesResult = await this.getEpisodes(seasonStem, animeId);
+
+      seasons.push({
+        number: seasons.length + 1,
+        title: seasonName,
+        episodes: episodesResult.episodes,
+        voices: episodesResult.availableVoices,
+      });
     }
-    if (found.size > 0) languages = Array.from(found);
+
+    return seasons;
   }
-  console.log(`Languages found: ${languages.join(', ')}`);
-  return languages;
+
+  private async getEpisodes(
+    seasonStem: string,
+    animeId: string
+  ): Promise<{ episodes: Episode[]; availableVoices: string[] }> {
+    const episodesByNumber: { [num: number]: Episode } = {};
+    const availableVoices: string[] = [];
+    const voices = (this.info.voices ?? []).map((v) => v.toLowerCase());
+
+    for (const voice of voices) {
+      const jsUrl = `${this.info.baseUrl}/catalogue/${animeId}/${seasonStem}/${voice}/episodes.js`;
+      console.log(`Fetching episodes from: ${jsUrl}`);
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(jsUrl)}`;
+      try {
+        const res = await fetch(proxyUrl);
+        if (!res.ok) continue;
+
+        // Si on arrive ici, cette voix est disponible
+        if (!availableVoices.includes(voice)) {
+          availableVoices.push(voice);
+        }
+
+        const jsText = await res.text();
+        // Regex pour trouver tous les tableaux epsX = [ ... ];
+        const regex = /var\s+(eps\d+)\s*=\s*\[(.*?)\];/gs;
+        let match;
+        const allPlayers: string[][] = [];
+        while ((match = regex.exec(jsText)) !== null) {
+          const arrContent = match[2];
+          // Extraire les URLs du tableau
+          const urlRegex = /['"](https?:[^'"]+)['"]/g;
+          let urlMatch;
+          const urls: string[] = [];
+          while ((urlMatch = urlRegex.exec(arrContent)) !== null) {
+            urls.push(urlMatch[1]);
+          }
+          allPlayers.push(urls);
+        }
+        // On suppose que tous les tableaux ont le même nombre d'épisodes
+        const maxEpisodes = Math.max(...allPlayers.map((arr) => arr.length), 0);
+        for (let i = 0; i < maxEpisodes; i++) {
+          const players: Player[] = [];
+          for (const urls of allPlayers) {
+            if (urls[i]) {
+              players.push({ url: urls[i], voice });
+            }
+          }
+          if (players.length > 0) {
+            const epNum = i + 1;
+            if (!episodesByNumber[epNum]) {
+              episodesByNumber[epNum] = {
+                id: `${animeId}-${seasonStem}-${epNum}`,
+                animeId: animeId,
+                number: epNum,
+                title: `Episode ${epNum}`,
+                voices: [voice],
+                playersByVoice: {},
+              };
+            } else {
+              const episode = episodesByNumber[epNum];
+              // Ajouter la voix si elle n'est pas déjà présente
+              if (episode.voices && !episode.voices.includes(voice)) {
+                episode.voices.push(voice);
+              } else if (!episode.voices) {
+                episode.voices = [voice];
+              }
+            }
+            const episode = episodesByNumber[epNum];
+            if (!episode.playersByVoice) {
+              episode.playersByVoice = {};
+            }
+            episode.playersByVoice[voice] = players;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return {
+      episodes: Object.values(episodesByNumber),
+      availableVoices: availableVoices,
+    };
+  }
 }
