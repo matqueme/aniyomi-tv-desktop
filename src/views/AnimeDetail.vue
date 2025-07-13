@@ -741,12 +741,6 @@ const loadFromExtension = async () => {
   const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;
   selectedSeason.value = isNaN(seasonNumber) ? 1 : seasonNumber;
 
-  // Charger les épisodes pour la saison sélectionnée
-  episodes.value = await extensionManager.getEpisodes(
-    extensionName.value,
-    animeName.value
-  );
-
   // Créer un objet anime compatible pour les anciens composants
   anime.value = {
     id: animeDetails.value.id,

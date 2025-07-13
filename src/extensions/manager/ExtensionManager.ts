@@ -2,10 +2,9 @@ import type {
   AnimeExtension,
   ExtensionInfo,
   SearchResult,
-  VideoSource,
 } from '../../types/extension';
 
-import type { Episode, AnimeDetails } from '../../types/anime';
+import type { AnimeDetails } from '../../types/anime';
 
 /**
  * Gestionnaire central des extensions
@@ -100,31 +99,6 @@ export class ExtensionManager {
       throw new Error(`Extension ${extensionId} is disabled`);
     }
     return extension.getAnimeDetails(animeId);
-  }
-
-  async getEpisodes(extensionId: string, animeId: string): Promise<Episode[]> {
-    const extension = this.getExtension(extensionId);
-    if (!extension) {
-      throw new Error(`Extension ${extensionId} not found`);
-    }
-    if (!extension.info.isEnabled) {
-      throw new Error(`Extension ${extensionId} is disabled`);
-    }
-    return extension.getEpisodes(animeId);
-  }
-
-  async getVideoSources(
-    extensionId: string,
-    episodeId: string
-  ): Promise<VideoSource[]> {
-    const extension = this.getExtension(extensionId);
-    if (!extension) {
-      throw new Error(`Extension ${extensionId} not found`);
-    }
-    if (!extension.info.isEnabled) {
-      throw new Error(`Extension ${extensionId} is disabled`);
-    }
-    return extension.getVideoSources(episodeId);
   }
 }
 

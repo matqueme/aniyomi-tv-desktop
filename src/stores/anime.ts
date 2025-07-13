@@ -24,12 +24,12 @@ export const useAnimeStore = defineStore('anime', () => {
   const error = ref<string | null>(null);
 
   // Actions
-  const fetchPopularAnimes = async (extensionId: string, page: number = 1) => {
+  const fetchPopularAnimes = async (extensionId: string) => {
     loadingPopular.value = true;
     error.value = null;
 
     try {
-      const result = await extensionManager.getPopularAnime(extensionId, page);
+      const result = await extensionManager.getPopularAnime(extensionId);
       popularAnimes.value = result.items;
     } catch (err) {
       error.value =
@@ -42,12 +42,12 @@ export const useAnimeStore = defineStore('anime', () => {
     }
   };
 
-  const fetchLatestAnimes = async (extensionId: string, page: number = 1) => {
+  const fetchLatestAnimes = async (extensionId: string) => {
     loadingLatest.value = true;
     error.value = null;
 
     try {
-      const result = await extensionManager.getLatestUpdates(extensionId, page);
+      const result = await extensionManager.getLatestUpdates(extensionId);
       latestAnimes.value = result.items;
     } catch (err) {
       error.value =
@@ -60,20 +60,12 @@ export const useAnimeStore = defineStore('anime', () => {
     }
   };
 
-  const searchAnimes = async (
-    extensionId: string,
-    query: string,
-    page: number = 1
-  ) => {
+  const searchAnimes = async (extensionId: string, query: string) => {
     loadingSearch.value = true;
     error.value = null;
 
     try {
-      const result = await extensionManager.searchAnime(
-        extensionId,
-        query,
-        page
-      );
+      const result = await extensionManager.searchAnime(extensionId, query);
       searchResults.value = result.items;
     } catch (err) {
       error.value =
@@ -102,27 +94,6 @@ export const useAnimeStore = defineStore('anime', () => {
       console.error('Error fetching anime details:', err);
     } finally {
       loadingDetails.value = false;
-    }
-  };
-
-  const fetchEpisodes = async (extensionId: string, animeId: string) => {
-    loadingEpisodes.value = true;
-    error.value = null;
-
-    try {
-      const episodeList = await extensionManager.getEpisodes(
-        extensionId,
-        animeId
-      );
-      episodes.value = episodeList;
-    } catch (err) {
-      error.value =
-        err instanceof Error
-          ? err.message
-          : 'Erreur lors du chargement des épisodes';
-      console.error('Error fetching episodes:', err);
-    } finally {
-      loadingEpisodes.value = false;
     }
   };
 
@@ -174,7 +145,6 @@ export const useAnimeStore = defineStore('anime', () => {
     fetchLatestAnimes,
     searchAnimes,
     fetchAnimeDetails,
-    fetchEpisodes,
     addToFavorites,
     removeFromFavorites,
     isFavorite,

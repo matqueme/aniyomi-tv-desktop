@@ -2,7 +2,6 @@ import {
   AnimeExtension,
   type ExtensionInfo,
   type SearchResult,
-  type VideoSource,
 } from '../../types/extension';
 
 import type {
@@ -187,35 +186,6 @@ export class AnimeSamaExtension extends AnimeExtension {
       extension: this.info.id,
     };
   }
-
-  async getEpisodes(animeId: string): Promise<Episode[]> {
-    // Simulation d'un délai réseau
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    // Génération d'épisodes mockés
-    const episodes: Episode[] = [];
-    for (let i = 1; i <= 12; i++) {
-      episodes.push({
-        id: `${animeId}-ep-${i}`,
-        number: i,
-        title: `Épisode ${i}`,
-        thumbnailUrl: `https://picsum.photos/300/170?random=${animeId}-${i}`,
-        duration: '24min',
-        animeId: '',
-        videoUrl: '',
-      });
-    }
-
-    return episodes;
-  }
-
-  async getVideoSources(): Promise<VideoSource[]> {
-    // Simulation d'un délai réseau
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // Sources vidéo mockées
-    return [];
-  }
 }
 
 /**
@@ -225,6 +195,7 @@ export class AnimeSamaExtension extends AnimeExtension {
  * @param animeId id de l'anime
  * @param baseUrl url racine de l'extension
  * @param posterUrl url de l'image principale
+ * @return Promise<Season[]>
  */
 async function getSeasons(doc: Document): Promise<Season[]> {
   // Récupère le script JS qui contient les panneaux de saisons
@@ -245,15 +216,99 @@ async function getSeasons(doc: Document): Promise<Season[]> {
   let match;
   while ((match = seasonRegex.exec(cleanedScripts)) !== null) {
     const seasonName = match[1];
-    const seasonStem = match[2];
-    const voiceMatch = seasonStem.match(/\/(vostfr|vf)/i);
-    const voice = voiceMatch ? voiceMatch[1].toLowerCase() : 'vostfr';
+    const voice = await extractLanguages(doc);
+    const episodes = await getEpisodes(
+      doc,
+      match[2],
+      doc.baseURI,
+      doc.querySelector('#coverOeuvre')?.getAttribute('src') || ''
+    );
+
     seasons.push({
       number: seasons.length + 1,
       title: seasonName,
       episodeCount: 0,
-      voices: [voice],
+      voices: voice,
+      episodes: episodes,
     });
   }
+
   return seasons;
+}
+
+async function getEpisodes(
+  doc: Document,
+  animeId: string,
+  baseUrl: string,
+  posterUrl: string
+): Promise<Episode[]> {
+  const episodes: Episode[] = [];
+  const episodeElements = doc.querySelectorAll('#containerEpisodes > div > a');
+  episodeElements.forEach((el) => {
+    const href = el.getAttribute('href') || '';
+    const match = href.match(/\/catalogue\/([^/]+)\/saison(\d+)\/episode(\d+)/);
+    if (match) {
+      const [, animeSlug, seasonNumber, episodeNumber] = match;
+      const episodeId = `${animeSlug}-saison${seasonNumber}-episode${episodeNumber}`;
+      const title = el.querySelector('h1')?.textContent?.trim() || '';
+      const thumbnailUrl =
+        el.querySelector('img')?.getAttribute('src') || posterUrl;
+      episodes.push({
+        id: episodeId,
+        animeId,
+        number: parseInt(episodeNumber, 10),
+        title,
+        thumbnailUrl: thumbnailUrl.startsWith('http')
+          ? thumbnailUrl
+          : `${baseUrl}${thumbnailUrl}`,
+        videoUrl: '', // À remplir plus tard
+        voices: [],
+      });
+    }
+  });
+  return episodes;
+}
+
+/**
+ * Extrait les langues disponibles pour un anime à partir du DOM.
+ * Cherche dans les headers "Langue" ou "Voix", puis dans le script JS si rien trouvé.
+ * @param doc Document HTML parsé (DOMParser)
+ * @return Promise<string[]>
+ */
+async function extractLanguages(doc: Document): Promise<string[]> {
+  // Cherche le header "Langue" ou "Voix"
+  const langHeader = Array.from(doc.querySelectorAll('h2')).find(
+    (h2) =>
+      h2.textContent?.toLowerCase().includes('langue') ||
+      h2.textContent?.toLowerCase().includes('voix')
+  );
+  let languages: string[] = [];
+  if (langHeader) {
+    let nextEl = langHeader.nextElementSibling;
+    while (nextEl && (nextEl.tagName === 'A' || nextEl.tagName === 'SPAN')) {
+      const text = nextEl.textContent?.trim();
+      if (text) languages.push(text);
+      nextEl = nextEl.nextElementSibling;
+    }
+    if (languages.length === 0 && nextEl && nextEl.textContent) {
+      languages = nextEl.textContent.split(',').map((l) => l.trim());
+    }
+  }
+  // Fallback: cherche dans le JS si rien trouvé
+  if (languages.length === 0) {
+    const scripts = Array.from(doc.querySelectorAll('script'))
+      .map((s) => s.textContent || '')
+      .join('\n');
+    const voiceRegex = /panneauAnime\(["'][^"']+["'],\s*["']([^"']+)["']\)/g;
+    let match;
+    const found: Set<string> = new Set();
+    while ((match = voiceRegex.exec(scripts)) !== null) {
+      const stem = match[1];
+      if (stem.toLowerCase().includes('vostfr')) found.add('VOSTFR');
+      if (stem.toLowerCase().includes('vf')) found.add('VF');
+    }
+    if (found.size > 0) languages = Array.from(found);
+  }
+  console.log(`Languages found: ${languages.join(', ')}`);
+  return languages;
 }

@@ -1,4 +1,4 @@
-import type { AnimeCardInfo, AnimeDetails, Episode } from './anime';
+import type { AnimeCardInfo, AnimeDetails } from './anime';
 
 export interface ExtensionInfo {
   id: string;
@@ -45,14 +45,4 @@ export abstract class AnimeExtension {
    * Récupère les détails d'un anime
    */
   abstract getAnimeDetails(id: string): Promise<AnimeDetails>;
-
-  /**
-   * Récupère les épisodes d'un anime
-   */
-  abstract getEpisodes(animeId: string): Promise<Episode[]>;
-
-  /**
-   * Récupère les sources vidéo d'un épisode
-   */
-  abstract getVideoSources(episodeId: string): Promise<VideoSource[]>;
 }
