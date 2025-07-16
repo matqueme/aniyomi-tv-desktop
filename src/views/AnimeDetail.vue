@@ -607,7 +607,6 @@ import { useAnimeStore } from '@/stores/anime';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import type { AnimeCardInfo, Episode, AnimeDetails } from '@/types/anime';
 import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
-import { extensionManager } from '@/extensions/manager/ExtensionManager';
 import 'swiper/swiper-bundle.css';
 
 const route = useRoute();
@@ -813,8 +812,8 @@ const loadAnimeDetails = async () => {
 };
 
 const loadFromExtension = async () => {
-  // Charger les détails complets de l'anime depuis l'extension
-  animeDetails.value = await extensionManager.getAnimeDetails(
+  // Charger les détails complets de l'anime depuis le store
+  animeDetails.value = await animeStore.getAnimeDetails(
     extensionName.value,
     animeName.value
   );
@@ -825,13 +824,15 @@ const loadFromExtension = async () => {
   selectedSeason.value = isNaN(seasonNumber) ? 1 : seasonNumber;
 
   // Créer un objet anime compatible pour les anciens composants
-  anime.value = {
-    id: animeDetails.value.id,
-    title: animeDetails.value.title,
-    posterUrl: animeDetails.value.posterUrl,
-    year: animeDetails.value.year,
-    extension: animeDetails.value.extension,
-  };
+  if (animeDetails.value) {
+    anime.value = {
+      id: animeDetails.value.id,
+      title: animeDetails.value.title,
+      posterUrl: animeDetails.value.posterUrl,
+      year: animeDetails.value.year,
+      extension: animeDetails.value.extension,
+    };
+  }
 };
 
 const playAnime = () => {

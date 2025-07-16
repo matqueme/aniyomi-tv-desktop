@@ -123,6 +123,17 @@ export const useAnimeStore = defineStore('anime', () => {
     episodes.value = [];
   };
 
+  const getAnimeDetails = async (
+    extensionId: string,
+    animeId: string
+  ): Promise<AnimeDetails> => {
+    await fetchAnimeDetails(extensionId, animeId);
+    if (!animeDetails.value) {
+      throw new Error("Impossible de charger les détails de l'anime");
+    }
+    return animeDetails.value;
+  };
+
   return {
     // État
     popularAnimes,
@@ -144,7 +155,7 @@ export const useAnimeStore = defineStore('anime', () => {
     fetchPopularAnimes,
     fetchLatestAnimes,
     searchAnimes,
-    fetchAnimeDetails,
+    getAnimeDetails,
     addToFavorites,
     removeFromFavorites,
     isFavorite,
