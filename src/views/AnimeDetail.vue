@@ -607,6 +607,7 @@ import { useAnimeStore } from '@/stores/anime';
 import SpatialNavigation from 'vue-spatial-nav/lib/spatial_navigation';
 import type { AnimeCardInfo, Episode, AnimeDetails } from '@/types/anime';
 import { normalizeKeyboardEvent, isBackKey } from '@/utils/keyboardUtils';
+import { getSeasonSlug } from '@/utils/urlUtils';
 import 'swiper/swiper-bundle.css';
 
 const route = useRoute();
@@ -624,11 +625,11 @@ const error = ref<string | null>(null);
 
 // Paramètres de route - support des deux formats
 const isNewRoute = computed(
-  () => route.params.extension && route.params.animeName && route.params.season
+  () => route.params.extension && route.params.animeName
 );
 const extensionName = computed(() => route.params.extension as string);
 const animeName = computed(() => route.params.animeName as string);
-const season = computed(() => route.params.season as string);
+const season = computed(() => (route.params.season as string) || '1'); // Défaut à '1' si non spécifié
 
 // États de focus
 const isPlayFocused = ref(false);
@@ -837,15 +838,22 @@ const loadFromExtension = async () => {
 
 const playAnime = () => {
   if (episodes.value.length > 0 && animeDetails.value) {
+    // Trouver la saison actuelle dans les détails de l'anime
+    const seasonData = currentSeasonData.value;
+
+    // Générer un slug à partir du titre de la saison
+    let seasonSlug = selectedSeason.value.toString();
+    if (seasonData) {
+      seasonSlug = getSeasonSlug(seasonData);
+    }
+
     router.push({
       name: 'VideoWatch',
       params: {
         extension: extensionName.value,
         animeId: animeName.value,
+        season: seasonSlug,
         episode: '1',
-      },
-      query: {
-        season: season.value,
       },
     });
   }
@@ -853,15 +861,22 @@ const playAnime = () => {
 
 const watchEpisode = (episode: Episode) => {
   if (animeDetails.value) {
+    // Trouver la saison actuelle dans les détails de l'anime
+    const seasonData = currentSeasonData.value;
+
+    // Générer un slug à partir du titre de la saison
+    let seasonSlug = selectedSeason.value.toString();
+    if (seasonData) {
+      seasonSlug = getSeasonSlug(seasonData);
+    }
+
     router.push({
       name: 'VideoWatch',
       params: {
         extension: extensionName.value,
         animeId: animeName.value,
+        season: seasonSlug,
         episode: episode.number.toString(),
-      },
-      query: {
-        season: season.value,
       },
     });
   }
@@ -907,6 +922,17 @@ const changeSeason = (seasonNumber: number) => {
 
   selectedSeason.value = seasonNumber;
 
+  // Trouver la saison dans les détails de l'anime
+  const seasonData = animeDetails.value?.seasons?.find(
+    (s) => s.number === seasonNumber
+  );
+
+  // Générer un slug à partir du titre de la saison
+  let seasonSlug = seasonNumber.toString();
+  if (seasonData) {
+    seasonSlug = getSeasonSlug(seasonData);
+  }
+
   // Recharger les épisodes pour la nouvelle saison
   if (isNewRoute.value) {
     router.push({
@@ -914,7 +940,7 @@ const changeSeason = (seasonNumber: number) => {
       params: {
         extension: extensionName.value,
         animeName: animeName.value,
-        season: seasonNumber.toString(),
+        season: seasonSlug,
       },
     });
   }

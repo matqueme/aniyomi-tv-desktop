@@ -20,7 +20,7 @@ const router = createRouter({
       component: Search,
     },
     {
-      path: '/:extension/:animeName',
+      path: '/:extension/:animeName/:season?',
       name: 'AnimeDetail',
       component: AnimeDetail,
     },
@@ -30,7 +30,7 @@ const router = createRouter({
       component: AnimeDetail,
     },
     {
-      path: '/watch/:extension/:animeId/:episode',
+      path: '/watch/:extension/:animeId/:season/:episode',
       name: 'VideoWatch',
       component: VideoWatch,
     },

@@ -115,12 +115,14 @@ const goToNextEpisode = () => {
   if (hasNextEpisode.value) {
     const newEpisode = currentEpisode.value + 1;
     const extension = route.params.extension as string;
+    const season = route.params.season as string;
 
     router.push({
       name: 'VideoWatch',
       params: {
         extension: extension,
         animeId: animeInfo.value?.id,
+        season: season,
         episode: newEpisode.toString(),
       },
     });
@@ -130,12 +132,14 @@ const goToNextEpisode = () => {
 const goBack = () => {
   if (animeInfo.value?.id) {
     const extension = route.params.extension as string;
+    const season = route.params.season as string;
 
     router.push({
       name: 'AnimeDetail',
       params: {
         extension: extension,
         animeName: animeInfo.value.id,
+        season: season,
       },
     });
   } else {
@@ -168,7 +172,7 @@ onMounted(async () => {
 
 // Watchers pour les changements de route
 watch(
-  () => route.params.episode,
+  () => [route.params.episode, route.params.season],
   () => {
     loadAnimeData();
   }
