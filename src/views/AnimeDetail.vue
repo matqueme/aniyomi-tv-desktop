@@ -837,45 +837,33 @@ const loadFromExtension = async () => {
 
 const playAnime = () => {
   if (episodes.value.length > 0 && animeDetails.value) {
-    if (isNewRoute.value) {
-      // Nouvelle route avec extension
-      router.push({
-        name: 'VideoWatch',
-        params: {
-          animeId: animeName.value,
-          episode: '1',
-        },
-        query: {
-          extension: extensionName.value,
-          season: season.value,
-        },
-      });
-    } else {
-      // Ancienne route
-      router.push(`/watch/${animeDetails.value.id}/1`);
-    }
+    router.push({
+      name: 'VideoWatch',
+      params: {
+        extension: extensionName.value,
+        animeId: animeName.value,
+        episode: '1',
+      },
+      query: {
+        season: season.value,
+      },
+    });
   }
 };
 
 const watchEpisode = (episode: Episode) => {
   if (animeDetails.value) {
-    if (isNewRoute.value) {
-      // Nouvelle route avec extension
-      router.push({
-        name: 'VideoWatch',
-        params: {
-          animeId: animeName.value,
-          episode: episode.number.toString(),
-        },
-        query: {
-          extension: extensionName.value,
-          season: season.value,
-        },
-      });
-    } else {
-      // Ancienne route
-      router.push(`/watch/${animeDetails.value.id}/${episode.number}`);
-    }
+    router.push({
+      name: 'VideoWatch',
+      params: {
+        extension: extensionName.value,
+        animeId: animeName.value,
+        episode: episode.number.toString(),
+      },
+      query: {
+        season: season.value,
+      },
+    });
   }
 };
 

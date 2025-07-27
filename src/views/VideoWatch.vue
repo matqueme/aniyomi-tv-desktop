@@ -114,9 +114,12 @@ const loadAnimeData = () => {
 const goToNextEpisode = () => {
   if (hasNextEpisode.value) {
     const newEpisode = currentEpisode.value + 1;
+    const extension = route.params.extension as string;
+
     router.push({
       name: 'VideoWatch',
       params: {
+        extension: extension,
         animeId: animeInfo.value?.id,
         episode: newEpisode.toString(),
       },
@@ -126,9 +129,14 @@ const goToNextEpisode = () => {
 
 const goBack = () => {
   if (animeInfo.value?.id) {
+    const extension = route.params.extension as string;
+
     router.push({
       name: 'AnimeDetail',
-      params: { id: animeInfo.value.id },
+      params: {
+        extension: extension,
+        animeName: animeInfo.value.id,
+      },
     });
   } else {
     router.push({ name: 'Home' }); // fallback si pas d'id

@@ -30,7 +30,7 @@ const router = createRouter({
       component: AnimeDetail,
     },
     {
-      path: '/watch/:animeId/:episode',
+      path: '/watch/:extension/:animeId/:episode',
       name: 'VideoWatch',
       component: VideoWatch,
     },
