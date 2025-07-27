@@ -23,8 +23,6 @@ export class SendvidExtractor {
     try {
       const response = await axios.get(corsProxyUrl, {
         headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
           'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
@@ -81,8 +79,7 @@ export class SendvidExtractor {
       const headers = {
         Origin: origin,
         Referer: `${origin}/`,
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        // Removed User-Agent header as browsers don't allow it to be set directly
       };
 
       // Déterminer le type de source
