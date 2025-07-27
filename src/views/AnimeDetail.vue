@@ -838,6 +838,13 @@ const loadFromExtension = async () => {
 
 const playAnime = () => {
   if (episodes.value.length > 0 && animeDetails.value) {
+    // Si on a des épisodes, lancer le premier épisode avec watchEpisode
+    if (episodes.value[0]) {
+      watchEpisode(episodes.value[0]);
+      return;
+    }
+
+    // Fallback si pas d'épisodes disponibles
     // Trouver la saison actuelle dans les détails de l'anime
     const seasonData = currentSeasonData.value;
 
@@ -870,7 +877,8 @@ const watchEpisode = (episode: Episode) => {
       seasonSlug = getSeasonSlug(seasonData);
     }
 
-    router.push({
+    // Configuration de la route
+    const routeConfig = {
       name: 'VideoWatch',
       params: {
         extension: extensionName.value,
@@ -878,7 +886,12 @@ const watchEpisode = (episode: Episode) => {
         season: seasonSlug,
         episode: episode.number.toString(),
       },
-    });
+    };
+
+    // On n'ajoute plus l'URL vidéo dans les paramètres de requête
+    // car nous utilisons maintenant les données du store pour récupérer la source vidéo
+
+    router.push(routeConfig);
   }
 };
 
